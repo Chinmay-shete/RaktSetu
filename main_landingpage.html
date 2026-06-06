@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RaktSetu | Precision Blood Logistics</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#ffdad8",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#d3c3bf",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#dbdad7",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#30312f",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e4e2df",
+                    "surface-tint": "#bf0229",
+                    "on-secondary-container": "#6e625f",
+                    "surface-container-lowest": "#ffffff",
+                    "bone-bg": "#FAF8F5",
+                    "inverse-primary": "#ffb3b1",
+                    "tertiary-fixed-dim": "#82d1ed",
+                    "on-surface": "#1b1c1a",
+                    "border-subtle": "rgba(26, 18, 16, 0.09)",
+                    "on-tertiary-fixed-variant": "#004e60",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#b6ebff",
+                    "charcoal-card": "#1A1210",
+                    "tertiary": "#005468",
+                    "background": "#fbf9f6",
+                    "primary": "#9e001f",
+                    "on-background": "#1b1c1a",
+                    "outline": "#906f6e",
+                    "on-tertiary-fixed": "#001f28",
+                    "error": "#ba1a1a",
+                    "surface-container-highest": "#e4e2df",
+                    "surface-container-high": "#eae8e5",
+                    "on-surface-variant": "#5c403f",
+                    "secondary-fixed": "#f0dfdb",
+                    "tertiary-container": "#006e87",
+                    "on-secondary-fixed": "#221a17",
+                    "primary-container": "#c8102e",
+                    "text-muted": "#737373",
+                    "secondary": "#685c59",
+                    "on-tertiary-container": "#b6ebff",
+                    "primary-fixed-dim": "#ffb3b1",
+                    "on-secondary-fixed-variant": "#4f4442",
+                    "inverse-on-surface": "#f2f0ed",
+                    "surface-bright": "#fbf9f6",
+                    "surface-container-low": "#f5f3f0",
+                    "surface-container": "#efeeeb",
+                    "on-primary-fixed": "#410007",
+                    "on-primary-container": "#ffdad8",
+                    "secondary-container": "#f0dfdb",
+                    "crimson-accent": "#C8102E",
+                    "on-primary-fixed-variant": "#92001c",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#e5bdbb",
+                    "surface": "#fbf9f6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "container-max": "1280px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "label-md": ["DM Sans"],
+                    "display-lg-mobile": ["DM Sans"],
+                    "body-lg": ["DM Sans"],
+                    "display-lg": ["DM Sans"],
+                    "label-sm": ["DM Sans"],
+                    "headline-md": ["DM Sans"],
+                    "headline-lg": ["DM Sans"],
+                    "body-md": ["DM Sans"],
+                    "serif": ["Instrument Serif", "serif"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "-0.04em", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .spring-transition {
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .noise-filter {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.05;
+            z-index: 9999;
+            background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+        }
+        .aceternity-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+        }
+        .radial-glow {
+            background: radial-gradient(circle at center, rgba(200, 16, 46, 0.08) 0%, transparent 70%);
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 1.5rem;
+        }
+        .counter-scale {
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .counter-scale.active {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+<body class="bg-bone-bg text-on-surface font-body-md overflow-x-hidden">
+<div class="noise-filter"></div>
+<!-- Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-border-subtle">
+<div class="flex justify-between items-center h-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<a class="font-serif text-headline-lg font-bold text-crimson-accent tracking-tight" href="#">RaktSetu</a>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#features">Features</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#process">How it works</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#who">Who uses it</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#pilot">Pilot</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2 font-label-md text-label-md text-primary hover:opacity-80 transition-all spring-transition">Login</button>
+<button class="bg-crimson-accent text-white px-6 py-2 rounded-full font-label-md text-label-md spring-transition hover:scale-105 active:scale-95" onclick="toggleModal(true)">Register as Donor</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative pt-40 pb-20 md:pt-60 md:pb-32 aceternity-grid min-h-[921px] flex items-center overflow-hidden">
+<div class="absolute inset-0 radial-glow pointer-events-none"></div>
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10 text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 mb-8 animate-pulse">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Now Scaling in Maharashtra</span>
+</div>
+<h1 class="font-serif text-[60px] md:text-[100px] leading-[0.9] text-charcoal-card mb-8 max-w-4xl mx-auto">
+                The smartest way to <br/> manage <span class="text-primary italic">blood</span> in India
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-12">
+                AI-driven logistics layer for India’s blood supply chain. Reducing wastage by 40% using real-time predictive demand sensing.
+            </p>
+<div class="flex flex-col md:flex-row gap-4 justify-center">
+<button class="bg-charcoal-card text-white px-10 py-5 rounded-full font-label-md text-label-md spring-transition hover:bg-black group">
+                    Request Emergency Access
+                    <span class="material-symbols-outlined align-middle ml-2 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<button class="bg-white border border-border-subtle px-10 py-5 rounded-full font-label-md text-label-md spring-transition hover:border-primary/40">
+                    Watch Product Pilot
+                </button>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="py-20 bg-white border-y border-border-subtle overflow-hidden">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="relative pt-8">
+<div class="absolute top-0 left-0 w-full h-[2px] bg-primary/10">
+<div class="h-full bg-primary counter-scale active" style="width: 100%;"></div>
+</div>
+<div class="font-serif text-[64px] text-charcoal-card leading-none mb-2" data-count="10">10%</div>
+<p class="font-label-md text-label-md text-text-muted">Avg. Wastage Reduced</p>
+</div>
+<div class="relative pt-8">
+<div class="absolute top-0 left-0 w-full h-[2px] bg-primary/10">
+<div class="h-full bg-primary counter-scale active" style="width: 100%;"></div>
+</div>
+<div class="font-serif text-[64px] text-charcoal-card leading-none mb-2" data-count="5">5 Days</div>
+<p class="font-label-md text-label-md text-text-muted">Stock Forecasting Precision</p>
+</div>
+<div class="relative pt-8">
+<div class="absolute top-0 left-0 w-full h-[2px] bg-primary/10">
+<div class="h-full bg-primary counter-scale active" style="width: 100%;"></div>
+</div>
+<div class="font-serif text-[64px] text-charcoal-card leading-none mb-2" data-count="6">6x</div>
+<p class="font-label-md text-label-md text-text-muted">Unique Logistics Features</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Dark Marquee -->
+<div class="bg-charcoal-card py-6 overflow-hidden flex whitespace-nowrap border-y border-white/5">
+<div class="flex animate-marquee gap-12 items-center">
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">PREDICTIVE ANALYTICS <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">COLD CHAIN MONITORING <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">DONOR RETENTION <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">REAL-TIME INVENTORY <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">INTER-HOSPITAL TRANSFER <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+</div>
+<div class="flex animate-marquee gap-12 items-center">
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">PREDICTIVE ANALYTICS <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">COLD CHAIN MONITORING <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">DONOR RETENTION <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">REAL-TIME INVENTORY <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<span class="text-white/40 font-label-md text-label-md flex items-center gap-4">INTER-HOSPITAL TRANSFER <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+</div>
+</div>
+<!-- Features Section -->
+<section class="py-32" id="features">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+<!-- Large Dashboard Card -->
+<div class="bg-charcoal-card rounded-xl p-10 md:row-span-2 relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+<div class="relative z-10">
+<span class="text-primary font-label-sm tracking-widest uppercase mb-4 block">Central Intelligence</span>
+<h3 class="text-white font-serif text-headline-lg mb-6">Unified Supply Dashboard</h3>
+<p class="text-white/60 font-body-md max-w-sm">Every unit tracked, from collection to transfusion. Zero blind spots in the national grid.</p>
+</div>
+<div class="mt-12 bg-white/5 border border-white/10 rounded-lg p-6 backdrop-blur-sm">
+<div class="flex justify-between items-center mb-6">
+<span class="text-white font-label-md">Real-time Stock (Pune Cluster)</span>
+<span class="bg-green-500/20 text-green-400 px-2 py-0.5 rounded text-label-sm">LIVE</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<span class="text-white/40 w-12 text-label-sm">O+</span>
+<div class="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4"></div>
+</div>
+<span class="text-white font-mono text-label-sm">742u</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-white/40 w-12 text-label-sm">A-</span>
+<div class="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-yellow-500 w-1/4"></div>
+</div>
+<span class="text-white font-mono text-label-sm">118u</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-white/40 w-12 text-label-sm">AB+</span>
+<div class="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-1/2"></div>
+</div>
+<span class="text-white font-mono text-label-sm">340u</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Smaller Grid Features -->
+<div class="bg-white border border-border-subtle rounded-xl p-8 spring-transition hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-12">
+<span class="font-serif text-headline-md text-primary/20">01</span>
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<h4 class="font-headline-md text-charcoal-card mb-4">AI Forecasting</h4>
+<p class="text-on-surface-variant">Predict demand surges based on historical events, weather, and hospital data.</p>
+</div>
+<div class="bg-white border border-border-subtle rounded-xl p-8 spring-transition hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-12">
+<span class="font-serif text-headline-md text-primary/20">02</span>
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+</div>
+<h4 class="font-headline-md text-charcoal-card mb-4">Optimized Routing</h4>
+<p class="text-on-surface-variant">Dynamic transit paths for life-saving units between banks and surgical units.</p>
+</div>
+<div class="bg-white border border-border-subtle rounded-xl p-8 spring-transition hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-12">
+<span class="font-serif text-headline-md text-primary/20">03</span>
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<h4 class="font-headline-md text-charcoal-card mb-4">Chain of Custody</h4>
+<p class="text-on-surface-variant">QR-based verification at every touchpoint ensures unit integrity and safety.</p>
+</div>
+<div class="bg-white border border-border-subtle rounded-xl p-8 spring-transition hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-12">
+<span class="font-serif text-headline-md text-primary/20">04</span>
+<span class="material-symbols-outlined text-primary">notifications_active</span>
+</div>
+<h4 class="font-headline-md text-charcoal-card mb-4">Smart Alerts</h4>
+<p class="text-on-surface-variant">Automated SMS and App triggers for rare blood type donors in specific zones.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Process Section -->
+<section class="py-32 bg-surface-container-low border-y border-border-subtle relative" id="process">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<h2 class="font-serif text-headline-lg text-center mb-24">The Lifecycle of a <span class="text-primary italic">Life</span></h2>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 relative">
+<!-- Connectors for Desktop -->
+<div class="hidden md:block absolute top-10 left-0 w-full h-[1px] bg-primary/20 z-0">
+<div class="absolute top-1/2 left-1/4 w-3 h-3 -mt-1.5 rounded-full bg-primary/30"></div>
+<div class="absolute top-1/2 left-2/4 w-3 h-3 -mt-1.5 rounded-full bg-primary/30"></div>
+<div class="absolute top-1/2 left-3/4 w-3 h-3 -mt-1.5 rounded-full bg-primary/30"></div>
+</div>
+<div class="relative z-10 text-center">
+<div class="font-serif text-[120px] leading-none text-primary/5 absolute -top-16 left-1/2 -translate-x-1/2 pointer-events-none">1</div>
+<div class="w-20 h-20 rounded-full bg-white border border-primary/20 flex items-center justify-center mx-auto mb-8 shadow-sm">
+<span class="material-symbols-outlined text-primary">volunteer_activism</span>
+</div>
+<h5 class="font-headline-md mb-4">Sourcing</h5>
+<p class="text-body-md text-on-surface-variant px-4">Strategic donor mapping and mobile camp optimization.</p>
+</div>
+<div class="relative z-10 text-center">
+<div class="font-serif text-[120px] leading-none text-primary/5 absolute -top-16 left-1/2 -translate-x-1/2 pointer-events-none">2</div>
+<div class="w-20 h-20 rounded-full bg-white border border-primary/20 flex items-center justify-center mx-auto mb-8 shadow-sm">
+<span class="material-symbols-outlined text-primary">science</span>
+</div>
+<h5 class="font-headline-md mb-4">Validation</h5>
+<p class="text-body-md text-on-surface-variant px-4">Digital documentation of testing and cross-matching results.</p>
+</div>
+<div class="relative z-10 text-center">
+<div class="font-serif text-[120px] leading-none text-primary/5 absolute -top-16 left-1/2 -translate-x-1/2 pointer-events-none">3</div>
+<div class="w-20 h-20 rounded-full bg-white border border-primary/20 flex items-center justify-center mx-auto mb-8 shadow-sm">
+<span class="material-symbols-outlined text-primary">inventory_2</span>
+</div>
+<h5 class="font-headline-md mb-4">Optimized Storage</h5>
+<p class="text-body-md text-on-surface-variant px-4">AI-suggested stocking based on localized demand heatmaps.</p>
+</div>
+<div class="relative z-10 text-center">
+<div class="font-serif text-[120px] leading-none text-primary/5 absolute -top-16 left-1/2 -translate-x-1/2 pointer-events-none">4</div>
+<div class="w-20 h-20 rounded-full bg-white border border-primary/20 flex items-center justify-center mx-auto mb-8 shadow-sm">
+<span class="material-symbols-outlined text-primary">emergency_share</span>
+</div>
+<h5 class="font-headline-md mb-4">Transfusion</h5>
+<p class="text-body-md text-on-surface-variant px-4">Real-time matching and priority delivery to operating rooms.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Who Uses It Section -->
+<section class="py-32" id="who">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+<div class="max-w-xl">
+<h2 class="font-serif text-[48px] leading-tight mb-6 text-charcoal-card">Built for the <span class="italic text-primary">entire</span> ecosystem</h2>
+<p class="text-body-lg text-on-surface-variant">A modular platform that scales across organizational roles and requirements.</p>
+</div>
+<div class="flex gap-4">
+<button class="w-12 h-12 rounded-full border border-border-subtle flex items-center justify-center hover:bg-white transition-colors">
+<span class="material-symbols-outlined">west</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-border-subtle flex items-center justify-center hover:bg-white transition-colors">
+<span class="material-symbols-outlined">east</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- User Card 1 -->
+<div class="group relative bg-white border border-border-subtle p-8 rounded-xl spring-transition hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/5 cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-surface-container mb-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">medical_services</span>
+</div>
+<h6 class="font-headline-md mb-2">Hospital Staff</h6>
+<p class="text-body-md text-on-surface-variant mb-8">Request units in seconds and track transit real-time.</p>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-primary font-label-md">
+                        Learn more <span class="material-symbols-outlined text-[20px] ml-1">arrow_forward</span>
+</div>
+</div>
+<!-- User Card 2 -->
+<div class="group relative bg-white border border-border-subtle p-8 rounded-xl spring-transition hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/5 cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-surface-container mb-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">admin_panel_settings</span>
+</div>
+<h6 class="font-headline-md mb-2">Health Officer</h6>
+<p class="text-body-md text-on-surface-variant mb-8">District-wide oversight and crisis management tools.</p>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-primary font-label-md">
+                        Learn more <span class="material-symbols-outlined text-[20px] ml-1">arrow_forward</span>
+</div>
+</div>
+<!-- User Card 3 -->
+<div class="group relative bg-white border border-border-subtle p-8 rounded-xl spring-transition hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/5 cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-surface-container mb-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">account_balance</span>
+</div>
+<h6 class="font-headline-md mb-2">Bank Admin</h6>
+<p class="text-body-md text-on-surface-variant mb-8">Digital inventory logs and automated compliance reporting.</p>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-primary font-label-md">
+                        Learn more <span class="material-symbols-outlined text-[20px] ml-1">arrow_forward</span>
+</div>
+</div>
+<!-- User Card 4 -->
+<div class="group relative bg-white border border-border-subtle p-8 rounded-xl spring-transition hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/5 cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-surface-container mb-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">favorite</span>
+</div>
+<h6 class="font-headline-md mb-2">Life Donor</h6>
+<p class="text-body-md text-on-surface-variant mb-8">Digital donor card, health history, and reward points.</p>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-primary font-label-md">
+                        Learn more <span class="material-symbols-outlined text-[20px] ml-1">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pilot Section -->
+<section class="py-32 overflow-hidden" id="pilot">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+<div>
+<h2 class="font-serif text-[48px] leading-tight mb-8">Ready to modernize your <span class="italic">blood logistics?</span></h2>
+<ul class="space-y-6">
+<li class="flex items-start gap-4">
+<span class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-[16px]">check</span>
+</span>
+<p class="text-body-md">Onboard your hospital in under 48 hours.</p>
+</li>
+<li class="flex items-start gap-4">
+<span class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-[16px]">check</span>
+</span>
+<p class="text-body-md">Zero upfront capital expenditure for government banks.</p>
+</li>
+<li class="flex items-start gap-4">
+<span class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-[16px]">check</span>
+</span>
+<p class="text-body-md">24/7 technical support and on-site training.</p>
+</li>
+</ul>
+<div class="mt-12 flex items-center gap-8">
+<div>
+<div class="font-headline-md font-bold">14+</div>
+<div class="text-label-sm text-text-muted">Active Pilots</div>
+</div>
+<div class="w-px h-10 bg-border-subtle"></div>
+<div>
+<div class="font-headline-md font-bold">120k+</div>
+<div class="text-label-sm text-text-muted">Units Tracked</div>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="absolute -inset-10 bg-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
+<div class="relative bg-charcoal-card rounded-2xl p-10 border border-white/10 shadow-2xl">
+<div class="flex gap-2 mb-8 flex-wrap">
+<span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-label-sm">Maharashtra Pilot</span>
+<span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-label-sm">NABH Compliant</span>
+<span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-label-sm">AI-Enabled</span>
+</div>
+<h4 class="text-white font-serif text-headline-lg mb-4">Request Demo Access</h4>
+<p class="text-white/60 mb-10">See how RaktSetu can optimize your district's blood supply levels through real-time predictive data.</p>
+<div class="space-y-4">
+<input class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary/40 focus:border-primary/40 outline-none transition-all" placeholder="Your work email" type="email"/>
+<button class="w-full bg-crimson-accent text-white font-label-md py-4 rounded-lg hover:bg-primary transition-colors">Start Pilot Discussion</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-charcoal-card py-24 border-t border-white/10 overflow-hidden">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-20">
+<div class="col-span-1 md:col-span-2">
+<a class="font-serif text-headline-lg font-bold text-white tracking-tight mb-6 block" href="#">RaktSetu</a>
+<p class="text-white/40 text-body-md max-w-sm mb-8">
+                        Precision blood logistics for India's 1.4 billion people. Building the digital infrastructure for a healthier tomorrow.
+                    </p>
+<div class="flex gap-6 items-center">
+<span class="text-white/60 font-label-sm flex items-center gap-2">
+                            Made with pride in India <span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</span>
+</div>
+</div>
+<div>
+<h6 class="text-white font-label-md mb-8 uppercase tracking-widest text-[12px]">Platform</h6>
+<ul class="space-y-4">
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Features</a></li>
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Impact Metrics</a></li>
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Security</a></li>
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">API Documentation</a></li>
+</ul>
+</div>
+<div>
+<h6 class="text-white font-label-md mb-8 uppercase tracking-widest text-[12px]">Company</h6>
+<ul class="space-y-4">
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Mission</a></li>
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Partner Hospitals</a></li>
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Contact Support</a></li>
+<li><a class="text-white/60 hover:text-white transition-colors text-label-md" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/40 text-label-sm">
+<span>© 2024 RaktSetu AI. Precision Blood Logistics.</span>
+<div class="flex gap-8">
+<a class="hover:text-white" href="#">Twitter</a>
+<a class="hover:text-white" href="#">LinkedIn</a>
+<a class="hover:text-white" href="#">GitHub</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- Role Selection Modal -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-charcoal-card/40 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300" id="roleModal">
+<div class="bg-white rounded-2xl w-full max-w-4xl p-12 relative scale-[0.9] transition-transform duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]" id="modalContent">
+<button class="absolute top-8 right-8 text-on-surface-variant hover:text-charcoal-card" onclick="toggleModal(false)">
+<span class="material-symbols-outlined">close</span>
+</button>
+<div class="text-center mb-12">
+<h2 class="font-serif text-headline-lg mb-4">Choose your journey</h2>
+<p class="text-body-md text-on-surface-variant">Select the role that matches your intent to continue.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="p-6 rounded-xl border border-border-subtle hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-primary mb-4">volunteer_activism</span>
+<h6 class="font-label-md mb-2">Individual Donor</h6>
+<p class="text-label-sm text-text-muted">Register to donate blood and track impact.</p>
+</div>
+<div class="p-6 rounded-xl border border-border-subtle hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-primary mb-4">local_hospital</span>
+<h6 class="font-label-md mb-2">Medical Center</h6>
+<p class="text-label-sm text-text-muted">Request blood units for patients.</p>
+</div>
+<div class="p-6 rounded-xl border border-border-subtle hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-primary mb-4">food_bank</span>
+<h6 class="font-label-md mb-2">Blood Bank</h6>
+<p class="text-label-sm text-text-muted">Manage inventory and supply logic.</p>
+</div>
+<div class="p-6 rounded-xl border border-border-subtle hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-primary mb-4">shield</span>
+<h6 class="font-label-md mb-2">Government</h6>
+<p class="text-label-sm text-text-muted">District or State level monitoring.</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+        // Modal Logic
+        function toggleModal(show) {
+            const modal = document.getElementById('roleModal');
+            const content = document.getElementById('modalContent');
+            if (show) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    content.classList.remove('scale-[0.9]');
+                    content.classList.add('scale-100');
+                }, 10);
+            } else {
+                content.classList.add('scale-[0.9]');
+                content.classList.remove('scale-100');
+                setTimeout(() => {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                }, 300);
+            }
+        }
+
+        // Intersection Observer for Animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.classList.contains('counter-scale')) {
+                        entry.target.classList.add('active');
+                    }
+                    if (entry.target.hasAttribute('data-count')) {
+                        animateCounter(entry.target);
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.counter-scale, [data-count]').forEach(el => observer.observe(el));
+
+        function animateCounter(el) {
+            const target = parseFloat(el.getAttribute('data-count'));
+            const duration = 2000;
+            const startTime = performance.now();
+            const startValue = 0;
+            const suffix = el.innerText.includes('%') ? '%' : (el.innerText.includes('x') ? 'x' : (el.innerText.includes('Days') ? ' Days' : ''));
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easedProgress = 1 - Math.pow(1 - progress, 4); // Ease out Quart
+                const currentVal = (startValue + (target - startValue) * easedProgress);
+                
+                el.innerText = suffix === ' Days' ? Math.floor(currentVal) + suffix : currentVal.toFixed(target % 1 === 0 ? 0 : 1) + suffix;
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Handle scroll behavior for navigation
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2');
+                nav.classList.remove('py-4');
+            } else {
+                nav.classList.remove('py-2');
+                nav.classList.add('py-4');
+            }
+        });
+    </script>
+</body></html>
