@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RaktSetu UI/UX Design System Guidelines</title>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  
+  <style>
+    :root {
+      /* Unified Color Palette Variables */
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f4f4f5;
+      --color-background-success: #dcfce7;
+      --color-background-warning: #fef9c3;
+      --color-background-info: #e0f2fe;
+      --color-border-tertiary: #e4e4e7;
+      --color-text-primary: #18181b;
+      --color-text-secondary: #71717a;
+      --color-text-success: #15803d;
+      --color-text-warning: #854d0e;
+      --color-text-info: #0369a1;
+      
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #fafafa;
+      color: var(--color-text-primary);
+      line-height: 1.5;
+    }
+
+    body {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 32px 0 16px;
+    }
+    
+    .section-title:first-of-type {
+      margin-top: 0;
+    }
+
+    .card {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .icon-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .badge-container {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 20px;
+      line-height: 1.2;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--color-background-secondary);
+      border: 0.5px solid var(--color-border-tertiary);
+      color: var(--color-text-secondary);
+      margin: 2px 4px 2px 0;
+    }
+
+    .name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .desc {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin: 6px 0 12px;
+      line-height: 1.6;
+    }
+
+    .match {
+      font-size: 12px;
+      color: var(--color-text-success);
+      font-weight: 500;
+      margin-top: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .match i {
+      margin-top: 2px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 0.5px solid var(--color-border-tertiary);
+      margin: 32px 0;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid2 .card {
+      margin-bottom: 0;
+    }
+
+    .rec-badge {
+      background: var(--color-background-success);
+      color: var(--color-text-success);
+    }
+
+    .neutral-badge {
+      background: var(--color-background-secondary);
+      color: var(--color-text-secondary);
+    }
+
+    .warn-badge {
+      background: var(--color-background-warning);
+      color: var(--color-text-warning);
+    }
+
+    .style-table {
+      width: 100%;
+      font-size: 13px;
+      border-collapse: collapse;
+    }
+
+    .style-table th {
+      text-align: left;
+      padding: 12px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .style-table td {
+      padding: 14px 12px;
+      vertical-align: top;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .style-table tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 class="section-title">What are these UI/UX styles? — for RaktSetu</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="icon-circle" style="background: var(--color-background-secondary)">
+        <i class="ti ti-palette" style="color: var(--color-text-primary)"></i>
+      </div>
+      <div style="flex: 1">
+        <div class="badge-container">
+          <span class="name">Emil Kowalski Design</span>
+          <span class="badge neutral-badge">Polish designer</span>
+        </div>
+        <div class="desc">
+          Emil is a well-known product designer who focuses on <strong>micro-interactions</strong>, smooth animations, and very <em>minimal</em> clean aesthetics. His work feels "alive" — buttons respond gently, transitions are smooth, everything breathes.
+        </div>
+        <div style="margin-bottom: 8px">
+          <span class="tag">Micro-interactions</span><span class="tag">Smooth animation</span><span class="tag">Minimal clean UI</span><span class="tag">Motion design</span>
+        </div>
+        <div class="match">
+          <i class="ti ti-check" aria-hidden="true"></i> 
+          <span>For RaktSetu: Use for button hover effects, loading states on blood search, smooth page transitions in the donor app.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="icon-circle" style="background: var(--color-background-secondary)">
+        <i class="ti ti-diamond" style="color: var(--color-text-primary)"></i>
+      </div>
+      <div style="flex: 1">
+        <div class="badge-container">
+          <span class="name">Impeccable Design + Taste Skill</span>
+          <span class="badge neutral-badge">Design philosophy</span>
+        </div>
+        <div class="desc">
+          These are not tools — they are <em>mindsets</em>. "Impeccable Design" means obsessing over spacing, font weight, alignment, color balance. "Taste Skill" means developing the eye to judge what looks professional vs amateur. Think of Apple's Human Interface Guidelines.
+        </div>
+        <div style="margin-bottom: 8px">
+          <span class="tag">Spacing & alignment</span><span class="tag">Typography hierarchy</span><span class="tag">Visual refinement</span><span class="tag">Attention to detail</span>
+        </div>
+        <div class="match">
+          <i class="ti ti-check" aria-hidden="true"></i> 
+          <span>For RaktSetu: Ensures your hospital dashboard doesn't look like a student project — consistent 8px grid, correct font sizes, no random colors.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <h2 class="section-title">Component Libraries (ready-made UI blocks)</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="icon-circle" style="background: var(--color-background-info); margin-bottom: 12px">
+        <i class="ti ti-sparkles" style="color: var(--color-text-info)"></i>
+      </div>
+      <div class="badge-container">
+        <span class="name">Magic UI</span>
+        <span class="badge warn-badge">React</span>
+      </div>
+      <div class="desc">
+        Animated React components — animated number counters, shimmer buttons, glowing cards, particle effects. Very popular for landing pages and hero sections.
+      </div>
+      <div style="margin-bottom: 8px">
+        <span class="tag">Animation</span><span class="tag">React components</span><span class="tag">Hero sections</span>
+      </div>
+      <div class="match">
+        <i class="ti ti-check" aria-hidden="true"></i> 
+        <span>RaktSetu hero landing page animated counters (blood units saved, hospitals connected)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon-circle" style="background: var(--color-background-secondary); margin-bottom: 12px">
+        <i class="ti ti-layers-intersect" style="color: var(--color-text-primary)"></i>
+      </div>
+      <div class="badge-container">
+        <span class="name">Aceternity UI</span>
+        <span class="badge warn-badge">React</span>
+      </div>
+      <div class="desc">
+        Beautiful, dramatic UI components — spotlight effects, 3D card tilts, moving borders, glowing grids. Dark-mode heavy. Very eye-catching for portfolios and product showcases.
+      </div>
+      <div style="margin-bottom: 8px">
+        <span class="tag">3D effects</span><span class="tag">Dark mode</span><span class="tag">Spotlight cards</span>
+      </div>
+      <div class="match">
+        <i class="ti ti-check" aria-hidden="true"></i> 
+        <span>Use sparingly — maybe the login page or the public-facing landing page only. Too heavy for hospital dashboard.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon-circle" style="background: var(--color-background-success); margin-bottom: 12px">
+        <i class="ti ti-components" style="color: var(--color-text-success)"></i>
+      </div>
+      <div class="badge-container">
+        <span class="name">21st.dev</span>
+        <span class="badge rec-badge">Recommended ✓</span>
+      </div>
+      <div class="desc">
+        A community library of high-quality, copy-paste React + Tailwind components. Includes navbars, dashboards, tables, forms. Very practical for real apps, not just showoff projects.
+      </div>
+      <div style="margin-bottom: 8px">
+        <span class="tag">Copy-paste</span><span class="tag">Tailwind CSS</span><span class="tag">Practical UI</span>
+      </div>
+      <div class="match">
+        <i class="ti ti-check" aria-hidden="true"></i> 
+        <span>Perfect for RaktSetu's hospital dashboard — blood stock tables, admin panels, search forms.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon-circle" style="background: var(--color-background-warning); margin-bottom: 12px">
+        <i class="ti ti-eye" style="color: var(--color-text-warning)"></i>
+      </div>
+      <div class="badge-container">
+        <span class="name">Mobbin</span>
+        <span class="badge neutral-badge">Inspiration only</span>
+      </div>
+      <div class="desc">
+        A library of real-world app screenshots from top apps (Airbnb, Uber, etc.). NOT a component library — it's pure visual inspiration. You look at it to get ideas, not copy code.
+      </div>
+      <div style="margin-bottom: 8px">
+        <span class="tag">App screenshots</span><span class="tag">Mobile patterns</span><span class="tag">UX inspiration</span>
+      </div>
+      <div class="match">
+        <i class="ti ti-check" aria-hidden="true"></i> 
+        <span>Use to study how hospital/health apps layout dashboards and emergency screens before designing yours.</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="card">
+    <div class="card-header">
+      <div class="icon-circle" style="background: var(--color-background-secondary)">
+        <i class="ti ti-stack-2" style="color: var(--color-text-primary)"></i>
+      </div>
+      <div style="flex: 1">
+        <div class="badge-container">
+          <span class="name">Layers</span>
+          <span class="badge neutral-badge">Design community</span>
+        </div>
+        <div class="desc">
+          Layers is a design community and resource hub — designers share UI kits, Figma files, templates, and tutorials. It's like GitHub but for design assets. You download Figma templates from here and adapt them.
+        </div>
+        <div style="margin-bottom: 8px">
+          <span class="tag">Figma templates</span><span class="tag">UI kits</span><span class="tag">Design resources</span><span class="tag">Community</span>
+        </div>
+        <div class="match">
+          <i class="ti ti-check" aria-hidden="true"></i> 
+          <span>For RaktSetu: Download a healthcare or SaaS dashboard Figma kit and modify it to your design. Saves weeks of design time.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <h2 class="section-title">Which styles fit which part of RaktSetu?</h2>
+
+  <div class="card" style="padding: 8px 12px;">
+    <table class="style-table">
+      <thead>
+        <tr>
+          <th style="width: 35%;">RaktSetu Screen</th>
+          <th style="width: 65%;">Best Style to Use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight: 600; color: var(--color-text-primary);">Public landing page</td>
+          <td style="color: var(--color-text-secondary);">
+            Magic UI (animations) + Emil Kowalski (micro-interactions) + Aceternity (hero)
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600; color: var(--color-text-primary);">Hospital dashboard</td>
+          <td style="color: var(--color-text-secondary);">
+            21st.dev components + Impeccable Design mindset + Layers Figma kit
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600; color: var(--color-text-primary);">Donor mobile app (Flutter)</td>
+          <td style="color: var(--color-text-secondary);">
+            Mobbin inspiration (study Practo, mFine) + Emil Kowalski transitions
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600; color: var(--color-text-primary);">Emergency blood search</td>
+          <td style="color: var(--color-text-secondary);">
+            21st.dev forms + Taste Skill (keep it dead simple — speed matters in emergency)
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>
