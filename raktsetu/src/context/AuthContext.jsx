@@ -19,15 +19,31 @@ export const AuthProvider = ({ children }) => {
     return DEFAULT_HOSPITAL;
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('raktsetu_hospital_authenticated') === 'true';
+  });
 
-  const login = (email, password) => {
-    setIsAuthenticated(true);
-    return true;
+  const login = (email, password, rememberMe) => {
+    // Mock login logic
+    const savedPassword = localStorage.getItem('raktsetu_hospital_password');
+    
+    // Allow login if password matches saved password, OR if they use 'admin123' as a master fallback
+    if ((savedPassword && password === savedPassword) || password === 'admin123') {
+      setIsAuthenticated(true);
+      localStorage.setItem('raktsetu_hospital_authenticated', 'true');
+      if (rememberMe) {
+          localStorage.setItem('raktsetu_hospital_email', email);
+      } else {
+          localStorage.removeItem('raktsetu_hospital_email');
+      }
+      return true;
+    }
+    return false;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
+    localStorage.removeItem('raktsetu_hospital_authenticated');
   };
 
   const updateProfile = (profileData) => {
@@ -36,8 +52,31 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('raktsetu_hospital_profile', JSON.stringify(updated));
   };
 
+  const validateInviteToken = async (token) => {
+      // Simulate API call
+      return new Promise((resolve) => {
+          setTimeout(() => {
+              if (token === 'token-sjh') {
+                  resolve({ name: "St. Jude Memorial Hospital" });
+              } else {
+                  resolve({ name: "City Life Blood Bank & Hospital" });
+              }
+          }, 1500);
+      });
+  };
+
+  const setupPassword = async (token, password) => {
+      // Simulate API call
+      return new Promise((resolve) => {
+          setTimeout(() => {
+              localStorage.setItem('raktsetu_hospital_password', password);
+              resolve(true);
+          }, 1000);
+      });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateProfile, validateInviteToken, setupPassword }}>
       {children}
     </AuthContext.Provider>
   );

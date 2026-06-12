@@ -44,7 +44,9 @@ export const Navbar = ({ onMenuOpen }) => {
   const fetchNotifs = async () => {
     try {
       const data = await mockApi.getNotifications();
-      setNotifications(data);
+      // Filter out any notification of type Emergency since it's removed
+      const filtered = data.filter(n => n.type !== 'Emergency');
+      setNotifications(filtered);
     } catch (e) {
       console.error(e);
     }
@@ -100,7 +102,6 @@ export const Navbar = ({ onMenuOpen }) => {
   const getNotifIcon = (type) => {
     switch (type) {
       case 'Expiry': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      case 'Emergency': return <Flame className="h-4 w-4 text-rose-500 animate-pulse" />;
       case 'Transfer': return <ArrowLeftRight className="h-4 w-4 text-blue-500" />;
       case 'Stock Low': return <PlusCircle className="h-4 w-4 text-rose-500" />;
       default: return <Bell className="h-4 w-4 text-slate-500" />;
@@ -118,7 +119,7 @@ export const Navbar = ({ onMenuOpen }) => {
         </button>
 
         <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 select-none">
-          <Link to="/hospital/dashboard" className="hover:text-slate-600 dark:hover:text-slate-300">
+          <Link to="/dashboard" className="hover:text-slate-600 dark:hover:text-slate-300">
             RaktSetu
           </Link>
           {breadcrumbs.map((bc, idx) => (
@@ -210,7 +211,7 @@ export const Navbar = ({ onMenuOpen }) => {
                         {!notif.read && (
                           <button
                             onClick={(e) => markRead(notif.id, e)}
-                            className="flex-shrink-0 text-slate-450 hover:text-slate-700 dark:hover:text-slate-300 self-center cursor-pointer p-1"
+                            className="flex-shrink-0 text-slate-450 hover:text-slate-700 dark:hover:text-slate-350 self-center cursor-pointer p-1"
                           >
                             <Check className="h-3 w-3" />
                           </button>
@@ -222,7 +223,7 @@ export const Navbar = ({ onMenuOpen }) => {
                 
                 <div className="p-3 border-t border-slate-200/50 dark:border-slate-800/40 text-center bg-slate-50/50 dark:bg-slate-900/30">
                   <Link
-                    to="/hospital/expiry-alerts"
+                    to="/expiry-alerts"
                     onClick={() => setIsNotifOpen(false)}
                     className="text-xxs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-350"
                   >
@@ -234,14 +235,15 @@ export const Navbar = ({ onMenuOpen }) => {
           </AnimatePresence>
         </div>
 
-        <Link to="/hospital/profile" className="flex items-center gap-2 cursor-pointer select-none">
+        <div className="flex items-center gap-2 select-none">
           <img
-            src={user.logo}
-            alt={user.name}
+            src={user?.logo}
+            alt={user?.name}
             className="w-9 h-9 rounded-2xl object-cover border border-slate-200 dark:border-slate-800 hover:scale-105 transition-all shadow-sm"
           />
-        </Link>
+        </div>
       </div>
     </header>
   );
 };
+export default Navbar;

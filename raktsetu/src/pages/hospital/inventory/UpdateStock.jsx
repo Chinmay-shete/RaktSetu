@@ -47,7 +47,7 @@ export const UpdateStock = () => {
       toast.success("New blood stock successfully added to inventory!");
       setShowConfirmModal(false);
       reset();
-      navigate('/hospital/inventory');
+      navigate('/inventory');
     },
     onError: () => {
       toast.error("An error occurred. Failed to register stock.");

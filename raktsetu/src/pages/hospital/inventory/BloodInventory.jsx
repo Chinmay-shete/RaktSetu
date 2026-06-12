@@ -152,7 +152,7 @@ export const BloodInventory = () => {
             Export CSV
           </button>
           <button
-            onClick={() => navigate('/hospital/update-stock')}
+            onClick={() => navigate('/update-stock')}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-md shadow-rose-600/10 hover:shadow-rose-600/20 cursor-pointer active:scale-95"
           >
             <Plus className="h-4 w-4" />

@@ -8,25 +8,19 @@ import {
   PlusCircle,
   ArrowLeftRight,
   AlertTriangle,
-  BarChart3,
-  Flame,
-  User,
-  Settings as SettingsIcon,
-  LogOut,
+  UserPlus,
   Heart,
+  LogOut,
   X
 } from 'lucide-react';
 
 export const sidebarItems = [
-  { path: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: 'inventory', label: 'Blood Inventory', icon: Database },
-  { path: 'update-stock', label: 'Update Stock', icon: PlusCircle },
-  { path: 'transfers', label: 'Transfer Requests', icon: ArrowLeftRight },
-  { path: 'expiry-alerts', label: 'Expiry Alerts', icon: AlertTriangle, badgeKey: 'expiry' },
-  { path: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { path: 'emergency', label: 'Emergency Requests', icon: Flame, badgeKey: 'emergency' },
-  { path: 'profile', label: 'Hospital Profile', icon: User },
-  { path: 'settings', label: 'Settings', icon: SettingsIcon },
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/inventory', label: 'Blood Inventory', icon: Database },
+  { path: '/update-stock', label: 'Update Stock', icon: PlusCircle },
+  { path: '/expiry-alerts', label: 'Expiry Alerts', icon: AlertTriangle, badgeKey: 'expiry' },
+  { path: '/transfer-request', label: 'Transfer Requests', icon: ArrowLeftRight },
+  { path: '/invite', label: 'Invite Staff', icon: UserPlus }
 ];
 
 export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
@@ -35,7 +29,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   const content = (
@@ -62,7 +56,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
           return (
             <NavLink
               key={item.path}
-              to={`/hospital/${item.path}`}
+              to={item.path}
               onClick={onClose}
               className={({ isActive }) => `
                 relative flex items-center justify-between px-4 py-3 rounded-2xl font-semibold text-sm transition-all group cursor-pointer
@@ -83,9 +77,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
                       text-[10px] font-extrabold px-2 py-0.5 rounded-full border transition-colors
                       ${isActive 
                         ? 'bg-white text-rose-600 border-white' 
-                        : item.badgeKey === 'emergency'
-                          ? 'bg-rose-500 text-white border-rose-600/10'
-                          : 'bg-amber-500 text-white border-amber-600/10'}
+                        : 'bg-amber-500 text-white border-amber-600/10'}
                     `}>
                       {badgeCount}
                     </span>

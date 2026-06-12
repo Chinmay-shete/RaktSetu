@@ -11,7 +11,7 @@ export const HospitalLayout = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   const { data: inventory = [] } = useQuery({
@@ -20,18 +20,11 @@ export const HospitalLayout = () => {
     refetchInterval: 12000
   });
 
-  const { data: emergencies = [] } = useQuery({
-    queryKey: ['emergencies'],
-    queryFn: mockApi.getEmergencyRequests,
-    refetchInterval: 8000
-  });
-
   const expiryCount = inventory.filter(item => item.status === 'Expiring Soon' || item.status === 'Expired').length;
-  const emergencyCount = emergencies.filter(req => req.status === 'Pending').length;
 
   const badges = {
     expiry: expiryCount,
-    emergency: emergencyCount
+    emergency: 0
   };
 
   return (
@@ -51,4 +44,5 @@ export const HospitalLayout = () => {
     </div>
   );
 };
+
 export default HospitalLayout;
