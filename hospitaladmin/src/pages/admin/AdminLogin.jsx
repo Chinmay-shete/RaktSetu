@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
 import { Lock, Mail, Eye, EyeOff, AlertCircle, Heart } from 'lucide-react';
@@ -7,16 +7,26 @@ import { motion } from 'framer-motion';
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { loginAdmin } = useHospital();
-  
+
   const [formData, setFormData] = useState({
-    email: 'admin@raktsetu.org',
-    password: 'admin123',
+    email: '',
+    password: '',
     rememberMe: false
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let timeout;
+    if (error) {
+      timeout = setTimeout(() => {
+        setError('');
+      }, 4000);
+    }
+    return () => clearTimeout(timeout);
+  }, [error]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,11 +42,14 @@ const AdminLogin = () => {
     // Simulate authentication
     setTimeout(() => {
       setIsLoading(false);
-      if (formData.email === 'admin@raktsetu.org' && formData.password === 'admin123') {
+      const expectedEmail = import.meta.env.VITE_ADMIN_EMAIL;
+      const expectedPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+      if (expectedEmail && expectedPassword && formData.email === expectedEmail && formData.password === expectedPassword) {
         loginAdmin();
         navigate('/admin/dashboard');
       } else {
-        setError('Invalid credentials. Use admin@raktsetu.org / admin123');
+        setError('âŒ Invalid email or password.');
       }
     }, 1200);
   };
@@ -79,7 +92,7 @@ const AdminLogin = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
-                placeholder="admin@raktsetu.org"
+                placeholder="Enter email"
               />
             </div>
           </div>
@@ -93,7 +106,7 @@ const AdminLogin = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               />
               <button
                 type="button"
@@ -117,7 +130,7 @@ const AdminLogin = () => {
             </label>
             <button
               type="button"
-              onClick={() => alert("Credentials are pre-filled for this demo: admin@raktsetu.org / admin123")}
+              onClick={() => alert("Please contact the system administrator to reset your password.")}
               className="text-red-500 hover:text-red-400 hover:underline"
             >
               Forgot Password?
