@@ -571,7 +571,17 @@ const LandingPage = () => {
                 action: () => navigate('/register-donor'),
                 active: true,
               },
-              { icon: 'local_hospital', title: 'Medical Center', desc: 'Request blood units for patients.', active: false },
+              {
+                icon: 'local_hospital',
+                title: 'Hospital Admin',
+                desc: 'Access the clinical blood supply command center.',
+                action: () => {
+                  window.location.href = window.location.hostname === 'localhost'
+                    ? 'http://localhost:5175/admin'
+                    : '/admin';
+                },
+                active: true,
+              },
               { icon: 'food_bank', title: 'Blood Bank', desc: 'Manage inventory and supply logic.', active: false },
               { icon: 'shield', title: 'Government', desc: 'District or State level monitoring.', active: false },
             ].map(({ icon, title, desc, action, active }) => (

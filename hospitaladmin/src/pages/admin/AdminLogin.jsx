@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
-import { Lock, Mail, Eye, EyeOff, AlertCircle, Heart } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -10,11 +8,9 @@ const AdminLogin = () => {
 
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    rememberMe: false
+    password: ''
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,7 +29,7 @@ const AdminLogin = () => {
     setError('');
 
     if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
+      setError('Please fill in all fields.');
       return;
     }
 
@@ -42,117 +38,124 @@ const AdminLogin = () => {
     // Simulate authentication
     setTimeout(() => {
       setIsLoading(false);
-      const expectedEmail = import.meta.env.VITE_ADMIN_EMAIL;
-      const expectedPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+      const expectedEmail = import.meta.env.VITE_ADMIN_EMAIL || "admin@raktsetu.org";
+      const expectedPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
 
-      if (expectedEmail && expectedPassword && formData.email === expectedEmail && formData.password === expectedPassword) {
+      if (formData.email === expectedEmail && formData.password === expectedPassword) {
         loginAdmin();
         navigate('/admin/dashboard');
       } else {
-        setError('❌ Invalid email or password.');
+        setError('Invalid email or password.');
       }
     }, 1200);
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center justify-center font-sans py-12 px-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen bg-[#F5F0EB] flex flex-col font-sans relative overflow-y-auto selection:bg-[#BE1F2E] selection:text-white">
+      <div className="noise-filter" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-slate-900/60 border border-white/10 backdrop-blur-md rounded-2xl p-8 sm:p-10 shadow-2xl relative z-10"
-      >
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Heart className="text-red-500 fill-red-500 w-8 h-8" />
-            <span className="font-extrabold text-2xl tracking-tight text-white">
-              Rakt<span className="text-red-500">Setu</span>
-            </span>
-          </div>
-          <h1 className="text-xl font-bold text-white">Hospital Admin Portal</h1>
-          <p className="text-slate-400 text-xs mt-1">Authorized access only. Enter details to sign in.</p>
+      {/* ── SIMPLIFIED AUTH NAVBAR ─────────────────────────────────────── */}
+      <nav className="w-full bg-white border-b border-[#E0DAD4] sticky top-0 z-40">
+        <div className="flex justify-between items-center h-16 px-6 md:px-10 lg:px-16 w-full">
+          <Link to="/" className="font-serif text-[22px] font-bold text-[#BE1F2E]" style={{ fontFeatureSettings: '"liga" 0' }}>
+            RaktSetu
+          </Link>
+          <span className="text-[13px] text-[#9A9A9A] uppercase tracking-widest font-bold">
+            Hospital Portal
+          </span>
         </div>
+      </nav>
 
-        {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center gap-2 mb-6 animate-shake">
-            <AlertCircle size={16} />
-            <span>{error}</span>
+      {/* ── MAIN CARD ──────────────────────────────────────────────────── */}
+      <main className="flex-grow flex items-center justify-center py-16 px-4">
+        <div className="w-full max-w-[500px] bg-white border border-[#EDE7E1] rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] p-10 relative overflow-hidden">
+          
+          {/* Watermark */}
+          <div className="absolute -top-8 -right-8 opacity-[0.03] pointer-events-none">
+            <span className="material-symbols-outlined text-[200px]" style={{ fontSize: 200 }}>medical_services</span>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3.5 text-slate-500" size={18} />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
-                placeholder="Enter email"
-              />
+          {/* Header Row */}
+          <div className="flex justify-between items-center mb-10">
+            <span className="font-serif text-[20px] font-bold text-[#BE1F2E] italic">RaktSetu</span>
+            <span className="badge-neutral">Hospital Login</span>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
+                Sign in to command center
+              </h1>
+              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
+                Authorized access to RaktSetu clinical supply logistics dashboard.
+              </p>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3.5 text-slate-500" size={18} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3.5 text-slate-500 hover:text-white"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-slate-400 font-semibold">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={formData.rememberMe}
-                onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-                className="rounded border-white/10 bg-slate-950 text-red-600 focus:ring-0 focus:ring-offset-0"
-              />
-              <span>Remember me</span>
-            </label>
-            <button
-              type="button"
-              onClick={() => alert("Please contact the system administrator to reset your password.")}
-              className="text-red-500 hover:text-red-400 hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 hover:shadow-red-600/35 transition-all text-sm flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Signing In...</span>
-              </>
-            ) : (
-              <span>Login Authorized</span>
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
+                <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
+              </div>
             )}
-          </button>
-        </form>
-      </motion.div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="mb-4">
+                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Email Address</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="input-field"
+                  placeholder="Enter authorized email"
+                  required
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="input-field"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-primary w-full"
+                style={{ minHeight: 52 }}
+              >
+                {isLoading ? 'Verifying Credentials…' : 'Authorize Login'}
+              </button>
+            </form>
+
+            {/* Quick Link to Register */}
+            <div className="mt-8 text-center text-xs text-[#5A5A5A]">
+              Need credentials?{' '}
+              <Link to="/admin/register" className="text-link font-semibold">
+                Register Hospital
+              </Link>
+            </div>
+          </div>
+
+          {/* Legal */}
+          <p className="text-center text-[11px] text-[#9A9A9A] leading-relaxed mt-8 px-4">
+            Authorized use only. Unauthorized attempts will be logged and reported.
+          </p>
+        </div>
+      </main>
+
+      {/* ── MINIMAL AUTH FOOTER ────────────────────────────────────────── */}
+      <footer className="py-6 text-center text-[12px] text-[#9A9A9A]">
+        © 2024 RaktSetu ·{' '}
+        <a className="hover:text-[#BE1F2E] transition-colors" href="#">Privacy Policy</a> ·{' '}
+        <a className="hover:text-[#BE1F2E] transition-colors" href="#">Terms of Service</a>
+      </footer>
     </div>
   );
 };

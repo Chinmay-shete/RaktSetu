@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 @theme {
   --color-primary: #ef4444;
@@ -27,8 +27,8 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-bg-color);
-  color: var(--color-text-main);
+  background-color: #FAF8F5;
+  color: #1A1A1A;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,4 +43,117 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--color-red);
   border-radius: 3px;
+}
+
+/* ─────────────────────────────────────────────
+   RAKTSETU COMPONENT STYLES
+   ───────────────────────────────────────────── */
+.noise-filter {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  opacity: 0.04;
+  z-index: 9999;
+  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #BE1F2E;
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  min-height: 52px;
+  min-width: 160px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.btn-primary:hover {
+  background: #9E1825;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(190,31,46,0.35);
+}
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.btn-primary:disabled {
+  background: #D9C4C6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.input-field {
+  width: 100%;
+  border: 1.5px solid #D8D0CA;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: #1A1A1A;
+  background: #FFFFFF;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  font-family: inherit;
+}
+.input-field::placeholder { color: #A8A0A0; }
+.input-field:focus {
+  border-color: #BE1F2E;
+  box-shadow: 0 0 0 3px rgba(190,31,46,0.12);
+}
+.input-field.error {
+  border-color: #BE1F2E;
+  background: rgba(190,31,46,0.03);
+}
+
+.badge-neutral {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #F0EBE5;
+  color: #5A5A5A;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px !important;
+}
+
+.text-link {
+  color: #BE1F2E;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom-color 0.15s;
+}
+.text-link:hover { border-bottom-color: #BE1F2E; }
+
+/* Focus override for accessibility */
+:focus-visible {
+  outline: 2px solid #BE1F2E;
+  outline-offset: 2px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+}
+button, [role="button"], a, select, label[for], input[type="checkbox"], input[type="radio"] {
+  cursor: pointer;
 }

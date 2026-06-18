@@ -6,7 +6,6 @@ import { HospitalProvider } from './context/HospitalContext';
 import AdminLayout from './layouts/AdminLayout/AdminLayout';
 
 // Pages
-import LandingPage from './pages/admin/LandingPage';
 import HospitalApplication from './pages/admin/HospitalApplication';
 import PendingReview from './pages/admin/PendingReview';
 import ApprovalEmail from './pages/admin/ApprovalEmail';
@@ -23,7 +22,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public Hospital Admin Onboarding Routes */}
-          <Route path="/admin" element={<LandingPage />} />
+          <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
           <Route path="/admin/register" element={<HospitalApplication />} />
           <Route path="/admin/pending" element={<PendingReview />} />
           <Route path="/admin/approved" element={<ApprovalEmail />} />

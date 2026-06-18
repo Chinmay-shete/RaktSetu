@@ -24,7 +24,7 @@ const AlertThresholds = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
       {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
@@ -32,7 +32,7 @@ const AlertThresholds = () => {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-6 right-6 bg-emerald-500 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-2.5 z-50 border border-emerald-400/20"
+            className="fixed top-6 right-6 bg-[#22A06B] text-white px-5 py-3.5 rounded-full shadow-2xl flex items-center gap-2.5 z-50"
           >
             <Check size={18} />
             <span className="font-semibold text-sm">Configurations Saved Successfully!</span>
@@ -40,83 +40,85 @@ const AlertThresholds = () => {
         )}
       </AnimatePresence>
 
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-          <Sliders className="text-red-500" size={26} />
+        <h1 className="font-serif text-[48px] italic leading-none mb-2 text-[#1a1a1a] flex items-center gap-2">
+          <Sliders className="text-[#BE1F2E]" size={32} />
           <span>Alert Thresholds</span>
         </h1>
-        <p className="text-slate-400 text-sm mt-1">Configure stock triggers and emergency notifications criteria.</p>
+        <p className="text-[15px] text-[#737373]">Configure stock triggers and emergency notifications criteria.</p>
       </div>
 
-      <div className="max-w-3xl bg-slate-900/60 border border-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-10 shadow-2xl">
+      {/* Configuration Card */}
+      <div className="max-w-3xl bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-8 shadow-sm">
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Minimum Stock */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Minimum Stock Level</span>
-                <HelpCircle size={12} className="text-slate-500 cursor-help" title="Trigger alerts when bags fall below this number" />
+                <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Trigger alerts when bags fall below this number" />
               </label>
               <input
                 type="number"
                 value={formData.minStock}
                 onChange={(e) => setFormData({ ...formData, minStock: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                className="input-field"
               />
             </div>
 
             {/* Maximum Stock */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Maximum Stock Capacity</span>
-                <HelpCircle size={12} className="text-slate-500 cursor-help" title="Limit blood supply intake beyond this threshold" />
+                <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Limit blood supply intake beyond this threshold" />
               </label>
               <input
                 type="number"
                 value={formData.maxStock}
                 onChange={(e) => setFormData({ ...formData, maxStock: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                className="input-field"
               />
             </div>
 
             {/* Critical Units */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Critical Red Line Threshold</span>
-                <HelpCircle size={12} className="text-slate-500 cursor-help" title="Absolute emergency warning for low stocks" />
+                <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Absolute emergency warning for low stocks" />
               </label>
               <input
                 type="number"
                 value={formData.criticalUnits}
                 onChange={(e) => setFormData({ ...formData, criticalUnits: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                className="input-field"
               />
             </div>
 
             {/* Expiry Warning days */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Expiry Warning Buffer (Days)</span>
-                <HelpCircle size={12} className="text-slate-500 cursor-help" title="Mark bags as expiring soon when shelf life hits these remaining days" />
+                <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Mark bags as expiring soon when shelf life hits these remaining days" />
               </label>
               <input
                 type="number"
                 value={formData.expiryDays}
                 onChange={(e) => setFormData({ ...formData, expiryDays: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                className="input-field"
               />
             </div>
           </div>
 
           {/* Emergency Alert Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950/80 border border-white/5 mt-4">
+          <div className="flex items-center justify-between p-5 rounded-xl bg-[#fbf9f6] border border-[rgba(26,18,16,0.09)] mt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-red-600/10 border border-red-500/20 text-red-500">
+              <div className="p-2.5 rounded-lg bg-[rgba(190,31,46,0.08)] border border-[rgba(190,31,46,0.15)] text-[#BE1F2E]">
                 <AlertTriangle size={18} />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">Emergency SIREN Broadcasting</h4>
-                <p className="text-slate-400 text-xs mt-0.5">Push automated SMS alerts to local red-crescent registered donors when a critical shortage triggers.</p>
+                <h4 className="font-bold text-[#1a1a1a] text-sm">Emergency SIREN Broadcasting</h4>
+                <p className="text-[#737373] text-xs mt-0.5">Push automated SMS alerts to local red-crescent registered donors when a critical shortage triggers.</p>
               </div>
             </div>
 
@@ -127,14 +129,15 @@ const AlertThresholds = () => {
                 onChange={(e) => setFormData({ ...formData, emergencyAlerts: e.target.checked })}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white" />
+              <div className="w-11 h-6 bg-[#D8D0CA] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#BE1F2E]" />
             </label>
           </div>
 
           {/* Save Button */}
           <button
             type="submit"
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/10 transition-all text-sm flex items-center justify-center gap-2 self-end"
+            className="btn-primary flex items-center justify-center gap-2 self-end"
+            style={{ minHeight: 52 }}
           >
             <ShieldCheck size={16} />
             <span>Save Threshold Configuration</span>
