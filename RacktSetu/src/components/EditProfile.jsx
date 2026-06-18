@@ -21,6 +21,31 @@ const EditProfile = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleFieldBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const errs = { ...errors };
+    const val = profile[field];
+    
+    if (field === 'fullName') {
+      const trimmed = val.trim();
+      if (!trimmed) {
+        errs.fullName = 'Full name is required';
+      } else if (!/^[A-Za-z\s]+$/.test(trimmed)) {
+        errs.fullName = 'Name can only contain letters and spaces';
+      } else if (trimmed.split(/\s+/).length < 2) {
+        errs.fullName = 'Please enter both your first and last name';
+      } else {
+        delete errs.fullName;
+      }
+    }
+    if (field === 'age') {
+      if (!val) errs.age = 'Age is required';
+      else if (parseInt(val) < 18 || parseInt(val) > 65) errs.age = 'Age must be between 18 and 65';
+      else delete errs.age;
+    }
+    setErrors(errs);
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem('raktsetu_donor_profile');
     if (stored) {
@@ -42,6 +67,23 @@ const EditProfile = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
+    const errs = {};
+    const trimmedName = profile.fullName.trim();
+    if (!trimmedName) {
+      errs.fullName = 'Full name is required';
+    } else if (!/^[A-Za-z\s]+$/.test(trimmedName)) {
+      errs.fullName = 'Name can only contain letters and spaces';
+    } else if (trimmedName.split(/\s+/).length < 2) {
+      errs.fullName = 'Please enter both your first and last name';
+    }
+    if (!profile.age) errs.age = 'Age is required';
+    else if (parseInt(profile.age) < 18 || parseInt(profile.age) > 65) errs.age = 'Age must be between 18 and 65';
+    
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      setTouched({ fullName: true, age: true });
+      return;
+    }
     localStorage.setItem('raktsetu_donor_profile', JSON.stringify(profile));
     navigate('/dashboard');
   };

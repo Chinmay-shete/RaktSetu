@@ -17,7 +17,16 @@ const ProfileSetup = () => {
   const validateField = (name, val) => {
     const errs = { ...errors };
     if (name === 'fullName') {
-      errs.fullName = val.trim() ? '' : 'Full name is required';
+      const trimmed = val.trim();
+      if (!trimmed) {
+        errs.fullName = 'Full name is required';
+      } else if (!/^[A-Za-z\s]+$/.test(trimmed)) {
+        errs.fullName = 'Name can only contain letters and spaces';
+      } else if (trimmed.split(/\s+/).length < 2) {
+        errs.fullName = 'Please enter both your first and last name';
+      } else {
+        errs.fullName = '';
+      }
     }
     if (name === 'age') {
       if (!val) errs.age = 'Age is required';
@@ -29,7 +38,15 @@ const ProfileSetup = () => {
 
   const validate = () => {
     const errs = {};
-    if (!fullName.trim()) errs.fullName = 'Full name is required';
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
+      errs.fullName = 'Full name is required';
+    } else if (!/^[A-Za-z\s]+$/.test(trimmedName)) {
+      errs.fullName = 'Name can only contain letters and spaces';
+    } else if (trimmedName.split(/\s+/).length < 2) {
+      errs.fullName = 'Please enter both your first and last name';
+    }
+    
     if (!age) errs.age = 'Age is required';
     else if (parseInt(age) < 18 || parseInt(age) > 65) errs.age = 'Age must be between 18 and 65';
     if (!gender) errs.gender = 'Please select your biological sex';

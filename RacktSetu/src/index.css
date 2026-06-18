@@ -321,6 +321,11 @@
   outline: 2px solid #BE1F2E;
   outline-offset: 2px;
 }
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+}
 
 /* ─────────────────────────────────────────────
    CURSOR ON INTERACTIVE ELEMENTS
