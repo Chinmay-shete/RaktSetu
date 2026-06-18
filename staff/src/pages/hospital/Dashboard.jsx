@@ -1,9 +1,10 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mockApi } from '../../services/mockApi';
 import { Loader } from '../../components/ui/Loader';
+import { useToast } from '../../hooks/useToast';
 import { ErrorState } from '../../components/ui/ErrorState';
 import {
   Heart,
@@ -14,12 +15,19 @@ import {
   PlusCircle,
   Clock,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  Flame,
+  CheckCircle,
+  XCircle,
+  Timer
 } from 'lucide-react';
 
 export const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const toast = useToast();
+  const queryClient = useQueryClient();
 
   const { data: inventory = [], isLoading: invLoading, isError: invError, refetch: refetchInv } = useQuery({
     queryKey: ['inventory'],
@@ -31,7 +39,26 @@ export const Dashboard = () => {
     queryFn: mockApi.getTransferRequests
   });
 
-  if (invLoading || transLoading) {
+  const { data: emergencies = [], isLoading: emerLoading } = useQuery({
+    queryKey: ['emergencies'],
+    queryFn: mockApi.getEmergencyRequests,
+    refetchInterval: 10000 // Refetch every 10s for live timers
+  });
+
+  const emergencyMutation = useMutation({
+    mutationFn: ({ id, status }) => mockApi.updateEmergencyStatus(id, status),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['emergencies'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      if (variables.status === 'Accepted') {
+        toast.success(`Emergency Dispatch Authorized for ${data.hospitalName}`);
+      } else {
+        toast.error(`Emergency Request Declined.`);
+      }
+    }
+  });
+
+  if (invLoading || transLoading || emerLoading) {
     return <Loader message="Fetching dashboard status..." />;
   }
 
@@ -164,6 +191,69 @@ export const Dashboard = () => {
         
         {/* Shortages & Shortcuts */}
         <div className="flex flex-col gap-6 lg:col-span-2">
+          {/* Emergency SOS Dispatch */}
+          <div className="bg-[#1A1210] border border-[#BE1F2E]/30 rounded-2xl p-6 shadow-[0_8px_32px_rgba(190,31,46,0.15)] mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#BE1F2E] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#BE1F2E]"></span>
+              </span>
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Emergency SOS Dispatch</h3>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              {emergencies.filter(e => e.status === 'Pending').length > 0 ? (
+                emergencies.filter(e => e.status === 'Pending').map(req => {
+                  const timeLeftMs = Math.max(0, req.targetTimestamp - Date.now());
+                  const mins = Math.floor(timeLeftMs / 60000);
+                  const secs = Math.floor((timeLeftMs % 60000) / 1000);
+                  const timeString = `${mins}:${secs.toString().padStart(2, '0')}`;
+                  const isCriticalTime = timeLeftMs < 5 * 60000;
+
+                  return (
+                    <div key={req.id} className="bg-[#2A1F1D] border border-[#3D2B2B] rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] uppercase font-bold tracking-widest text-[#BE1F2E] px-2 py-0.5 bg-[#BE1F2E]/10 rounded border border-[#BE1F2E]/20">
+                            {req.bloodGroup} Blood Required
+                          </span>
+                          <span className={`flex items-center gap-1 text-[10px] font-bold ${isCriticalTime ? 'text-[#BE1F2E] animate-pulse' : 'text-[#E07B00]'}`}>
+                            <Timer className="h-3 w-3" /> T-minus {timeString}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white mb-1">{req.hospitalName}</h4>
+                        <p className="text-xs text-[#A8A0A0] leading-snug">{req.message}</p>
+                        <p className="text-xs font-bold text-white mt-2">Required: <span className="text-[#BE1F2E] text-sm">{req.unitsRequired} units</span> (Distance: {req.distance}km)</p>
+                      </div>
+                      <div className="flex flex-row md:flex-col gap-2 shrink-0">
+                        <button 
+                          onClick={() => emergencyMutation.mutate({ id: req.id, status: 'Accepted' })}
+                          disabled={emergencyMutation.isPending}
+                          className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#BE1F2E] text-white hover:bg-[#9E1825] transition-colors rounded-lg text-xs font-bold w-full disabled:opacity-50"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" /> Dispatch Now
+                        </button>
+                        <button 
+                          onClick={() => emergencyMutation.mutate({ id: req.id, status: 'Declined' })}
+                          disabled={emergencyMutation.isPending}
+                          className="flex items-center justify-center gap-1.5 px-4 py-2 bg-transparent border border-[#3D2B2B] text-[#A8A0A0] hover:text-white hover:bg-[#3D2B2B] transition-colors rounded-lg text-xs font-bold w-full disabled:opacity-50"
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> Decline
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <CheckCircle className="h-8 w-8 text-[#22A06B] mb-2 opacity-80" />
+                  <p className="text-sm font-bold text-[#A8A0A0]">No active trauma SOS requests</p>
+                  <p className="text-xs text-[#7A5F5F]">Regional emergency grid is stable.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Critical Shortages */}
           <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm">
             <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-4">Critical Shortages</h3>

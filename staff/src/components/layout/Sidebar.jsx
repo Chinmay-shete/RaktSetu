@@ -11,7 +11,8 @@ import {
   UserPlus,
   Heart,
   LogOut,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
 
 export const sidebarItems = [
@@ -20,6 +21,7 @@ export const sidebarItems = [
   { path: '/update-stock', label: 'Update Stock', icon: PlusCircle },
   { path: '/expiry-alerts', label: 'Expiry Alerts', icon: AlertTriangle, badgeKey: 'expiry' },
   { path: '/transfer-request', label: 'Transfer Requests', icon: ArrowLeftRight },
+  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/invite', label: 'Invite Staff', icon: UserPlus }
 ];
 

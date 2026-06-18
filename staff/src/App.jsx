@@ -11,6 +11,7 @@ import { BloodInventory } from './pages/hospital/inventory/BloodInventory';
 import { UpdateStock } from './pages/hospital/inventory/UpdateStock';
 import { ExpiryAlerts } from './pages/hospital/alerts/ExpiryAlerts';
 import { TransferRequests } from './pages/hospital/requests/TransferRequests';
+import { Analytics } from './pages/hospital/Analytics';
 import { Login } from './pages/hospital/auth/Login';
 import { InviteToken } from './pages/hospital/auth/InviteToken';
 import { InviteStaff } from './pages/hospital/auth/InviteStaff';
@@ -36,6 +37,7 @@ function App() {
                 <Route path="update-stock" element={<UpdateStock />} />
                 <Route path="expiry-alerts" element={<ExpiryAlerts />} />
                 <Route path="transfer-request" element={<TransferRequests />} />
+                <Route path="analytics" element={<Analytics />} />
                 <Route path="invite" element={<InviteStaff />} />
               </Route>
 

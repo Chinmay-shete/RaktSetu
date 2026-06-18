@@ -2,14 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../hooks/useToast';
 import { mockApi } from '../../services/mockApi';
 import {
   Bell,
   Search,
-  Sun,
-  Moon,
   Menu,
   RefreshCw,
   AlertTriangle,
@@ -22,7 +19,6 @@ import {
 
 export const Navbar = ({ onMenuOpen }) => {
   const { user } = useAuth();
-  const { toggleTheme, isDark } = useTheme();
   const { pathname } = useLocation();
   const toast = useToast();
   const [notifications, setNotifications] = useState([]);
@@ -151,12 +147,7 @@ export const Navbar = ({ onMenuOpen }) => {
           <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-[#BE1F2E]" : ""}`} />
         </button>
 
-        <button
-          onClick={toggleTheme}
-          className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
+
 
         <div className="relative" ref={notifRef}>
           <button
