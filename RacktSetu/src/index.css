@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "./staff.css";
+@import "./admin.css";
 
 /* ─────────────────────────────────────────────
    GLOBAL DESIGN TOKENS

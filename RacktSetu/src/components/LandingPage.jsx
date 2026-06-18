@@ -575,22 +575,14 @@ const LandingPage = () => {
                 icon: 'local_hospital',
                 title: 'Hospital Admin',
                 desc: 'Access the clinical blood supply command center.',
-                action: () => {
-                  window.location.href = window.location.hostname === 'localhost'
-                    ? 'http://localhost:5175/admin'
-                    : '/admin';
-                },
+                action: () => navigate('/admin'),
                 active: true,
               },
               {
                 icon: 'group',
                 title: 'Hospital Staff',
                 desc: 'Access clinical blood inventory, requests, and updates.',
-                action: () => {
-                  window.location.href = window.location.hostname === 'localhost'
-                    ? 'http://localhost:5174/'
-                    : '/staff/';
-                },
+                action: () => navigate('/staff/login'),
                 active: true,
               },
               { icon: 'shield', title: 'Government', desc: 'District or State level monitoring.', active: false },
