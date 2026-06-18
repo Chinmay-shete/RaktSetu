@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-// Count-up hook
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(0);
   useEffect(() => {
@@ -20,351 +19,265 @@ function useCountUp(target, duration = 1200) {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef(null);
   const [donorName, setDonorName] = useState('Aarav');
-  const [bloodGroup, setBloodGroup] = useState('O+');
-
+  const [navScrolled, setNavScrolled] = useState(false);
   const totalDonations = useCountUp(12);
   const livesImpacted = useCountUp(36);
+
+  useEffect(() => {
+    const handleScroll = () => setNavScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem('raktsetu_donor_profile');
     if (stored) {
       const data = JSON.parse(stored);
       if (data.fullName) setDonorName(data.fullName.split(' ')[0]);
-      if (data.bloodGroup) setBloodGroup(data.bloodGroup);
-    }
-    const registered = localStorage.getItem('raktsetu_registered_donor');
-    if (registered) {
-      const data = JSON.parse(registered);
-      if (data.fullName) setDonorName(data.fullName.split(' ')[0]);
-      if (data.bloodGroup) setBloodGroup(data.bloodGroup);
     }
   }, []);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
-        setProfileMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleDeleteProfile = () => {
-    if (window.confirm('Are you sure you want to delete your profile? This cannot be undone.')) {
-      localStorage.removeItem('raktsetu_donor_profile');
-      localStorage.removeItem('raktsetu_registered_donor');
-      localStorage.removeItem('raktsetu_location');
-      navigate('/');
-    }
-  };
-
-  const recentDonations = [
-    { date: 'Aug 15, 2024', location: 'City General Hospital', type: 'Whole Blood', status: 'Completed' },
-    { date: 'May 02, 2024', location: 'Red Cross Mobile Camp', type: 'Whole Blood', status: 'Completed' },
-    { date: 'Jan 10, 2024', location: 'Metro Blood Bank', type: 'Plasma', status: 'Completed' },
-  ];
 
   return (
-    <div className="bg-[#F5F0EB] text-[#1A1A1A] min-h-screen" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#c8102e] selection:text-white" style={{ fontFamily: 'DM Sans, sans-serif' }}>
       <div className="noise-filter" />
 
       {/* ── NAVBAR ─────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-[#E0DAD4] w-full sticky top-0 z-40" style={{ height: 64 }}>
-        <div className="flex justify-between items-center h-full px-6 md:px-10 max-w-[1280px] mx-auto">
-          <a className="font-serif text-[22px] font-bold text-[#BE1F2E]" href="#" style={{ fontFeatureSettings: '"liga" 0' }}>RaktSetu</a>
-
-          <nav className="hidden md:flex items-center gap-8">
-            {['Find Camps', 'My Impact', 'Profile'].map((link, i) => (
-              <a
-                key={link}
-                href="#"
-                className={`text-[14px] font-[500] transition-colors whitespace-nowrap ${i === 1 ? 'text-[#BE1F2E] font-[700] border-b-2 border-[#BE1F2E] pb-px' : 'text-[#5A5A5A] hover:text-[#BE1F2E]'}`}
-              >
-                {link}
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            {/* Notification bell */}
-            <div className="notif-btn">
-              <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="notif-badge" />
-            </div>
-            {/* Help */}
-            <div className="notif-btn">
-              <span className="material-symbols-outlined text-[20px]">help_outline</span>
-            </div>
-            {/* Check Eligibility */}
-            <button className="btn-primary" style={{ padding: '10px 20px', minHeight: 40, fontSize: 14 }}>
-              Check Eligibility
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+          navScrolled
+            ? 'bg-white/95 backdrop-blur-lg shadow-sm border-b border-[#E0DAD4]'
+            : 'bg-white/90 backdrop-blur-md border-b border-[#E0DAD4]'
+        }`}
+        style={{ height: 72 }}
+      >
+        <div className="flex justify-between items-center h-full w-full px-6 md:px-10 lg:px-16">
+          <Link
+            to="/"
+            className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
+            style={{ fontFeatureSettings: '"liga" 0' }}
+          >
+            RaktSetu
+          </Link>
+          
+          <div className="hidden md:flex items-center gap-10">
+            <Link to="/find-camps" className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap">Find Camps</Link>
+            <Link to="/dashboard" className="text-[14px] font-[600] text-[#BE1F2E] border-b-2 border-[#BE1F2E] pb-1 whitespace-nowrap">My Impact</Link>
+            <Link to="/edit-profile" className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap">Profile</Link>
+          </div>
+          
+          <div className="flex items-center gap-6 shrink-0">
+            <button className="px-5 py-2 text-[14px] font-[600] text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.06)] rounded-full transition-all whitespace-nowrap hidden sm:block">
+              Emergency Request
             </button>
-            {/* Profile Dropdown */}
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="w-10 h-10 rounded-full bg-[rgba(190,31,46,0.08)] border-2 border-[rgba(190,31,46,0.2)] flex items-center justify-center hover:scale-110 transition-transform"
-                title="Profile menu"
-              >
-                <span className="material-symbols-outlined text-[#BE1F2E] text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
-              </button>
-              {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white border border-[#EDE7E1] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden z-50 animate-fade-in">
-                  <div className="px-4 py-3 border-b border-[#EDE7E1]">
-                    <p className="text-[11px] font-[600] text-[#9A9A9A] uppercase tracking-wider">Signed in as</p>
-                    <p className="text-[15px] font-[600] text-[#1A1A1A] truncate mt-0.5">{donorName}</p>
-                  </div>
-                  <button
-                    onClick={() => { setProfileMenuOpen(false); navigate('/edit-profile'); }}
-                    className="w-full text-left px-4 py-3 text-[14px] text-[#1A1A1A] hover:bg-[#F5F0EB] transition-colors flex items-center gap-2.5 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px] text-[#5A5A5A]">edit</span>
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={handleDeleteProfile}
-                    className="w-full text-left px-4 py-3 text-[14px] text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.05)] transition-colors flex items-center gap-2.5 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
-                    Delete Profile
-                  </button>
-                </div>
-              )}
+            <div className="w-10 h-10 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0" onClick={() => navigate('/edit-profile')}>
+              <img className="w-full h-full object-cover" alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4LePSzF9UlW9h3IVZNZA-jV2c_WlVBNOPY2YRf99m4LW6pnZCOJow0bRw6skvc_LwP1Sjs85QaT6fzeIhBQQwGz1cr7qSI-8pe5tYU7UGinXprHgh-PK3cqnJI4GSnh0oPXhDHqPSKEOnfTxKJG5Rq2yoBTo7yub1N3Vml9LsMa5dsvmQIi2q31bqbhLaYDbmBFE5idwcqyYnZUlrzUizutMwPtY0Wobo9nsUpDKigPRPnhBg27638USNnXdaUSlGAlX-APGnWJw" />
             </div>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* ── MAIN ───────────────────────────────────────────────────────── */}
-      <main className="max-w-[1280px] mx-auto px-6 md:px-10 py-12 space-y-10 page-enter">
-
-        {/* Welcome */}
-        <div>
-          <h1 className="font-serif mb-3" style={{ fontSize: 'clamp(36px,5vw,60px)', fontWeight: 700, color: '#1A0A0A', lineHeight: 1.05, fontFeatureSettings: '"liga" 0' }}>
-            Your <span className="italic text-[#BE1F2E]">Impact</span> Dashboard
+      <main className="pt-32 pb-32 w-full px-6 md:px-10 lg:px-16">
+        {/* Editorial Greeting */}
+        <section className="mb-16">
+          <h1 className="font-serif text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em]">
+            Welcome back, <span className="text-[#c8102e]">{donorName}.</span>
           </h1>
-          <p className="text-[16px] text-[#5A5A5A] leading-[1.6] max-w-[520px]">
-            Welcome back, <strong className="text-[#1A1A1A]">{donorName}</strong>. Your commitment to the clinical supply chain has directly supported three local trauma centers this month.
+          <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
+            Your commitment to the clinical supply chain has directly supported three local trauma centers this month. Your precision saves lives.
           </p>
-        </div>
+        </section>
 
-        {/* ── STAT CARDS ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5" style={{ gridTemplateColumns: '1fr 1fr 1.2fr' }}>
-
-          {/* Card 1: Total Donations */}
-          <div className="bg-white border border-[#EDE7E1] rounded-2xl p-7 overflow-hidden relative shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-lg transition-all duration-200">
-            <div className="w-10 h-10 rounded-[10px] bg-[rgba(190,31,46,0.08)] flex items-center justify-center mb-5">
-              <span className="material-symbols-outlined text-[#BE1F2E] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>water_drop</span>
-            </div>
-            <p className="text-[11px] font-[600] text-[#9A9A9A] uppercase tracking-widest mb-2">Total Donations</p>
-            <p className="font-serif text-[#1A0A0A] mb-1" style={{ fontSize: 'clamp(40px,5vw,60px)', fontWeight: 700, lineHeight: 1 }}>
-              {totalDonations} <span className="text-[16px] font-normal text-[#9A9A9A]">units</span>
-            </p>
-          </div>
-
-          {/* Card 2: Lives Impacted */}
-          <div className="bg-white border border-[#EDE7E1] rounded-2xl p-7 overflow-hidden relative shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-lg transition-all duration-200">
-            <div className="w-10 h-10 rounded-[10px] bg-[rgba(190,31,46,0.08)] flex items-center justify-center mb-5">
-              <span className="material-symbols-outlined text-[#BE1F2E] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
-            </div>
-            <p className="text-[11px] font-[600] text-[#9A9A9A] uppercase tracking-widest mb-2">Lives Impacted</p>
-            <p className="font-serif text-[#1A0A0A] mb-1" style={{ fontSize: 'clamp(40px,5vw,60px)', fontWeight: 700, lineHeight: 1 }}>
-              {livesImpacted} <span className="text-[16px] font-normal text-[#9A9A9A]">lives</span>
-            </p>
-          </div>
-
-          {/* Card 3: Next Eligible — Dark */}
-          <div className="bg-[#1A0A0A] border border-white/10 rounded-2xl p-7 overflow-hidden relative shadow-lg hover:-translate-y-1 transition-all duration-200">
-            <div className="w-10 h-10 rounded-[10px] bg-white/10 flex items-center justify-center mb-5">
-              <span className="material-symbols-outlined text-white text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_month</span>
-            </div>
-            <p className="text-[11px] font-[600] text-white/50 uppercase tracking-widest mb-2">Next Eligible Date</p>
-            <p className="text-white font-serif text-[26px] font-[700] leading-tight mb-3">October 24, 2024</p>
-            <button className="flex items-center gap-1.5 text-[13px] text-[#BE1F2E] font-[600] hover:underline">
-              <span className="material-symbols-outlined text-[14px]">calendar_add_on</span>
-              Mark Calendar
-            </button>
-          </div>
-        </div>
-
-        {/* ── TWO COLUMN ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* LEFT — 2/3 */}
-          <div className="lg:col-span-2 space-y-6">
-
-            {/* Eligibility CTA */}
-            <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col md:flex-row items-center gap-6 justify-between">
-              <div className="flex-1 space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(190,31,46,0.08)] text-[#BE1F2E] text-[11px] font-[700] uppercase tracking-wider">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#BE1F2E] pulse-dot" />
-                  Action Required
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Content Area */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* Stats Cards Bento */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Total Donations */}
+              <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+                <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#c8102e]/5 select-none transition-transform group-hover:scale-110">01</span>
+                <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Total Donations</p>
+                <div className="flex items-end gap-2">
+                  <h2 className="font-serif text-[60px] leading-[54px] text-[#c8102e]">{totalDonations}</h2>
+                  <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
                 </div>
-                <h2 className="font-serif text-[22px] font-[700] text-[#1A0A0A] leading-tight" style={{ fontFeatureSettings: '"liga" 0' }}>
-                  Are you ready to save a life today?
-                </h2>
-                <p className="text-[15px] text-[#5A5A5A] leading-[1.6]">Take the 2-minute health check to ensure you meet clinical requirements for donation.</p>
               </div>
-              {/* Primary red button */}
-              <button className="btn-primary whitespace-nowrap w-full md:w-auto" style={{ padding: '14px 24px', fontSize: 14 }}>
-                Start Screening
-              </button>
+
+              {/* Lives Impacted */}
+              <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+                <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#c8102e]/5 select-none transition-transform group-hover:scale-110">02</span>
+                <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Lives Impacted</p>
+                <div className="flex items-end gap-2">
+                  <h2 className="font-serif text-[60px] leading-[54px] text-[#c8102e]">{livesImpacted}</h2>
+                  <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Lives</span>
+                </div>
+              </div>
+
+              {/* Next Eligibility */}
+              <div className="bg-[#1a1210] p-8 rounded-lg relative overflow-hidden group">
+                <p className="text-[12px] font-[600] tracking-[0.05em] text-white/60 uppercase mb-4">Next Eligible Date</p>
+                <h2 className="text-[24px] font-[500] leading-[32px] text-white">Oct 24, 2024</h2>
+                <div className="mt-4 inline-flex items-center gap-2 text-[#ffb3b1]">
+                  <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+                  <span className="text-[14px] font-[500]">Mark Calendar</span>
+                </div>
+              </div>
             </div>
 
-            {/* Recent Donations */}
-            <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-serif text-[20px] font-[700] text-[#1A0A0A]" style={{ fontFeatureSettings: '"liga" 0' }}>
-                  Recent Donations
-                </h3>
-                <a href="#" className="flex items-center gap-1 text-[13px] font-[600] text-[#BE1F2E] uppercase tracking-wider border border-[#BE1F2E] px-3 py-1.5 rounded-full hover:bg-[rgba(190,31,46,0.06)] transition-colors">
-                  <span className="material-symbols-outlined text-[14px]">download</span>
-                  Download
-                </a>
+            {/* Recent Donations Table */}
+            <div className="bg-white rounded-lg border border-[rgba(26,18,16,0.09)] overflow-hidden">
+              <div className="p-6 border-b border-[rgba(26,18,16,0.09)] flex justify-between items-center">
+                <h3 className="text-[24px] font-[500] italic">Recent Donations</h3>
+                <button className="text-[14px] font-[500] text-[#c8102e] hover:underline">Download Reports</button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b-[1.5px] border-[#EDE7E1]">
-                      {['Date', 'Location', 'Type', 'Status'].map((h) => (
-                        <th key={h} className="pb-3 text-[12px] font-[600] text-[#9A9A9A] uppercase tracking-[0.06em]">{h}</th>
-                      ))}
+                <table className="w-full text-left">
+                  <thead className="bg-[#f5f3f0]">
+                    <tr>
+                      <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Date</th>
+                      <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Location</th>
+                      <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Type</th>
+                      <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {recentDonations.map((d, i) => (
-                      <tr key={i} className="table-row-hover border-b border-[#EDE7E1]/60 last:border-0">
-                        <td className="py-4 text-[14px] text-[#1A1A1A]">{d.date}</td>
-                        <td className="py-4 text-[14px] text-[#5A5A5A]">{d.location}</td>
-                        <td className="py-4 text-[14px] text-[#1A1A1A]">{d.type}</td>
-                        <td className="py-4">
-                          <span className="badge-success">{d.status}</span>
-                        </td>
-                      </tr>
-                    ))}
+                  <tbody className="divide-y divide-[rgba(26,18,16,0.09)]">
+                    <tr className="hover:bg-[#faf8f5] transition-colors">
+                      <td className="px-6 py-4 text-[14px] font-[500]">Aug 12, 2024</td>
+                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Apollo Medical Center</td>
+                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Whole Blood</td>
+                      <td className="px-6 py-4">
+                        <span className="bg-[#c8102e]/10 text-[#c8102e] px-3 py-1 rounded-full text-[12px] font-[600] uppercase">Completed</span>
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-[#faf8f5] transition-colors">
+                      <td className="px-6 py-4 text-[14px] font-[500]">May 05, 2024</td>
+                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Red Cross - City Plaza</td>
+                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Plasma</td>
+                      <td className="px-6 py-4">
+                        <span className="bg-[#c8102e]/10 text-[#c8102e] px-3 py-1 rounded-full text-[12px] font-[600] uppercase">Completed</span>
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-[#faf8f5] transition-colors">
+                      <td className="px-6 py-4 text-[14px] font-[500]">Feb 20, 2024</td>
+                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Fortis Logistics Hub</td>
+                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Whole Blood</td>
+                      <td className="px-6 py-4">
+                        <span className="bg-[#c8102e]/10 text-[#c8102e] px-3 py-1 rounded-full text-[12px] font-[600] uppercase">Completed</span>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            {/* Donation Timeline — fills whitespace */}
-            <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-              <h3 className="font-serif text-[18px] font-[700] text-[#1A0A0A] mb-6" style={{ fontFeatureSettings: '"liga" 0' }}>
-                Your Donation Timeline
-              </h3>
-              <div className="flex items-end gap-1.5 h-20">
-                {[3,6,4,8,5,9,7,10,6,8,12,9].map((h, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-t-sm hover:opacity-90 transition-opacity cursor-pointer"
-                    style={{ height: `${(h / 12) * 100}%`, background: i === 11 ? '#BE1F2E' : 'rgba(190,31,46,0.2)' }}
-                    title={`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i]}: ${h} donations`}
-                  />
-                ))}
+            {/* Eligibility CTA */}
+            <div className="relative rounded-lg overflow-hidden h-64 flex items-center bg-[#c8102e] group">
+              <img className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 transition-transform duration-700 group-hover:scale-110" alt="CTA Background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPibRz0Po3cADqWVeJotqwI5fjq6J_LGtmvf97Pejz_dB8BC95-AYRDHtr68mR1jSCGNyrNHad216bN9r8ZhfCzM6rMBVRpJaOPeTLR4LLYeuwgM631WjmL6mQq6TjXgaNgswV-M_rMRC-HGyfZKVcbfV5xztNZInaEPUjsO6E3CucCbAOR1GnD3CEVbeEFvaZotTR3Z9HKRE9CnyH30i9UXdVMJk2zfx-MeQaE8o0lDXZbgCfsFl7E_HVMJo_QrxKg2gVJoco21Q" />
+              <div className="relative z-10 p-12 w-full flex flex-col md:flex-row justify-between items-center gap-8">
+                <div>
+                  <h3 className="font-serif text-[48px] text-white italic leading-tight">Ready for your next impact?</h3>
+                  <p className="text-white/80 text-[16px] mt-2">Our 2-minute eligibility check ensures you're medically ready.</p>
+                </div>
+                <button className="bg-white text-[#c8102e] px-10 py-4 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400 whitespace-nowrap">
+                  Check Eligibility
+                </button>
               </div>
-              <div className="flex justify-between mt-2 text-[11px] text-[#9A9A9A]">
-                {['J','F','M','A','M','J','J','A','S','O','N','D'].map((m) => (
-                  <span key={m}>{m}</span>
-                ))}
-              </div>
-              <p className="text-[13px] text-[#5A5A5A] mt-4">
-                <span className="font-[600] text-[#BE1F2E]">Highest in December</span> — great consistency all year!
-              </p>
             </div>
+
           </div>
 
-          {/* RIGHT — 1/3 */}
-          <div className="space-y-5">
-            <h3 className="font-serif text-[20px] font-[700] text-[#1A0A0A] flex items-center gap-2" style={{ fontFeatureSettings: '"liga" 0' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#BE1F2E"/>
-              </svg>
-              Nearby Urgent Requests
-            </h3>
+          {/* Sidebar */}
+          <aside className="lg:col-span-4 space-y-8">
+            {/* Urgent Requests Sidebar */}
+            <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-lg p-8 shadow-sm">
+              <div className="flex items-center gap-3 text-[#c8102e] mb-6">
+                <span className="material-symbols-outlined text-[24px]">priority_high</span>
+                <h3 className="text-[24px] font-[500] italic">Urgent Requests</h3>
+              </div>
 
-            {/* Critical */}
-            <div className="bg-white border-l-4 border-l-[#BE1F2E] border-r border-r-[#EDE7E1] border-y border-y-[#EDE7E1] rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-full bg-[rgba(190,31,46,0.1)] flex items-center justify-center text-[#BE1F2E] font-serif font-[700] text-[16px] shrink-0">
-                  {bloodGroup}
+              <div className="space-y-8">
+                {/* Request Card 1 */}
+                <div className="p-6 bg-[#f5f3f0] rounded-lg border border-[rgba(26,18,16,0.09)]">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="bg-[#ffdad6] text-[#93000a] px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Critical Shortage</span>
+                      <h4 className="text-[20px] font-[500] mt-2">City General Hospital</h4>
+                    </div>
+                    <div className="bg-[#c8102e] text-white w-12 h-12 flex items-center justify-center rounded font-bold text-xl">O+</div>
+                  </div>
+                  <div className="space-y-2 mb-6">
+                    <div className="flex justify-between text-[12px] font-[600] text-[#737373]">
+                      <span>Fulfillment Progress</span>
+                      <span className="font-bold">85%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-[#eae8e5] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#c8102e]" style={{ width: '85%' }}></div>
+                    </div>
+                  </div>
+                  <button className="w-full bg-[#1a1210] text-white py-3 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400">
+                    Pledge to Donate
+                  </button>
                 </div>
-                <div>
-                  <h4 className="text-[15px] font-[700] text-[#1A1A1A]">Critical Shortage</h4>
-                  <span className="badge-danger">High Priority</span>
+
+                {/* Request Card 2 */}
+                <div className="p-6 border border-[rgba(26,18,16,0.09)] rounded-lg">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="bg-[#eae8e5] text-[#685c59] px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Moderate Need</span>
+                      <h4 className="text-[20px] font-[500] mt-2">Metro Children's Wing</h4>
+                    </div>
+                    <div className="bg-[#685c59] text-white w-12 h-12 flex items-center justify-center rounded font-bold text-xl">B-</div>
+                  </div>
+                  <p className="text-[16px] text-[#737373] mb-6">Pediatric plasma units required for scheduled surgeries on Friday.</p>
+                  <button className="w-full border border-[#1a1210] text-[#1a1210] py-3 rounded-full text-[14px] font-[500] hover:bg-[#1a1210] hover:text-white transition-colors">
+                    View Details
+                  </button>
                 </div>
               </div>
-              <p className="text-[14px] font-[500] text-[#1A1A1A] mb-1">City General Hospital</p>
-              <p className="text-[13px] text-[#5A5A5A] flex items-center gap-1 mb-4">
-                <span className="material-symbols-outlined text-[14px]">location_on</span> 2.4 miles away
-              </p>
-              {/* Progress bar */}
-              <div className="w-full bg-[#EDE7E1] rounded-full h-2 mb-1.5">
-                <div className="progress-fill rounded-full" style={{ width: '85%' }} />
-              </div>
-              <div className="flex justify-between text-[11px] text-[#9A9A9A] mb-4">
-                <span>Fulfilled</span><span>85%</span>
-              </div>
-              {/* Primary red CTA */}
-              <button className="btn-primary w-full" style={{ fontSize: 14, minHeight: 44, padding: '10px 20px' }}>
-                Pledge to Donate
-              </button>
             </div>
 
-            {/* Moderate */}
-            <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[#E0DAD4] transition-colors">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-full bg-[#EDE7E1] flex items-center justify-center text-[#5A5A5A] text-[13px] font-[700]">
-                  Any
-                </div>
-                <div>
-                  <h4 className="text-[15px] font-[700] text-[#1A1A1A]">Platelet Request</h4>
-                  <span className="badge-warning">Moderate Need</span>
-                </div>
+            {/* Logistics Insight Card */}
+            <div className="bg-[#1a1210] p-8 rounded-lg text-white relative overflow-hidden">
+              <div className="relative z-10">
+                <span className="material-symbols-outlined text-[#c8102e] text-[32px] mb-4">insights</span>
+                <h4 className="text-[24px] font-[500] mb-4 italic">Supply Chain Insight</h4>
+                <p className="text-white/70 text-[16px] mb-6 leading-relaxed">
+                  Your donation type (O+) is currently in the highest demand globally. 1 unit can be split into components that help up to 3 separate neonatal cases.
+                </p>
+                <a className="inline-flex items-center gap-2 text-[#c8102e] text-[14px] font-[500] group" href="#">
+                  Read the 2024 Impact Report
+                  <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
+                </a>
               </div>
-              <p className="text-[14px] font-[500] text-[#1A1A1A] mb-1">St. Jude's Medical Center</p>
-              <p className="text-[13px] text-[#5A5A5A] flex items-center gap-1 mb-4">
-                <span className="material-symbols-outlined text-[14px]">location_on</span> 5.1 miles away
-              </p>
-              <button className="btn-dark w-full" style={{ fontSize: 13 }}>View Details</button>
             </div>
-
-            {/* Supply chain insight */}
-            <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-              <div className="flex justify-between items-start mb-3">
-                <h4 className="text-[15px] font-[700] text-[#1A1A1A]">Supply Chain Insight</h4>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="#BE1F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="17 6 23 6 23 12" stroke="#BE1F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <p className="text-[13px] text-[#5A5A5A] leading-[1.6] mb-4">
-                O− supply has dropped 18% city-wide. Rare type donors are critical this week.
-              </p>
-              <a href="#" className="flex items-center gap-1 text-[14px] font-[600] text-[#BE1F2E] hover:underline btn-arrow-hover">
-                Read the 2024 Impact Report
-                <span className="material-symbols-outlined text-[16px] btn-arrow">arrow_forward</span>
-              </a>
-            </div>
-          </div>
+          </aside>
         </div>
       </main>
 
-      {/* ── FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className="bg-[#1A0A0A] border-t border-white/10 py-14 px-6 md:px-10 mt-16">
-        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <a className="font-serif text-[22px] font-bold text-white" href="#" style={{ fontFeatureSettings: '"liga" 0' }}>RaktSetu</a>
-          <nav className="flex flex-wrap justify-center gap-6">
-            {['Privacy Policy', 'Terms of Service', 'Donor Guidelines', 'Contact Support'].map((l) => (
-              <a key={l} className="text-[#A09890] hover:text-white transition-colors text-[14px]" href="#">{l}</a>
-            ))}
-          </nav>
-        </div>
-        <div className="max-w-[1280px] mx-auto mt-8 text-center md:text-left">
-          <p className="text-[#6A6062] text-[13px]">© 2024 RaktSetu. Clinical Excellence in Blood Logistics.</p>
+      {/* Footer */}
+      <footer className="bg-[#1a1210] border-t border-white/10 py-32">
+        <div className="flex flex-col md:flex-row justify-between items-start w-full px-6 md:px-10 lg:px-16 gap-16">
+          <div className="max-w-sm">
+            <div className="font-serif text-[60px] text-white italic mb-6 leading-none">RaktSetu</div>
+            <p className="text-[#737373] text-[16px] leading-relaxed">
+              © 2024 RaktSetu. Clinical Excellence in Blood Logistics. Operating at the intersection of medical science and logistical intelligence.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-16">
+            <div className="space-y-4">
+              <p className="text-white font-bold uppercase tracking-widest text-xs mb-6">Resources</p>
+              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Donor Guidelines</a>
+              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Privacy Policy</a>
+              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Terms of Service</a>
+            </div>
+            <div className="space-y-4">
+              <p className="text-white font-bold uppercase tracking-widest text-xs mb-6">Support</p>
+              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Contact Medical Team</a>
+              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Emergency Access</a>
+              <a className="block text-[#737373] hover:text-white transition-colors" href="#">FAQ</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

@@ -1,165 +1,146 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const EditProfile = () => {
   const navigate = useNavigate();
+  const [navScrolled, setNavScrolled] = useState(false);
   const [profile, setProfile] = useState({
     fullName: 'Arjun Malhotra',
     age: '29',
     gender: 'Male',
-    bloodGroup: 'O-Positive',
     city: 'New Delhi',
     pincode: '110001',
+    bloodGroup: 'O-Positive',
     weight: '78',
-    chronicIllness: false,
+    chronicIllness: false
   });
-  const [originalProfile, setOriginalProfile] = useState(null);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved'
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('raktsetu_donor_profile');
-    const registered = localStorage.getItem('raktsetu_registered_donor');
-    const base = {};
-    if (registered) Object.assign(base, JSON.parse(registered));
-    if (stored) Object.assign(base, JSON.parse(stored));
-    const merged = { ...profile, ...base };
-    setProfile(merged);
-    setOriginalProfile(merged);
+    const handleScroll = () => setNavScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    if (!originalProfile) return;
-    setHasChanges(JSON.stringify(profile) !== JSON.stringify(originalProfile));
-  }, [profile, originalProfile]);
+    const stored = localStorage.getItem('raktsetu_donor_profile');
+    if (stored) {
+      const data = JSON.parse(stored);
+      setProfile(prev => ({
+        ...prev,
+        ...data,
+      }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setProfile(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-    setSaveState('saving');
-    await new Promise((r) => setTimeout(r, 900));
-    const existing = JSON.parse(localStorage.getItem('raktsetu_donor_profile') || '{}');
-    localStorage.setItem('raktsetu_donor_profile', JSON.stringify({ ...existing, ...profile }));
-    setOriginalProfile({ ...profile });
-    setSaveState('saved');
-    setHasChanges(false);
-    setTimeout(() => {
-      setSaveState('idle');
-      navigate('/dashboard');
-    }, 1500);
+    localStorage.setItem('raktsetu_donor_profile', JSON.stringify(profile));
+    navigate('/dashboard');
   };
-
-  const handleCopyId = () => {
-    navigator.clipboard.writeText('RS-2024-8892').then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const inputCls = 'input-field custom-select';
-  const sectionHdg = 'font-serif text-[18px] font-[600] italic text-[#BE1F2E] mb-1';
-  const sectionSub = 'text-[13px] text-[#8A8078] mt-0.5';
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#ffdad8] selection:text-[#1b1c1a]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
       <div className="noise-filter" />
 
       {/* ── NAVBAR ─────────────────────────────────────────────────────── */}
-      <nav className="bg-white border-b border-[#E0DAD4] w-full sticky top-0 z-50" style={{ height: 64 }}>
-        <div className="flex justify-between items-center h-full px-6 md:px-10 max-w-[1280px] mx-auto">
-          <a className="font-serif text-[22px] font-bold text-[#BE1F2E]" href="/dashboard" style={{ fontFeatureSettings: '"liga" 0' }}>RaktSetu</a>
-          <nav className="hidden md:flex items-center gap-8">
-            {['Find Camps', 'My Impact', 'Profile'].map((l, i) => (
-              <a key={l} href="#" className={`text-[14px] font-[500] transition-colors ${i === 2 ? 'text-[#BE1F2E] font-[700] border-b-2 border-[#BE1F2E] pb-px' : 'text-[#5A5A5A] hover:text-[#BE1F2E]'}`}>{l}</a>
-            ))}
-          </nav>
-          <button onClick={() => navigate('/dashboard')} className="btn-dark" style={{ fontSize: 13, padding: '9px 18px' }}>
-            ← Back to Dashboard
-          </button>
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+          navScrolled
+            ? 'bg-white/95 backdrop-blur-lg shadow-sm border-b border-[#E0DAD4]'
+            : 'bg-white/90 backdrop-blur-md border-b border-[#E0DAD4]'
+        }`}
+        style={{ height: 72 }}
+      >
+        <div className="flex justify-between items-center h-full w-full px-6 md:px-10 lg:px-16">
+          <Link
+            to="/"
+            className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
+            style={{ fontFeatureSettings: '"liga" 0' }}
+          >
+            RaktSetu
+          </Link>
+          
+          <div className="hidden md:flex items-center gap-10">
+            <Link to="/find-camps" className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap">Find Camps</Link>
+            <Link to="/dashboard" className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap">My Impact</Link>
+            <Link to="/edit-profile" className="text-[14px] font-[600] text-[#BE1F2E] border-b-2 border-[#BE1F2E] pb-1 whitespace-nowrap">Profile</Link>
+          </div>
+          
+          <div className="flex items-center gap-6 shrink-0">
+            <button className="px-5 py-2 text-[14px] font-[600] text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.06)] rounded-full transition-all whitespace-nowrap hidden sm:block">
+              Emergency Request
+            </button>
+            <div className="w-10 h-10 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0">
+              <img className="w-full h-full object-cover" alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4LePSzF9UlW9h3IVZNZA-jV2c_WlVBNOPY2YRf99m4LW6pnZCOJow0bRw6skvc_LwP1Sjs85QaT6fzeIhBQQwGz1cr7qSI-8pe5tYU7UGinXprHgh-PK3cqnJI4GSnh0oPXhDHqPSKEOnfTxKJG5Rq2yoBTo7yub1N3Vml9LsMa5dsvmQIi2q31bqbhLaYDbmBFE5idwcqyYnZUlrzUizutMwPtY0Wobo9nsUpDKigPRPnhBg27638USNnXdaUSlGAlX-APGnWJw" />
+            </div>
+          </div>
         </div>
       </nav>
 
-      {/* ── STICKY UNSAVED BAR ─────────────────────────────────────────── */}
-      {hasChanges && (
-        <div className="sticky-save-bar animate-fade-in">
-          <p className="text-[14px] font-[500] text-[#5A5A5A]">You have unsaved changes</p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => { setProfile({ ...originalProfile }); setHasChanges(false); }}
-              className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#1A1A1A] transition-colors"
-            >
-              Discard
-            </button>
-            <button onClick={handleSave} className="btn-primary" style={{ padding: '8px 20px', minHeight: 36, fontSize: 13 }}>
-              Save Changes
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ── MAIN ───────────────────────────────────────────────────────── */}
-      <main className="pt-12 pb-24 px-4 md:px-10 max-w-4xl mx-auto">
-
-        {/* Page Header */}
+      <main className="pt-32 pb-32 w-full max-w-4xl mx-auto px-6">
         <header className="mb-12">
-          <h1 className="font-serif mb-4" style={{ fontSize: 'clamp(36px,5vw,56px)', fontWeight: 700, color: '#1A0A0A', lineHeight: 1.05, fontFeatureSettings: '"liga" 0' }}>
-            Edit <span className="italic text-[#BE1F2E]">Profile</span>
-          </h1>
-          <p className="text-[17px] text-[#5A5A5A] leading-[1.6] max-w-xl">
-            Maintain your medical logistics profile to ensure accurate donor matching and clinical readiness.
+          <h1 className="font-serif text-[60px] md:text-[100px] italic mb-4 leading-none tracking-[-0.04em]">Edit Profile</h1>
+          <p className="text-[#737373] text-[18px] max-w-xl leading-[28px]">
+            Maintain your medical logistics profile to ensure accurate donor matching and clinical readiness during emergencies.
           </p>
         </header>
 
-        <form onSubmit={handleSave}>
-          <section className="bg-white border border-[#EDE7E1] rounded-2xl shadow-[0_2px_16px_rgba(0,0,0,0.06)] overflow-hidden">
-
-            {/* Card Header — Donor Credentials */}
-            <div className="px-8 md:px-12 py-8 border-b border-[#EDE7E1] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section className="bg-white border border-[rgba(26,18,16,0.09)] p-8 md:p-12 shadow-sm rounded-lg">
+          <form className="space-y-12" onSubmit={handleSave}>
+            
+            {/* Profile Image & Header */}
+            <div className="flex flex-col md:flex-row items-center pb-12 border-b border-[rgba(26,18,16,0.09)] justify-center text-center">
               <div>
-                <h2 className="font-serif text-[28px] font-[600] italic text-[#1A0A0A]" style={{ fontFeatureSettings: '"liga" 0' }}>Donor Credentials</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-[600] text-[#9A9A9A] uppercase tracking-wider">Patient ID:</span>
-                <span className="text-[14px] font-[700] text-[#1A1A1A]">RS-2024-8892</span>
-                <button
-                  type="button"
-                  onClick={handleCopyId}
-                  className="ml-1 p-1.5 rounded-lg text-[#9A9A9A] hover:bg-[#F5F0EB] hover:text-[#5A5A5A] transition-all relative"
-                  title="Copy ID"
-                >
-                  <span className="material-symbols-outlined text-[16px]">{copied ? 'check' : 'content_copy'}</span>
-                  {copied && (
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1A1A1A] text-white text-[11px] px-2 py-1 rounded whitespace-nowrap">Copied!</span>
-                  )}
-                </button>
+                <h2 className="font-serif text-[48px] italic leading-[56px]">Donor Credentials</h2>
+                <p className="text-[#737373] text-[14px] font-[500] uppercase tracking-[0.02em]">Patient ID: RS-2024-8892</p>
               </div>
             </div>
 
-            {/* ── IDENTITY SECTION ───────────────────────────────────── */}
-            <div className="px-8 md:px-12 py-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* Identity Section */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12">
               <div className="md:col-span-4">
-                <h3 className={sectionHdg}>Identity</h3>
-                <p className={sectionSub}>Official donor identification details.</p>
+                <h3 className="text-[24px] font-[500] italic text-[#c8102e] leading-[32px]">Identity</h3>
+                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Official donor identification details.</p>
               </div>
-              <div className="md:col-span-8 space-y-5">
-                <div>
-                  <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5" htmlFor="fullName">Full Name</label>
-                  <input id="fullName" name="fullName" type="text" value={profile.fullName} onChange={handleChange} className={inputCls} />
+              <div className="md:col-span-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[14px] font-[500] text-[#685c59]">Full Name</label>
+                  <input 
+                    name="fullName"
+                    value={profile.fullName}
+                    onChange={handleChange}
+                    className="w-full bg-[#faf8f5] border border-[rgba(26,18,16,0.09)] p-4 text-[16px] focus:outline-none focus:border-[#c8102e] focus:ring-4 focus:ring-[#c8102e]/10 transition-all" 
+                    type="text" 
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5" htmlFor="age">Age</label>
-                    <input id="age" name="age" type="number" min="18" max="65" value={profile.age} onChange={handleChange} className={inputCls} />
+                  <div className="space-y-2">
+                    <label className="text-[14px] font-[500] text-[#685c59]">Age</label>
+                    <input 
+                      name="age"
+                      value={profile.age}
+                      onChange={handleChange}
+                      className="w-full bg-[#faf8f5] border border-[rgba(26,18,16,0.09)] p-4 text-[16px] focus:outline-none focus:border-[#c8102e] focus:ring-4 focus:ring-[#c8102e]/10 transition-all" 
+                      type="number" 
+                    />
                   </div>
-                  <div>
-                    <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5" htmlFor="gender">Gender</label>
-                    <select id="gender" name="gender" value={profile.gender} onChange={handleChange} className={`${inputCls} custom-select`}>
+                  <div className="space-y-2">
+                    <label className="text-[14px] font-[500] text-[#685c59]">Gender</label>
+                    <select 
+                      name="gender"
+                      value={profile.gender}
+                      onChange={handleChange}
+                      className="w-full bg-[#faf8f5] border border-[rgba(26,18,16,0.09)] p-4 text-[16px] focus:outline-none focus:border-[#c8102e] focus:ring-4 focus:ring-[#c8102e]/10 transition-all"
+                    >
                       <option>Male</option>
                       <option>Female</option>
                       <option>Non-binary</option>
@@ -170,109 +151,116 @@ const EditProfile = () => {
               </div>
             </div>
 
-            <div className="mx-8 md:mx-12 border-t border-[#E0DAD4]" />
-
-            {/* ── GEOGRAPHY SECTION ──────────────────────────────────── */}
-            <div className="px-8 md:px-12 py-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* Geography Section */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-[rgba(26,18,16,0.04)]">
               <div className="md:col-span-4">
-                <h3 className={sectionHdg}>Geography</h3>
-                <p className={sectionSub}>Logistics optimization parameters.</p>
+                <h3 className="text-[24px] font-[500] italic text-[#c8102e] leading-[32px]">Geography</h3>
+                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Logistics optimization parameters.</p>
               </div>
               <div className="md:col-span-8 grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5" htmlFor="city">City</label>
-                  <input id="city" name="city" type="text" value={profile.city} onChange={handleChange} className={inputCls} />
+                <div className="space-y-2">
+                  <label className="text-[14px] font-[500] text-[#685c59]">City</label>
+                  <input 
+                    name="city"
+                    value={profile.city}
+                    onChange={handleChange}
+                    className="w-full bg-[#faf8f5] border border-[rgba(26,18,16,0.09)] p-4 text-[16px] focus:outline-none focus:border-[#c8102e] focus:ring-4 focus:ring-[#c8102e]/10 transition-all" 
+                    type="text" 
+                  />
                 </div>
-                <div>
-                  <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5" htmlFor="pincode">Pincode</label>
-                  <input id="pincode" name="pincode" type="text" maxLength="6" value={profile.pincode} onChange={handleChange} className={inputCls} />
+                <div className="space-y-2">
+                  <label className="text-[14px] font-[500] text-[#685c59]">Pincode</label>
+                  <input 
+                    name="pincode"
+                    value={profile.pincode}
+                    onChange={handleChange}
+                    className="w-full bg-[#faf8f5] border border-[rgba(26,18,16,0.09)] p-4 text-[16px] focus:outline-none focus:border-[#c8102e] focus:ring-4 focus:ring-[#c8102e]/10 transition-all" 
+                    type="text" 
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="mx-8 md:mx-12 border-t border-[#E0DAD4]" />
-
-            {/* ── MEDICAL SECTION ────────────────────────────────────── */}
-            <div className="px-8 md:px-12 py-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* Medical Section */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-[rgba(26,18,16,0.04)]">
               <div className="md:col-span-4">
-                <h3 className={sectionHdg}>Medical</h3>
-                <p className={sectionSub}>Clinical data for safe extraction.</p>
+                <h3 className="text-[24px] font-[500] italic text-[#c8102e] leading-[32px]">Medical</h3>
+                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Clinical data for safe extraction.</p>
               </div>
-              <div className="md:col-span-8 space-y-5">
-                {/* Blood Group — read-only */}
-                <div className="flex items-center justify-between border border-[rgba(190,31,46,0.2)] bg-[rgba(190,31,46,0.03)] rounded-xl p-5">
+              <div className="md:col-span-8 space-y-8">
+                <div className="flex items-center justify-between p-6 bg-[#ffdad8]/30 border border-[#ffdad8] rounded-lg">
                   <div>
-                    <p className="text-[14px] font-[600] text-[#5A5A5A]">Blood Group</p>
-                    <p className="text-[12px] text-[#9A9A9A] mt-0.5">Requires verification to change</p>
+                    <h4 className="text-[14px] font-[500] text-[#92001c]">Blood Group</h4>
+                    <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em]">Requires verification to change</p>
                   </div>
-                  <span className="font-serif text-[28px] font-[700] italic text-[#BE1F2E]">{profile.bloodGroup}</span>
+                  <span className="text-[30px] font-[700] text-[#c8102e]">{profile.bloodGroup}</span>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5" htmlFor="weight">Weight (kg)</label>
-                    <input id="weight" name="weight" type="number" value={profile.weight} onChange={handleChange} className={inputCls} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[14px] font-[500] text-[#685c59]">Weight (kg)</label>
+                    <input 
+                      name="weight"
+                      value={profile.weight}
+                      onChange={handleChange}
+                      className="w-full bg-[#faf8f5] border border-[rgba(26,18,16,0.09)] p-4 text-[16px] focus:outline-none focus:border-[#c8102e] focus:ring-4 focus:ring-[#c8102e]/10 transition-all" 
+                      type="number" 
+                    />
                   </div>
-                  <div className="flex flex-col justify-center">
-                    <label className="text-[14px] font-[600] text-[#5A5A5A] block mb-1.5">Chronic Illness</label>
-                    <button
+                  <div className="flex items-center justify-between p-4 border border-[rgba(26,18,16,0.09)] bg-[#faf8f5]">
+                    <span className="text-[14px] font-[500] text-[#685c59]">Chronic Illness</span>
+                    <button 
                       type="button"
-                      onClick={() => setProfile((p) => ({ ...p, chronicIllness: !p.chronicIllness }))}
-                      className={`toggle-track ${profile.chronicIllness ? 'on' : ''}`}
-                      role="switch"
-                      aria-checked={profile.chronicIllness}
+                      onClick={() => setProfile(prev => ({ ...prev, chronicIllness: !prev.chronicIllness }))}
+                      className={`w-12 h-6 rounded-full relative transition-colors duration-200 focus:outline-none ${profile.chronicIllness ? 'bg-[#c8102e]' : 'bg-[#e4e2df]'}`}
                     >
-                      <span className="toggle-thumb" />
+                      <span className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 transform ${profile.chronicIllness ? 'translate-x-6' : 'translate-x-0'}`}></span>
                     </button>
-                    <p className="text-[12px] text-[#9A9A9A] mt-2 leading-[1.5]">Indicates a long-term medical condition affecting donation eligibility</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── ACTIONS ────────────────────────────────────────────── */}
-            <div className="px-8 md:px-12 py-8 border-t border-[#EDE7E1] flex flex-col sm:flex-row items-center justify-end gap-4">
-              <button
-                type="button"
+            {/* Actions */}
+            <div className="pt-12 flex flex-col md:flex-row items-center justify-end gap-4 border-t border-[rgba(26,18,16,0.09)]">
+              <button 
+                type="button" 
                 onClick={() => navigate('/dashboard')}
-                className="text-[15px] font-[500] text-[#5A5A5A] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                className="w-full md:w-auto px-8 py-4 text-[14px] font-[500] text-[#685c59] hover:text-[#1b1c1a] transition-colors"
               >
                 Cancel
               </button>
-              <button
+              <button 
                 type="submit"
-                disabled={saveState === 'saving'}
-                className="btn-primary"
-                style={{ minWidth: 160, minHeight: 52 }}
+                className="w-full md:w-auto bg-[#c8102e] text-white px-12 py-4 rounded-full text-[14px] font-[500] hover:scale-105 shadow-lg active:scale-95 transition-all"
               >
-                {saveState === 'saving' && (
-                  <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Saving…</>
-                )}
-                {saveState === 'saved' && (
-                  <><span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Saved ✓</>
-                )}
-                {saveState === 'idle' && 'Save Changes'}
+                Save Changes
               </button>
             </div>
-          </section>
-        </form>
+          </form>
+        </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#1A0A0A] py-12 px-6 md:px-10">
-        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <a className="font-serif text-[22px] font-bold text-white" href="#" style={{ fontFeatureSettings: '"liga" 0' }}>RaktSetu</a>
-          <div className="flex flex-wrap justify-center gap-5">
-            {['Privacy Policy', 'Terms of Service', 'Donor Guidelines', 'Contact Medical Team'].map((l) => (
-              <a key={l} className="text-[#A09890] hover:text-white transition-colors text-[14px]" href="#">{l}</a>
-            ))}
+      <footer className="bg-[#1a1210] border-t border-white/10 w-full py-32">
+        <div className="flex flex-col md:flex-row justify-between items-start w-full px-6 md:px-10 lg:px-16 gap-16 md:gap-0">
+          <div className="space-y-6">
+            <div className="font-serif text-[60px] text-white italic leading-[54px]">RaktSetu</div>
+            <p className="text-[#737373] text-[16px] max-w-xs leading-[24px]">© 2024 RaktSetu. Clinical Excellence in Blood Logistics.</p>
           </div>
-          <div className="flex items-center gap-2 text-[14px] text-white">
-            <span className="w-2 h-2 rounded-full bg-[#22A06B] pulse-dot" />
-            <span className="text-white/70">Live Network</span>
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
+            <a className="text-[#737373] hover:text-white transition-colors text-[16px]" href="#">Privacy Policy</a>
+            <a className="text-[#737373] hover:text-white transition-colors text-[16px]" href="#">Terms of Service</a>
+            <a className="text-[#737373] hover:text-white transition-colors text-[16px]" href="#">Donor Guidelines</a>
+            <a className="text-[#737373] hover:text-white transition-colors text-[16px]" href="#">Contact Medical Team</a>
+          </div>
+          <div className="space-y-4">
+            <div className="text-white text-[14px] font-[500] uppercase tracking-[0.02em] opacity-50">Operational Status</div>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+              <span className="text-white text-[16px]">Live Logistics Network</span>
+            </div>
           </div>
         </div>
-        <p className="text-center text-[#6A6062] text-[13px] mt-8">© 2024 RaktSetu. Clinical Excellence.</p>
       </footer>
     </div>
   );

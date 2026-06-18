@@ -128,7 +128,7 @@ const DonorRegistration = () => {
 
       {/* ── SIMPLIFIED AUTH NAVBAR ─────────────────────────────────────── */}
       <nav className="w-full bg-white border-b border-[#E0DAD4] sticky top-0 z-40">
-        <div className="flex justify-between items-center h-16 px-6 md:px-10 max-w-[1280px] mx-auto">
+        <div className="flex justify-between items-center h-16 px-6 md:px-10 lg:px-16 w-full">
           <Link to="/" className="font-serif text-[22px] font-bold text-[#BE1F2E]" style={{ fontFeatureSettings: '"liga" 0' }}>
             RaktSetu
           </Link>

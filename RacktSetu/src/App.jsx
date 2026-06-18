@@ -5,6 +5,7 @@ import ProfileSetup from './components/ProfileSetup';
 import LocationPage from './components/LocationPage';
 import Dashboard from './components/Dashboard';
 import EditProfile from './components/EditProfile';
+import FindCamps from './components/FindCamps';
 import './index.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/location" element={<LocationPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/find-camps" element={<FindCamps />} />
       </Routes>
     </Router>
   );
