@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RaktSetu - Donor Dashboard</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#410007",
+                        "outline": "#906f6e",
+                        "on-secondary-fixed-variant": "#4f4442",
+                        "on-primary-fixed-variant": "#92001c",
+                        "tertiary-fixed": "#b6eaff",
+                        "outline-variant": "#e5bdbb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#6e625f",
+                        "text-muted": "#737373",
+                        "surface-bright": "#fbf9f6",
+                        "on-primary-container": "#ffdad8",
+                        "on-tertiary-fixed-variant": "#004e60",
+                        "on-secondary-fixed": "#221a17",
+                        "inverse-primary": "#ffb3b1",
+                        "surface-variant": "#e4e2df",
+                        "primary-fixed": "#ffdad8",
+                        "on-surface-variant": "#5c403f",
+                        "surface-container": "#efeeeb",
+                        "charcoal-card": "#1a1210",
+                        "crimson-accent": "#c8102e",
+                        "secondary-fixed-dim": "#d3c3bf",
+                        "primary-fixed-dim": "#ffb3b1",
+                        "surface-container-high": "#eae8e5",
+                        "secondary": "#685c59",
+                        "on-surface": "#1b1c1a",
+                        "surface-container-highest": "#e4e2df",
+                        "secondary-fixed": "#f0dfdb",
+                        "on-tertiary-fixed": "#001f28",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f5f3f0",
+                        "surface-tint": "#bf0229",
+                        "tertiary-fixed-dim": "#91d0e7",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#f2f0ed",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#dbdad7",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#9e001f",
+                        "on-background": "#1b1c1a",
+                        "inverse-surface": "#30312f",
+                        "tertiary-container": "#296c81",
+                        "on-tertiary-container": "#b5eaff",
+                        "tertiary": "#005468",
+                        "background": "#fbf9f6",
+                        "primary-container": "#c8102e",
+                        "secondary-container": "#f0dfdb",
+                        "surface": "#fbf9f6",
+                        "border-subtle": "rgba(26, 18, 16, 0.09)",
+                        "on-error": "#ffffff",
+                        "bone-bg": "#faf8f5"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem",
+                        "card": "20px"
+                    },
+                    spacing: {
+                        "container-max": "1280px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "margin-mobile": "16px"
+                    },
+                    fontFamily: {
+                        "label-sm": ["DM Sans", "sans-serif"],
+                        "headline-lg": ["Instrument Serif", "serif"],
+                        "display-xl-mobile": ["Instrument Serif", "serif"],
+                        "display-xl": ["Instrument Serif", "serif"],
+                        "headline-md": ["DM Sans", "sans-serif"],
+                        "body-md": ["DM Sans", "sans-serif"],
+                        "label-md": ["DM Sans", "sans-serif"],
+                        "body-lg": ["DM Sans", "sans-serif"]
+                    },
+                    fontSize: {
+                        "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "headline-lg": ["48px", { lineHeight: "56px", fontWeight: "400" }],
+                        "display-xl-mobile": ["60px", { lineHeight: "54px", letterSpacing: "-0.02em", fontWeight: "400" }],
+                        "display-xl": ["100px", { lineHeight: "90px", letterSpacing: "-0.04em", fontWeight: "400" }],
+                        "headline-md": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "500" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.02em", fontWeight: "500" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .noise-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.05;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');
+        }
+    </style>
+</head>
+<body class="bg-bone-bg text-on-surface antialiased min-h-screen relative font-body-md text-body-md selection:bg-crimson-accent selection:text-white">
+<div class="noise-bg"></div>
+<!-- TopNavBar -->
+<header class="bg-bone-bg dark:bg-inverse-surface border-b border-border-subtle full-width top-0 sticky z-40 transition-all cubic-bezier(0.4, 0, 0.2, 1)">
+<div class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto">
+<!-- Brand -->
+<a class="font-display-xl text-headline-md text-crimson-accent dark:text-inverse-primary italic" href="#">
+                RaktSetu
+            </a>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-label-md text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-transform duration-300 hover:scale-105" href="#">Find Camps</a>
+<a class="font-label-md text-label-md text-primary dark:text-inverse-primary font-bold border-b-2 border-primary" href="#">My Impact</a>
+<a class="font-label-md text-label-md text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-transform duration-300 hover:scale-105" href="#">Profile</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="hidden md:flex font-label-md text-label-md text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-transform duration-300 hover:scale-105">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+<button class="hidden md:flex font-label-md text-label-md text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-transform duration-300 hover:scale-105">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">help</span>
+</button>
+<button class="bg-crimson-accent text-white px-6 py-2.5 rounded-full font-label-md text-label-md hover:scale-105 transition-transform duration-300 ease-out flex items-center gap-2 shadow-sm">
+                    Check Eligibility
+                </button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto px-margin-desktop py-12 md:py-24 space-y-16">
+<!-- Header Section -->
+<div class="space-y-4">
+<h1 class="font-headline-lg text-headline-lg md:text-[64px] md:leading-[72px] tracking-tight">Your <span class="italic text-crimson-accent">Impact</span> Dashboard</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl">Every drop counts. Track your journey of clinical excellence and life-saving contributions here.</p>
+</div>
+<!-- Impact Overview Cards (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Total Donations -->
+<div class="bg-surface-container-lowest rounded-[20px] p-8 border border-border-subtle relative overflow-hidden group hover:shadow-xl hover:shadow-crimson-accent/5 transition-all duration-500">
+<div class="absolute -right-4 -bottom-8 font-display-xl text-[120px] text-primary-fixed-dim/20 select-none group-hover:scale-110 transition-transform duration-700">01</div>
+<div class="relative z-10 space-y-6">
+<div class="w-12 h-12 rounded-full bg-primary-fixed/30 flex items-center justify-center text-crimson-accent">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-2">Total Donations</p>
+<p class="font-headline-lg text-headline-lg">12 <span class="font-body-md text-body-md text-secondary align-middle">units</span></p>
+</div>
+</div>
+</div>
+<!-- Lives Impacted -->
+<div class="bg-surface-container-lowest rounded-[20px] p-8 border border-border-subtle relative overflow-hidden group hover:shadow-xl hover:shadow-crimson-accent/5 transition-all duration-500">
+<div class="absolute -right-4 -bottom-8 font-display-xl text-[120px] text-primary-fixed-dim/20 select-none group-hover:scale-110 transition-transform duration-700">02</div>
+<div class="relative z-10 space-y-6">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed/30 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-2">Lives Impacted</p>
+<p class="font-headline-lg text-headline-lg">36 <span class="font-body-md text-body-md text-secondary align-middle">lives</span></p>
+</div>
+</div>
+</div>
+<!-- Next Eligible Date -->
+<div class="bg-charcoal-card rounded-[20px] p-8 border border-white/10 relative overflow-hidden group hover:shadow-xl hover:shadow-charcoal-card/20 transition-all duration-500">
+<div class="absolute -right-4 -bottom-8 font-display-xl text-[120px] text-white/5 select-none group-hover:scale-110 transition-transform duration-700">03</div>
+<div class="relative z-10 space-y-6 text-white">
+<div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-white/60 uppercase tracking-widest mb-2">Next Eligible Date</p>
+<p class="font-headline-md text-headline-md">October 24, 2024</p>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Recent Donations & Eligibility -->
+<div class="lg:col-span-2 space-y-8">
+<!-- Eligibility Card CTA -->
+<div class="bg-gradient-to-br from-surface-container-lowest to-surface-container-low rounded-[20px] p-8 md:p-10 border border-border-subtle flex flex-col md:flex-row items-center gap-8 justify-between shadow-sm">
+<div class="space-y-4 flex-1">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-crimson-accent/10 text-crimson-accent font-label-sm text-label-sm uppercase">
+<span class="w-2 h-2 rounded-full bg-crimson-accent animate-pulse"></span>
+                            Action Required
+                        </div>
+<h2 class="font-headline-md text-headline-md italic text-on-surface">Are you ready to save a life today?</h2>
+<p class="font-body-md text-body-md text-secondary">Take the 2-minute health check to ensure you meet the clinical requirements for today's donation.</p>
+</div>
+<button class="w-full md:w-auto bg-charcoal-card text-white px-8 py-4 rounded-full font-label-md text-label-md hover:scale-105 transition-transform duration-300 ease-out whitespace-nowrap">
+                        Start Screening
+                    </button>
+</div>
+<!-- Recent Donations Table Area -->
+<div class="bg-surface-container-lowest rounded-[20px] p-8 border border-border-subtle">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md">Recent Donations</h3>
+<a class="font-label-sm text-label-sm text-crimson-accent uppercase tracking-wider hover:underline" href="#">View All</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-border-subtle">
+<th class="pb-4 font-label-sm text-label-sm text-secondary uppercase font-semibold">Date</th>
+<th class="pb-4 font-label-sm text-label-sm text-secondary uppercase font-semibold">Location</th>
+<th class="pb-4 font-label-sm text-label-sm text-secondary uppercase font-semibold">Type</th>
+<th class="pb-4 font-label-sm text-label-sm text-secondary uppercase font-semibold text-right">Status</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<tr class="border-b border-border-subtle/50 hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4">Aug 15, 2024</td>
+<td class="py-4 text-secondary">City General Hospital</td>
+<td class="py-4">Whole Blood</td>
+<td class="py-4 text-right"><span class="inline-flex px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-label-sm text-[10px] uppercase">Completed</span></td>
+</tr>
+<tr class="border-b border-border-subtle/50 hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4">May 02, 2024</td>
+<td class="py-4 text-secondary">Red Cross Mobile Camp</td>
+<td class="py-4">Whole Blood</td>
+<td class="py-4 text-right"><span class="inline-flex px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-label-sm text-[10px] uppercase">Completed</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4">Jan 10, 2024</td>
+<td class="py-4 text-secondary">Metro Blood Bank</td>
+<td class="py-4">Plasma</td>
+<td class="py-4 text-right"><span class="inline-flex px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-label-sm text-[10px] uppercase">Completed</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column: Urgent Requests -->
+<div class="space-y-6">
+<h3 class="font-headline-md text-headline-md">Nearby Urgent Requests</h3>
+<!-- Urgent Card -->
+<div class="bg-surface-container-lowest rounded-[20px] p-6 border-l-4 border-l-crimson-accent border-y border-r border-y-border-subtle border-r-border-subtle shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl text-crimson-accent" style="font-variation-settings: 'FILL' 1;">emergency</span>
+</div>
+<div class="relative z-10 space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-crimson-accent/10 flex items-center justify-center text-crimson-accent font-headline-md text-headline-md">
+                                O+
+                            </div>
+<div>
+<h4 class="font-label-md text-label-md font-bold">Critical Shortage</h4>
+<p class="font-label-sm text-label-sm text-crimson-accent uppercase tracking-wider">High Priority</p>
+</div>
+</div>
+<div class="space-y-1">
+<p class="font-body-md text-body-md text-on-surface">City General Hospital</p>
+<p class="font-label-sm text-label-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span> 2.4 miles away
+                            </p>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5 mb-2 mt-4">
+<div class="bg-crimson-accent h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+<p class="font-label-sm text-label-sm text-secondary text-right">85% fulfilled</p>
+<button class="w-full bg-surface-container-high text-on-surface px-4 py-2.5 rounded-full font-label-md text-label-md hover:bg-surface-dim hover:scale-[1.02] transition-all duration-300 ease-out mt-2">
+                            Pledge to Donate
+                        </button>
+</div>
+</div>
+<!-- Secondary Request -->
+<div class="bg-surface-container-lowest rounded-[20px] p-6 border border-border-subtle hover:border-outline-variant transition-colors">
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface font-label-md text-label-md">
+                                Any
+                            </div>
+<div>
+<h4 class="font-label-md text-label-md font-bold">Platelet Request</h4>
+</div>
+</div>
+<div class="space-y-1">
+<p class="font-body-md text-body-md text-on-surface">St. Jude's Medical Center</p>
+<p class="font-label-sm text-label-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span> 5.1 miles away
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-charcoal-card dark:bg-black border-t border-white/10 full-width w-full py-16 px-margin-desktop bg-charcoal-card mt-24">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<a class="font-display-xl text-headline-md text-white italic" href="#">
+                RaktSetu
+            </a>
+<nav class="flex flex-wrap justify-center gap-6">
+<a class="font-body-md text-body-md text-text-muted hover:text-primary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-text-muted hover:text-primary-fixed transition-colors" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-text-muted hover:text-primary-fixed transition-colors" href="#">Donor Guidelines</a>
+<a class="font-body-md text-body-md text-text-muted hover:text-primary-fixed transition-colors" href="#">Contact Support</a>
+</nav>
+</div>
+<div class="max-w-container-max mx-auto mt-12 text-center md:text-left">
+<p class="font-body-md text-body-md text-text-muted text-sm">
+                © 2024 RaktSetu Medical Logistics. Clinical Excellence meets Modern Intelligence.
+            </p>
+</div>
+</footer>
+</body></html>
