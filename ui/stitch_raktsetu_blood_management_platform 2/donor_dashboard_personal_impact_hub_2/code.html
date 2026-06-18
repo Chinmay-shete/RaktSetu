@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RaktSetu | Precision Blood Logistics Donor Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "bone-bg": "#faf8f5",
+                    "background": "#fbf9f6",
+                    "primary-fixed": "#ffdad8",
+                    "inverse-surface": "#30312f",
+                    "surface-dim": "#dbdad7",
+                    "secondary-fixed": "#f0dfdb",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e4e2df",
+                    "on-secondary-fixed": "#221a17",
+                    "primary-container": "#c8102e",
+                    "on-surface": "#1b1c1a",
+                    "text-muted": "#737373",
+                    "tertiary-container": "#296c81",
+                    "surface-container-high": "#eae8e5",
+                    "surface-tint": "#bf0229",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#410007",
+                    "secondary": "#685c59",
+                    "on-secondary-fixed-variant": "#4f4442",
+                    "inverse-on-surface": "#f2f0ed",
+                    "surface": "#fbf9f6",
+                    "tertiary-fixed": "#b6eaff",
+                    "on-primary-fixed-variant": "#92001c",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#5c403f",
+                    "surface-bright": "#fbf9f6",
+                    "on-tertiary-fixed-variant": "#004e60",
+                    "inverse-primary": "#ffb3b1",
+                    "tertiary-fixed-dim": "#91d0e7",
+                    "on-secondary-container": "#6e625f",
+                    "crimson-accent": "#c8102e",
+                    "outline": "#906f6e",
+                    "surface-container-low": "#f5f3f0",
+                    "charcoal-card": "#1a1210",
+                    "surface-variant": "#e4e2df",
+                    "secondary-fixed-dim": "#d3c3bf",
+                    "secondary-container": "#f0dfdb",
+                    "tertiary": "#005468",
+                    "outline-variant": "#e5bdbb",
+                    "on-tertiary": "#ffffff",
+                    "border-subtle": "rgba(26, 18, 16, 0.09)",
+                    "on-primary-container": "#ffdad8",
+                    "error": "#ba1a1a",
+                    "surface-container": "#efeeeb",
+                    "primary-fixed-dim": "#ffb3b1",
+                    "primary": "#9e001f",
+                    "on-background": "#1b1c1a",
+                    "on-tertiary-fixed": "#001f28",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#b5eaff",
+                    "error-container": "#ffdad6",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "40px",
+                    "gutter": "24px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "display-xl-mobile": ["Instrument Serif"],
+                    "display-xl": ["Instrument Serif"],
+                    "headline-md": ["DM Sans"],
+                    "body-md": ["DM Sans"],
+                    "label-sm": ["DM Sans"],
+                    "label-md": ["DM Sans"],
+                    "body-lg": ["DM Sans"],
+                    "headline-lg": ["Instrument Serif"]
+            },
+            "fontSize": {
+                    "display-xl-mobile": ["60px", {"lineHeight": "54px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                    "display-xl": ["100px", {"lineHeight": "90px", "letterSpacing": "-0.04em", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.noise-filter {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 9999;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDwhFOBSq4rcbF2RTsJr_6aj0uem2kuPyg_zDkNumRPx6Er1KR2hlipifIVyV168RE4z6Amr35muYDFDo1BgGfzwITSItTS3DFQQeMDPSIknTqjJ9NPzIBgss7RLWIi_E3C3QMrj4MrGD1pKKMf6oIb0UucL6jxsuwOTLOgvmJWgBlUvdqLV9Kfutp4P31Hsd1WGcsidNEB5JOfkquVhL824LI7OkPozqo5M2n1jp3stArrA-3wcjBAsbFiyQhP4hGDG04cDoTNF5U)
+    }
+.spring-hover {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)
+    }
+.spring-hover:hover {
+    transform: scale(1.05)
+    }
+.spring-active:active {
+    transform: scale(0.95)
+    }</style>
+</head>
+<body class="bg-bone-bg text-on-surface font-body-md selection:bg-crimson-accent selection:text-white">
+<div class="noise-filter"></div>
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-bone-bg border-b border-border-subtle">
+<nav class="flex justify-between items-center h-20 px-margin-desktop max-w-container-max mx-auto">
+<div class="font-headline-lg text-headline-lg text-crimson-accent italic">RaktSetu</div>
+<div class="hidden md:flex items-center gap-10">
+<a class="text-secondary font-medium hover:text-crimson-accent transition-colors" href="#">Find Camps</a>
+<a class="text-secondary font-medium hover:text-crimson-accent transition-colors" href="#">My Impact</a>
+<a class="text-crimson-accent font-bold border-b-2 border-crimson-accent pb-1" href="#">Profile</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="bg-charcoal-card text-white px-6 py-2 rounded-full font-label-md spring-hover spring-active">
+                    Emergency Request
+                </button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center border border-border-subtle overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a South Asian man in his late 20s, wearing a clean white shirt, smiling warmly against a soft-focus clinical background. The lighting is high-key and modern, reflecting the clean, trustworthy aesthetic of a medical professional environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4LePSzF9UlW9h3IVZNZA-jV2c_WlVBNOPY2YRf99m4LW6pnZCOJow0bRw6skvc_LwP1Sjs85QaT6fzeIhBQQwGz1cr7qSI-8pe5tYU7UGinXprHgh-PK3cqnJI4GSnh0oPXhDHqPSKEOnfTxKJG5Rq2yoBTo7yub1N3Vml9LsMa5dsvmQIi2q31bqbhLaYDbmBFE5idwcqyYnZUlrzUizutMwPtY0Wobo9nsUpDKigPRPnhBg27638USNnXdaUSlGAlX-APGnWJw"/>
+</div>
+</div>
+</nav>
+</header>
+<main class="pt-32 pb-32 px-margin-desktop max-w-container-max mx-auto">
+<!-- Editorial Greeting -->
+<section class="mb-16">
+<h1 class="font-display-xl text-display-xl-mobile md:text-display-xl italic leading-none mb-4">
+                Welcome back, <span class="text-crimson-accent">Aarav.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-text-muted max-w-2xl">
+                Your commitment to the clinical supply chain has directly supported three local trauma centers this month. Your precision saves lives.
+            </p>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Main Content Area -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Stats Cards Bento -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Total Donations -->
+<div class="bg-white p-8 rounded-lg border border-border-subtle relative overflow-hidden group">
+<span class="absolute -bottom-4 -right-2 font-display-xl text-[120px] text-crimson-accent/5 select-none transition-transform group-hover:scale-110">01</span>
+<p class="font-label-sm text-label-sm text-text-muted uppercase tracking-widest mb-4">Total Donations</p>
+<div class="flex items-end gap-2">
+<h2 class="font-display-xl text-display-xl-mobile text-crimson-accent">12</h2>
+<span class="font-label-md text-label-md text-text-muted mb-4 italic">Units</span>
+</div>
+</div>
+<!-- Lives Impacted -->
+<div class="bg-white p-8 rounded-lg border border-border-subtle relative overflow-hidden group">
+<span class="absolute -bottom-4 -right-2 font-display-xl text-[120px] text-crimson-accent/5 select-none transition-transform group-hover:scale-110">02</span>
+<p class="font-label-sm text-label-sm text-text-muted uppercase tracking-widest mb-4">Lives Impacted</p>
+<div class="flex items-end gap-2">
+<h2 class="font-display-xl text-display-xl-mobile text-crimson-accent">36</h2>
+<span class="font-label-md text-label-md text-text-muted mb-4 italic">Lives</span>
+</div>
+</div>
+<!-- Next Eligibility -->
+<div class="bg-charcoal-card p-8 rounded-lg relative overflow-hidden group">
+<p class="font-label-sm text-label-sm text-white/60 uppercase tracking-widest mb-4">Next Eligible Date</p>
+<h2 class="font-headline-md text-headline-md text-white">Oct 24, 2024</h2>
+<div class="mt-4 inline-flex items-center gap-2 text-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="text-label-md">Mark Calendar</span>
+</div>
+</div>
+</div>
+<!-- Recent Donations Table -->
+<div class="bg-white rounded-lg border border-border-subtle overflow-hidden">
+<div class="p-6 border-b border-border-subtle flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md italic">Recent Donations</h3>
+<button class="text-label-md text-crimson-accent hover:underline">Download Reports</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Date</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Location</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Type</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-text-muted uppercase">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle">
+<tr class="hover:bg-bone-bg transition-colors">
+<td class="px-6 py-4 font-label-md">Aug 12, 2024</td>
+<td class="px-6 py-4 font-body-md text-secondary">Apollo Medical Center</td>
+<td class="px-6 py-4 font-body-md text-secondary">Whole Blood</td>
+<td class="px-6 py-4">
+<span class="bg-crimson-accent/10 text-crimson-accent px-3 py-1 rounded-full text-label-sm uppercase">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-bone-bg transition-colors">
+<td class="px-6 py-4 font-label-md">May 05, 2024</td>
+<td class="px-6 py-4 font-body-md text-secondary">Red Cross - City Plaza</td>
+<td class="px-6 py-4 font-body-md text-secondary">Plasma</td>
+<td class="px-6 py-4">
+<span class="bg-crimson-accent/10 text-crimson-accent px-3 py-1 rounded-full text-label-sm uppercase">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-bone-bg transition-colors">
+<td class="px-6 py-4 font-label-md">Feb 20, 2024</td>
+<td class="px-6 py-4 font-body-md text-secondary">Fortis Logistics Hub</td>
+<td class="px-6 py-4 font-body-md text-secondary">Whole Blood</td>
+<td class="px-6 py-4">
+<span class="bg-crimson-accent/10 text-crimson-accent px-3 py-1 rounded-full text-label-sm uppercase">Completed</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Eligibility CTA -->
+<div class="relative rounded-lg overflow-hidden h-64 flex items-center bg-crimson-accent group">
+<img class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 transition-transform duration-700 group-hover:scale-110" data-alt="A clean, cinematic macro shot of a medical laboratory environment with clinical glass tubes and soft crimson fluid accents. The lighting is sterile yet inviting, using deep red and brilliant white highlights to emphasize clinical excellence and precision technology. High contrast and minimalist composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPibRz0Po3cADqWVeJotqwI5fjq6J_LGtmvf97Pejz_dB8BC95-AYRDHtr68mR1jSCGNyrNHad216bN9r8ZhfCzM6rMBVRpJaOPeTLR4LLYeuwgM631WjmL6mQq6TjXgaNgswV-M_rMRC-HGyfZKVcbfV5xztNZInaEPUjsO6E3CucCbAOR1GnD3CEVbeEFvaZotTR3Z9HKRE9CnyH30i9UXdVMJk2zfx-MeQaE8o0lDXZbgCfsFl7E_HVMJo_QrxKg2gVJoco21Q"/>
+<div class="relative z-10 p-12 w-full flex flex-col md:flex-row justify-between items-center gap-8">
+<div>
+<h3 class="font-headline-lg text-headline-lg text-white italic leading-tight">Ready for your next impact?</h3>
+<p class="text-white/80 font-body-md mt-2">Our 2-minute eligibility check ensures you're medically ready.</p>
+</div>
+<button class="bg-white text-crimson-accent px-10 py-4 rounded-full font-label-md spring-hover spring-active whitespace-nowrap">
+                            Check Eligibility
+                        </button>
+</div>
+</div>
+</div>
+<!-- Sidebar -->
+<aside class="lg:col-span-4 space-y-8">
+<!-- Urgent Requests Sidebar -->
+<div class="bg-white border border-border-subtle rounded-lg p-8 shadow-sm">
+<div class="flex items-center gap-3 text-crimson-accent mb-6">
+<span class="material-symbols-outlined text-[24px]">priority_high</span>
+<h3 class="font-headline-md text-headline-md italic">Urgent Requests</h3>
+</div>
+<div class="space-y-8">
+<!-- Request Card 1 -->
+<div class="p-6 bg-surface-container-low rounded-lg border border-border-subtle">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-error-container text-on-error-container px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Critical Shortage</span>
+<h4 class="font-headline-md text-[20px] mt-2">City General Hospital</h4>
+</div>
+<div class="bg-crimson-accent text-white w-12 h-12 flex items-center justify-center rounded font-bold text-xl">O+</div>
+</div>
+<div class="space-y-2 mb-6">
+<div class="flex justify-between text-label-sm text-text-muted">
+<span>Fulfillment Progress</span>
+<span class="font-bold">85%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-crimson-accent" style="width: 85%"></div>
+</div>
+</div>
+<button class="w-full bg-charcoal-card text-white py-3 rounded-full font-label-md spring-hover spring-active">
+                                Pledge to Donate
+                            </button>
+</div>
+<!-- Request Card 2 (Secondary) -->
+<div class="p-6 border border-border-subtle rounded-lg">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-surface-container-highest text-secondary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Moderate Need</span>
+<h4 class="font-headline-md text-[20px] mt-2">Metro Children's Wing</h4>
+</div>
+<div class="bg-secondary text-white w-12 h-12 flex items-center justify-center rounded font-bold text-xl">B-</div>
+</div>
+<p class="text-body-md text-text-muted mb-6">Pediatric plasma units required for scheduled surgeries on Friday.</p>
+<button class="w-full border border-charcoal-card text-charcoal-card py-3 rounded-full font-label-md hover:bg-charcoal-card hover:text-white transition-colors">
+                                View Details
+                            </button>
+</div>
+</div>
+</div>
+<!-- Logistics Insight Card -->
+<div class="bg-charcoal-card p-8 rounded-lg text-white relative overflow-hidden">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-crimson-accent text-[32px] mb-4">insights</span>
+<h4 class="font-headline-md text-headline-md mb-4 italic">Supply Chain Insight</h4>
+<p class="text-white/70 text-body-md mb-6 leading-relaxed">
+                            Your donation type (O+) is currently in the highest demand globally. 1 unit can be split into components that help up to 3 separate neonatal cases.
+                        </p>
+<a class="inline-flex items-center gap-2 text-crimson-accent font-label-md group" href="#">
+                            Read the 2024 Impact Report
+                            <span class="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
+</a>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-charcoal-card border-t border-white/10 py-32">
+<div class="flex flex-col md:flex-row justify-between items-start px-margin-desktop max-w-container-max mx-auto gap-16">
+<div class="max-w-sm">
+<div class="font-display-xl text-display-xl-mobile text-white italic mb-6">RaktSetu</div>
+<p class="text-text-muted font-body-md leading-relaxed">
+                    © 2024 RaktSetu. Clinical Excellence in Blood Logistics. Operating at the intersection of medical science and logistical intelligence.
+                </p>
+</div>
+<div class="grid grid-cols-2 gap-16">
+<div class="space-y-4">
+<p class="text-white font-bold uppercase tracking-widest text-xs mb-6">Resources</p>
+<a class="block text-text-muted hover:text-white transition-colors" href="#">Donor Guidelines</a>
+<a class="block text-text-muted hover:text-white transition-colors" href="#">Privacy Policy</a>
+<a class="block text-text-muted hover:text-white transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="space-y-4">
+<p class="text-white font-bold uppercase tracking-widest text-xs mb-6">Support</p>
+<a class="block text-text-muted hover:text-white transition-colors" href="#">Contact Medical Team</a>
+<a class="block text-text-muted hover:text-white transition-colors" href="#">Emergency Access</a>
+<a class="block text-text-muted hover:text-white transition-colors" href="#">FAQ</a>
+</div>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for number counting animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const animateNumbers = (el, target) => {
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        el.innerText = target;
+                        clearInterval(timer);
+                    } else {
+                        el.innerText = Math.floor(current);
+                    }
+                }, 20);
+            };
+
+            const stats = document.querySelectorAll('.font-display-xl.text-crimson-accent');
+            stats.forEach(stat => {
+                const target = parseInt(stat.innerText);
+                animateNumbers(stat, target);
+            });
+        });
+    </script>
+</body></html>
