@@ -102,28 +102,28 @@ export const BloodInventory = () => {
     switch (status) {
       case 'Expired':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/20 dark:text-rose-450 dark:border-rose-900/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#BE1F2E]/10 text-[#BE1F2E] border border-[#BE1F2E]/15">
             <AlertTriangle className="h-3.5 w-3.5" />
             Expired
           </span>
         );
       case 'Expiring Soon':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-450 dark:border-amber-900/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#E07B00]/10 text-[#E07B00] border border-[#E07B00]/15">
             <Clock className="h-3.5 w-3.5" />
             Expiring Soon
           </span>
         );
       case 'Low Stock':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-650 border border-red-200/50 dark:bg-rose-950/10 dark:text-rose-400 dark:border-rose-900/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-[#BE1F2E] border border-[#BE1F2E]/10">
             <AlertTriangle className="h-3.5 w-3.5 animate-pulse" />
             Low Stock
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-900/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#22A06B]/10 text-[#22A06B] border border-[#22A06B]/15">
             <CheckCircle className="h-3.5 w-3.5" />
             Available
           </span>
@@ -132,28 +132,29 @@ export const BloodInventory = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-fade-in">
-      {/* Header and Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex flex-col gap-6 w-full animate-fade-in select-none">
+      {/* Editorial Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#EDE7E1] pb-6">
         <div>
-          <h1 className="text-2xl font-black font-outfit text-slate-800 dark:text-slate-100">
+          <h1 className="font-serif text-[36px] md:text-[48px] italic leading-none mb-2 tracking-[-0.03em] text-[#1A1210]">
             Blood Stock Inventory
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-[14px] text-[#5A5A5A]">
             View, search, and manage registered blood bag batches.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm text-xs font-bold text-slate-650 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-[#EDE7E1] shadow-sm text-xs font-bold text-[#5A5A5A] hover:text-[#1A1210] hover:border-[#BE1F2E]/30 transition-all cursor-pointer active:scale-95"
           >
             <Download className="h-4 w-4" />
             Export CSV
           </button>
           <button
             onClick={() => navigate('/update-stock')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-md shadow-rose-600/10 hover:shadow-rose-600/20 cursor-pointer active:scale-95"
+            className="btn-primary"
+            style={{ minHeight: 42, minWidth: 'auto', padding: '10px 20px', fontSize: 13 }}
           >
             <Plus className="h-4 w-4" />
             Add Blood Bag
@@ -162,27 +163,28 @@ export const BloodInventory = () => {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="glass-panel p-4 rounded-3xl flex flex-col md:flex-row items-center gap-4 justify-between shadow-sm">
+      <div className="bg-white p-4 rounded-2xl flex flex-col md:flex-row items-center gap-4 justify-between shadow-sm border border-[#EDE7E1]">
         {/* Search */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/60 dark:bg-slate-950/40 border border-slate-250/50 dark:border-slate-800/40 shadow-inner w-full md:max-w-xs focus-within:ring-2 focus-within:ring-rose-500/15">
-          <Search className="h-4 w-4 text-slate-400" />
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#EDE7E1] w-full md:max-w-xs focus-within:border-[#BE1F2E]/30">
+          <Search className="h-4 w-4 text-[#7A5F5F]" />
           <input
             type="text"
             placeholder="Search group, source, remarks..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent border-none outline-none text-xs w-full text-slate-700 dark:text-slate-200 placeholder-slate-400"
+            className="bg-transparent border-none outline-none text-xs w-full text-[#1A1210] placeholder-[#A8A0A0]"
           />
         </div>
 
         {/* Filters Grid */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Status</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A5F5F]">Status</span>
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-600 dark:text-slate-350 focus:outline-none cursor-pointer"
+              className="input-field custom-select"
+              style={{ padding: '8px 36px 8px 12px', fontSize: 12, borderRadius: 10 }}
             >
               <option value="All">All Statuses</option>
               <option value="Available">Available</option>
@@ -193,11 +195,12 @@ export const BloodInventory = () => {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Group</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A5F5F]">Group</span>
             <select
               value={groupFilter}
               onChange={(e) => { setGroupFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-600 dark:text-slate-350 focus:outline-none cursor-pointer"
+              className="input-field custom-select"
+              style={{ padding: '8px 36px 8px 12px', fontSize: 12, borderRadius: 10 }}
             >
               <option value="All">All Groups</option>
               {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(g => (
@@ -208,18 +211,18 @@ export const BloodInventory = () => {
         </div>
       </div>
 
-      {/* Inventory Table Grid */}
+      {/* Inventory Table */}
       {filteredInventory.length === 0 ? (
         <EmptyState 
           title="No inventory match" 
           description="We couldn't find any blood bags matching your query. Add fresh stock or adjust your filters."
         />
       ) : (
-        <div className="glass-panel rounded-3xl overflow-hidden shadow-md flex-grow">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#EDE7E1] flex-grow">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200/50 dark:border-slate-800/40 bg-slate-50/50 dark:bg-slate-900/30 text-xxs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-[#EDE7E1] bg-[#FAF8F5] text-[11px] font-bold text-[#7A5F5F] uppercase tracking-wider">
                   <th className="px-6 py-4">Blood Group</th>
                   <th className="px-6 py-4">Quantity Available</th>
                   <th className="px-6 py-4">Reserved Quantity</th>
@@ -228,34 +231,34 @@ export const BloodInventory = () => {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/40 dark:divide-slate-800/30 text-xs text-slate-700 dark:text-slate-300 font-medium">
+              <tbody className="divide-y divide-[#EDE7E1] text-xs text-[#3D2B2B] font-medium">
                 {paginatedInventory.map((item) => (
                   <tr 
                     key={item.id}
-                    className="hover:bg-slate-100/30 dark:hover:bg-slate-800/10 transition-colors"
+                    className="hover:bg-[#FAF8F5] transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <span className="text-base font-extrabold font-outfit text-slate-800 dark:text-slate-100">
+                      <span className="text-base font-extrabold text-[#BE1F2E] font-serif">
                         {item.bloodGroup}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">
+                      <span className="font-bold text-[#1A1210]">
                         {item.units - item.reservedUnits}
                       </span>
-                      <span className="text-[10px] font-normal text-slate-400 ml-1">units</span>
+                      <span className="text-[10px] font-normal text-[#7A5F5F] ml-1">units</span>
                     </td>
                     <td className="px-6 py-4">
                       {item.reservedUnits > 0 ? (
-                        <span className="text-blue-500 dark:text-blue-450 font-bold bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/15">
+                        <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200/50">
                           {item.reservedUnits} units
                         </span>
                       ) : (
-                        <span className="text-slate-400 font-normal">-</span>
+                        <span className="text-[#7A5F5F] font-normal">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4 font-normal">
-                      <span className={item.status === 'Expired' ? 'text-rose-600 font-bold' : ''}>
+                      <span className={item.status === 'Expired' ? 'text-[#BE1F2E] font-bold' : 'text-[#3D2B2B]'}>
                         {new Date(item.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                       </span>
                     </td>
@@ -264,14 +267,14 @@ export const BloodInventory = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedBag(item)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 hover:text-slate-855 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl bg-[#FAF8F5] text-[#5A5A5A] hover:text-[#BE1F2E] border border-[#EDE7E1] transition-colors cursor-pointer"
                           title="View Details"
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleteId(item.id)}
-                          className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-rose-550 hover:text-rose-700 dark:text-rose-450 dark:hover:text-rose-300 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl bg-red-50 text-[#BE1F2E] hover:bg-red-100 border border-[#BE1F2E]/10 transition-colors cursor-pointer"
                           title="Delete Batch"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -286,22 +289,22 @@ export const BloodInventory = () => {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200/50 dark:border-slate-800/40 bg-slate-50/20 dark:bg-slate-900/10 text-xs font-semibold text-slate-500">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-[#EDE7E1] bg-[#FAF8F5] text-xs font-semibold text-[#5A5A5A]">
               <span>
-                Showing page <strong className="text-slate-750 dark:text-slate-300">{currentPage}</strong> of <strong className="text-slate-755 dark:text-slate-300">{totalPages}</strong> ({filteredInventory.length} items)
+                Showing page <strong className="text-[#1A1210]">{currentPage}</strong> of <strong className="text-[#1A1210]">{totalPages}</strong> ({filteredInventory.length} items)
               </span>
               <div className="flex gap-2">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-50 hover:bg-slate-50 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border border-[#EDE7E1] bg-white disabled:opacity-50 hover:bg-[#FAF8F5] cursor-pointer transition-colors"
                 >
                   Previous
                 </button>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-50 hover:bg-slate-50 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border border-[#EDE7E1] bg-white disabled:opacity-50 hover:bg-[#FAF8F5] cursor-pointer transition-colors"
                 >
                   Next
                 </button>
@@ -319,36 +322,36 @@ export const BloodInventory = () => {
       >
         {selectedBag && (
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4 bg-slate-100/40 dark:bg-slate-800/20 p-4 rounded-2xl border border-slate-200/40 dark:border-slate-800/40">
-              <span className="text-4xl font-extrabold text-rose-600 font-outfit">
+            <div className="flex items-center gap-4 bg-[#FAF8F5] p-4 rounded-2xl border border-[#EDE7E1]">
+              <span className="text-4xl font-extrabold text-[#BE1F2E] font-serif">
                 {selectedBag.bloodGroup}
               </span>
               <div>
-                <p className="text-xs font-bold text-slate-450 uppercase tracking-wider">Total Quantity</p>
-                <p className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                  {selectedBag.units} units <span className="text-xs font-normal text-slate-450">({selectedBag.reservedUnits} reserved)</span>
+                <p className="text-[11px] font-bold text-[#7A5F5F] uppercase tracking-wider">Total Quantity</p>
+                <p className="text-lg font-bold text-[#1A1210]">
+                  {selectedBag.units} units <span className="text-xs font-normal text-[#7A5F5F]">({selectedBag.reservedUnits} reserved)</span>
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs font-medium text-slate-650">
-              <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/40 rounded-xl">
-                <p className="text-slate-400 mb-1 flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Collection Date</p>
-                <p className="font-bold text-slate-800 dark:text-slate-200">{new Date(selectedBag.collectionDate).toLocaleDateString()}</p>
+            <div className="grid grid-cols-2 gap-4 text-xs font-medium text-[#3D2B2B]">
+              <div className="p-3 bg-white border border-[#EDE7E1] rounded-xl">
+                <p className="text-[#7A5F5F] mb-1 flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Collection Date</p>
+                <p className="font-bold text-[#1A1210]">{new Date(selectedBag.collectionDate).toLocaleDateString()}</p>
               </div>
-              <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/40 rounded-xl">
-                <p className="text-slate-400 mb-1 flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Expiry Date</p>
-                <p className={`font-bold ${selectedBag.status === 'Expired' ? 'text-rose-600' : 'text-slate-800 dark:text-slate-200'}`}>
+              <div className="p-3 bg-white border border-[#EDE7E1] rounded-xl">
+                <p className="text-[#7A5F5F] mb-1 flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Expiry Date</p>
+                <p className={`font-bold ${selectedBag.status === 'Expired' ? 'text-[#BE1F2E]' : 'text-[#1A1210]'}`}>
                   {new Date(selectedBag.expiryDate).toLocaleDateString()}
                 </p>
               </div>
-              <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/40 rounded-xl">
-                <p className="text-slate-400 mb-1 flex items-center gap-1"><Layers className="h-3.5 w-3.5" /> Source</p>
-                <p className="font-bold text-slate-800 dark:text-slate-200">{selectedBag.source}</p>
+              <div className="p-3 bg-white border border-[#EDE7E1] rounded-xl">
+                <p className="text-[#7A5F5F] mb-1 flex items-center gap-1"><Layers className="h-3.5 w-3.5" /> Source</p>
+                <p className="font-bold text-[#1A1210]">{selectedBag.source}</p>
               </div>
-              <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/40 rounded-xl">
-                <p className="text-slate-400 mb-1 flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Risk Level</p>
-                <p className="font-bold text-slate-850 dark:text-slate-200">
+              <div className="p-3 bg-white border border-[#EDE7E1] rounded-xl">
+                <p className="text-[#7A5F5F] mb-1 flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Risk Level</p>
+                <p className="font-bold text-[#1A1210]">
                   {selectedBag.daysRemaining < 0 
                     ? `Expired (${Math.abs(selectedBag.daysRemaining)} days ago)` 
                     : `${selectedBag.daysRemaining} days remaining`}
@@ -357,9 +360,9 @@ export const BloodInventory = () => {
             </div>
 
             {selectedBag.remarks && (
-              <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/40 rounded-xl text-xs">
-                <p className="text-slate-400 mb-1 flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> Batch Remarks</p>
-                <p className="font-bold text-slate-700 dark:text-slate-300 leading-relaxed">{selectedBag.remarks}</p>
+              <div className="p-3 bg-white border border-[#EDE7E1] rounded-xl text-xs">
+                <p className="text-[#7A5F5F] mb-1 flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> Batch Remarks</p>
+                <p className="font-bold text-[#3D2B2B] leading-relaxed">{selectedBag.remarks}</p>
               </div>
             )}
           </div>
@@ -373,26 +376,26 @@ export const BloodInventory = () => {
         title="Confirm Deletion"
       >
         <div className="flex flex-col gap-4 text-center">
-          <div className="mx-auto bg-rose-100 dark:bg-rose-950/50 p-4 rounded-full text-rose-600 w-16 h-16 flex items-center justify-center">
+          <div className="mx-auto bg-red-50 p-4 rounded-full text-[#BE1F2E] w-16 h-16 flex items-center justify-center border border-[#BE1F2E]/10">
             <Trash2 className="h-8 w-8" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-outfit">
+          <h3 className="text-base font-bold text-[#1A1210] font-serif">
             Are you sure you want to remove this batch?
           </h3>
-          <p className="text-xs text-slate-450 leading-relaxed">
+          <p className="text-xs text-[#5A5A5A] leading-relaxed">
             This action cannot be undone. Removing this batch will delete all recorded blood units of this lot from your available storage.
           </p>
           <div className="flex gap-3 mt-2">
             <button
               onClick={() => setDeleteId(null)}
-              className="w-1/2 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-550 dark:text-slate-400 hover:bg-slate-50 cursor-pointer"
+              className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => deleteMutation.mutate(deleteId)}
               disabled={deleteMutation.isPending}
-              className="w-1/2 px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold cursor-pointer"
+              className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition-colors"
             >
               {deleteMutation.isPending ? "Removing..." : "Yes, Delete Lot"}
             </button>

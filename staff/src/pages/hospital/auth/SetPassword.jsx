@@ -63,9 +63,8 @@ export const SetPassword = () => {
     }
   };
 
-  // Basic password strength logic
   const getPasswordStrength = (pwd) => {
-    if (!pwd) return { label: 'None', color: 'bg-slate-700', width: 'w-0' };
+    if (!pwd) return { label: 'None', color: 'bg-[#EDE7E1]', width: 'w-0' };
     let score = 0;
     if (pwd.length >= 8) score++;
     if (/[A-Z]/.test(pwd)) score++;
@@ -73,11 +72,11 @@ export const SetPassword = () => {
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
     
     switch (score) {
-      case 1: return { label: 'Weak', color: 'bg-rose-500', width: 'w-1/4' };
-      case 2: return { label: 'Fair', color: 'bg-amber-500', width: 'w-2/4' };
+      case 1: return { label: 'Weak', color: 'bg-[#BE1F2E]', width: 'w-1/4' };
+      case 2: return { label: 'Fair', color: 'bg-[#E07B00]', width: 'w-2/4' };
       case 3: return { label: 'Good', color: 'bg-blue-500', width: 'w-3/4' };
-      case 4: return { label: 'Strong', color: 'bg-emerald-500', width: 'w-full' };
-      default: return { label: 'Weak', color: 'bg-rose-500', width: 'w-1/4' };
+      case 4: return { label: 'Strong', color: 'bg-[#22A06B]', width: 'w-full' };
+      default: return { label: 'Weak', color: 'bg-[#BE1F2E]', width: 'w-1/4' };
     }
   };
 
@@ -85,24 +84,36 @@ export const SetPassword = () => {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-center items-center p-6 relative overflow-hidden">
-        <Loader2 className="h-10 w-10 text-emerald-500 animate-spin" />
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col justify-center items-center p-6 relative overflow-hidden">
+        <div className="noise-filter" />
+        <Loader2 className="h-10 w-10 text-[#BE1F2E] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-center items-center p-6 relative overflow-hidden select-none">
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-blue-600/10 blur-[100px] pointer-events-none" />
+    <div className="min-h-screen bg-[#FAF8F5] flex flex-col justify-center items-center p-6 relative overflow-hidden select-none">
+      <div className="noise-filter" />
+
+      {/* Auth Navbar */}
+      <nav className="w-full bg-white border-b border-[#EDE7E1] absolute top-0 left-0 right-0 z-40">
+        <div className="flex justify-between items-center h-16 px-6 md:px-10 lg:px-16 w-full">
+          <Link to="/" className="font-serif text-[22px] font-bold text-[#BE1F2E]">
+            RaktSetu
+          </Link>
+          <span className="text-[13px] text-[#7A5F5F] uppercase tracking-widest font-bold">
+            Hospital Staff Portal
+          </span>
+        </div>
+      </nav>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md z-10"
+        className="w-full max-w-[500px] z-10 mt-16"
       >
-        <div className="glass-panel p-8 rounded-[2rem] shadow-2xl border border-slate-700/50 relative overflow-hidden bg-slate-900/40 min-h-[420px] flex flex-col justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-[#EDE7E1] relative overflow-hidden min-h-[420px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             
             {!isSuccess ? (
@@ -114,22 +125,21 @@ export const SetPassword = () => {
                 className="flex flex-col h-full"
               >
                 <div className="mb-6 text-center">
-                  <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl mb-4 border border-emerald-500/20 shadow-inner">
+                  <div className="inline-flex items-center justify-center p-3 bg-red-50 text-[#BE1F2E] rounded-2xl mb-4 border border-[#BE1F2E]/10">
                     <Building2 className="h-6 w-6" />
                   </div>
-                  <h2 className="text-xl font-bold text-white mb-1 font-outfit leading-tight">
-                    Set Password for <span className="text-emerald-400">{hospitalInfo?.name}</span>
+                  <h2 className="text-xl font-bold text-[#1A1210] mb-1 font-serif leading-tight">
+                    Set Password for <span className="text-[#BE1F2E]">{hospitalInfo?.name}</span>
                   </h2>
-                  <p className="text-xs text-slate-400">Create your secure access password to finalize account initialization.</p>
+                  <p className="text-xs text-[#5A5A5A]">Create your secure access password to finalize account initialization.</p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xxs font-bold text-slate-400 uppercase tracking-wider pl-1">New Secure Password</label>
+                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+                      New Secure Password
+                    </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Lock className="h-4 w-4 text-slate-500" />
-                      </div>
                       <input
                         type="password"
                         placeholder="••••••••"
@@ -137,7 +147,7 @@ export const SetPassword = () => {
                           required: "Password is required",
                           minLength: { value: 8, message: "Must be at least 8 characters" }
                         })}
-                        className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                        className={`input-field ${errors.password ? 'error' : ''}`}
                       />
                     </div>
                     
@@ -145,28 +155,27 @@ export const SetPassword = () => {
                     {password && (
                       <div className="mt-2 pl-1">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-[10px] text-slate-400">Password Strength:</span>
-                          <span className="text-[10px] font-bold text-slate-300">{strength.label}</span>
+                          <span className="text-[10px] text-[#5A5A5A]">Password Strength:</span>
+                          <span className="text-[10px] font-bold text-[#1A1210]">{strength.label}</span>
                         </div>
-                        <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-[#FAF8F5] rounded-full overflow-hidden border border-[#EDE7E1]">
                           <div className={`h-full ${strength.color} ${strength.width} transition-all duration-300`} />
                         </div>
                       </div>
                     )}
 
                     {errors.password && (
-                      <span className="text-[10px] text-rose-400 flex items-center gap-1 font-bold pl-1">
+                      <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5">
                         <AlertCircle className="h-3 w-3" /> {errors.password.message}
                       </span>
                     )}
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xxs font-bold text-slate-400 uppercase tracking-wider pl-1">Confirm Password</label>
+                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+                      Confirm Password
+                    </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <ShieldCheck className="h-4 w-4 text-slate-500" />
-                      </div>
                       <input
                         type="password"
                         placeholder="••••••••"
@@ -174,11 +183,11 @@ export const SetPassword = () => {
                           required: "Please confirm your password",
                           validate: value => value === password || "Passwords do not match"
                         })}
-                        className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                        className={`input-field ${errors.confirmPassword ? 'error' : ''}`}
                       />
                     </div>
                     {errors.confirmPassword && (
-                      <span className="text-[10px] text-rose-400 flex items-center gap-1 font-bold pl-1">
+                      <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5">
                         <AlertCircle className="h-3 w-3" /> {errors.confirmPassword.message}
                       </span>
                     )}
@@ -187,7 +196,7 @@ export const SetPassword = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3.5 mt-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-sm font-bold shadow-lg shadow-emerald-600/25 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                    className="btn-primary w-full mt-4"
                   >
                     {isSubmitting ? (
                       <>
@@ -211,16 +220,16 @@ export const SetPassword = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center text-center h-full gap-4"
               >
-                <div className="bg-emerald-500/20 p-4 rounded-full border border-emerald-500/30">
-                  <CheckCircle2 className="h-16 w-16 text-emerald-400" />
+                <div className="bg-[#22A06B]/10 p-4 rounded-full border border-[#22A06B]/20">
+                  <CheckCircle2 className="h-16 w-16 text-[#22A06B]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2 font-outfit">Credentials Secured</h2>
-                  <p className="text-xs text-slate-400 max-w-[280px] mx-auto leading-relaxed">
+                  <h2 className="text-2xl font-bold text-[#1A1210] mb-2 font-serif">Credentials Secured</h2>
+                  <p className="text-xs text-[#5A5A5A] max-w-[280px] mx-auto leading-relaxed">
                     Your password has been successfully configured. Redirecting to login gateway...
                   </p>
                 </div>
-                <Loader2 className="h-5 w-5 text-emerald-500 animate-spin mt-4" />
+                <Loader2 className="h-5 w-5 text-[#BE1F2E] animate-spin mt-4" />
               </motion.div>
             )}
 
@@ -230,3 +239,5 @@ export const SetPassword = () => {
     </div>
   );
 };
+
+export default SetPassword;

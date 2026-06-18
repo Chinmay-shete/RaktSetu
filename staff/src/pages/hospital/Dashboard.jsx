@@ -3,20 +3,18 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mockApi } from '../../services/mockApi';
-import { StatCard } from '../../components/ui/StatCard';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorState } from '../../components/ui/ErrorState';
 import {
   Heart,
   Activity,
-  Flame,
   ArrowLeftRight,
   AlertTriangle,
   Database,
   PlusCircle,
   Clock,
   ChevronRight,
-  Settings
+  UserPlus
 } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -62,100 +60,73 @@ export const Dashboard = () => {
 
   // Simple mock recent activities
   const recentActivities = [
-    { id: 1, type: 'stock', text: 'Added 5 units of O+ blood to inventory', time: '10 mins ago' },
-    { id: 2, type: 'transfer', text: 'Approved transfer request from Red Cross Hospital', time: '1 hour ago' },
-    { id: 3, type: 'expiry', text: 'Alert: 2 units of AB- are expiring in 5 days', time: '3 hours ago' },
-    { id: 4, type: 'stock', text: 'Discarded 1 expired unit of B-', time: 'Yesterday' }
+    { id: 1, text: 'Added 5 units of O+ blood to inventory', time: '10 mins ago' },
+    { id: 2, text: 'Approved transfer request from Red Cross Hospital', time: '1 hour ago' },
+    { id: 3, text: 'Alert: 2 units of AB- are expiring in 5 days', time: '3 hours ago' },
+    { id: 4, text: 'Discarded 1 expired unit of B-', time: 'Yesterday' }
   ];
 
   const quickActions = [
-    { label: 'Update Stock', path: '/update-stock', icon: PlusCircle, color: 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' },
-    { label: 'Review Transfers', path: '/transfer-request', icon: ArrowLeftRight, color: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20' },
-    { label: 'Invite Staff', path: '/invite', icon: UserPlusIconShim, color: 'bg-slate-500/10 text-slate-400 hover:bg-slate-500/20' }
+    { label: 'Update Stock', path: '/update-stock', icon: PlusCircle, bg: 'bg-[#BE1F2E]/10 text-[#BE1F2E]' },
+    { label: 'Review Transfers', path: '/transfer-request', icon: ArrowLeftRight, bg: 'bg-blue-500/10 text-blue-600' },
+    { label: 'Invite Staff', path: '/invite', icon: UserPlus, bg: 'bg-amber-500/10 text-[#E07B00]' }
   ];
 
   return (
     <div className="flex flex-col gap-8 w-full animate-fade-in select-none">
       
-      {/* Welcome banner */}
-      <div className="relative p-8 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 border bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 text-white dark:border-slate-800">
-        <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-rose-600/10 blur-3xl -z-10 animate-pulse" />
-        <div className="absolute left-1/3 bottom-0 w-60 h-60 rounded-full bg-blue-600/10 blur-3xl -z-10" />
-
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
-              Live System Status: Secured & Operational
-            </span>
-          </div>
-
-          <h1 className="text-2xl md:text-3xl font-black font-outfit leading-tight text-white">
-            Welcome back, {user.name}
-          </h1>
-          <p className="text-xs text-slate-400 max-w-lg">
-            Manage your local blood bank stock levels, handle remote peer-to-peer transfer requests, and monitor upcoming expiry dates.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-6 md:gap-10 pt-6 md:pt-0 md:pl-10 border-t md:border-t-0 md:border-l border-slate-800/80">
-          <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1">
-              Current Blood Stock
-            </span>
-            <span className="text-2xl font-black font-outfit text-white">
-              {totalUnits} <span className="text-xs font-semibold text-slate-500">Units</span>
-            </span>
-          </div>
-          <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1">
-              Active Transfers
-            </span>
-            <span className="text-2xl font-black font-outfit text-white">
-              {pendingTransfersCount} <span className="text-xs font-semibold text-slate-500">Pending</span>
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* Editorial Header Section */}
+      <section className="mb-16">
+        <h1 className="font-serif text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em] text-[#1A1210]">
+          Welcome back, <span className="text-[#c8102e]">{user?.name?.split(' ')[0]}.</span>
+        </h1>
+        <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
+          Hospital command console. Real-time blood inventory tracking, cold storage expiration alarms, and P2P peer transfers are managed from this terminal.
+        </p>
+      </section>
 
       {/* Core Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Blood Units"
-          value={totalUnits}
-          icon={Heart}
-          color="red"
-          description="Gross storage count"
-        />
-        <StatCard
-          title="Available Units"
-          value={availableUnits}
-          icon={Activity}
-          color="green"
-          description="Excludes reserved stock"
-        />
-        <StatCard
-          title="Expiring Soon"
-          value={expiringSoonCount}
-          icon={AlertTriangle}
-          color="amber"
-          description="Expiring in <30 days"
-        />
-        <StatCard
-          title="Transfer Requests"
-          value={pendingTransfersCount}
-          icon={ArrowLeftRight}
-          color="blue"
-          description="Awaiting decision"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#c8102e]/5 select-none transition-transform group-hover:scale-110">01</span>
+          <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Total Blood Units</p>
+          <div className="flex items-end gap-2">
+            <h2 className="font-serif text-[60px] leading-[54px] text-[#c8102e]">{totalUnits}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#22A06B]/5 select-none transition-transform group-hover:scale-110">02</span>
+          <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Available Units</p>
+          <div className="flex items-end gap-2">
+            <h2 className="font-serif text-[60px] leading-[54px] text-[#22A06B]">{availableUnits}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#E07B00]/5 select-none transition-transform group-hover:scale-110">03</span>
+          <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Expiring Soon</p>
+          <div className="flex items-end gap-2">
+            <h2 className="font-serif text-[60px] leading-[54px] text-[#E07B00]">{expiringSoonCount}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-blue-600/5 select-none transition-transform group-hover:scale-110">04</span>
+          <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Transfer Requests</p>
+          <div className="flex items-end gap-2">
+            <h2 className="font-serif text-[60px] leading-[54px] text-blue-600">{pendingTransfersCount}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Pending</span>
+          </div>
+        </div>
       </div>
 
-      {/* The Four Large Navigation Cards */}
+      {/* Core Modules Bento Grid */}
       <div>
-        <h2 className="text-lg font-bold text-slate-800 dark:text-white font-outfit mb-4">Core Modules</h2>
+        <h2 className="text-sm font-bold text-[#7A5F5F] uppercase tracking-wider mb-4">Core Portal Modules</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ModuleCard
             title="Blood Inventory"
@@ -188,30 +159,31 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Critical Info, Activities, & Quick Actions */}
+      {/* Audit Logs, Shortcuts, and Shortages */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Critical Groups & Quick Actions */}
+        {/* Shortages & Shortcuts */}
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Critical Shortages</h3>
+          {/* Critical Shortages */}
+          <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm">
+            <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-4">Critical Shortages</h3>
             {uniqueCriticalGroups.length > 0 ? (
               <div className="flex flex-wrap gap-2.5">
                 {uniqueCriticalGroups.map(group => (
-                  <div key={group} className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                  <div key={group} className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-[#BE1F2E]/10 text-[#BE1F2E] text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#BE1F2E] animate-pulse" />
                     {group} is Critically Low (≤3 units)
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-400">All blood group reserves are currently optimal.</p>
+              <p className="text-xs text-[#5A5A5A] italic">All blood group reserves are currently optimal.</p>
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md flex flex-col gap-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Quick Shortcuts</h3>
+          {/* Quick Shortcuts */}
+          <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider">Quick Shortcuts</h3>
             <div className="grid grid-cols-3 gap-4">
               {quickActions.map((action, idx) => {
                 const Icon = action.icon;
@@ -219,7 +191,7 @@ export const Dashboard = () => {
                   <Link
                     key={idx}
                     to={action.path}
-                    className={`flex flex-col items-center justify-center p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 transition-all gap-2 text-center group cursor-pointer ${action.color}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border border-[#EDE7E1] transition-all gap-2 text-center group cursor-pointer hover:border-[#BE1F2E]/30 ${action.bg}`}
                   >
                     <Icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
                     <span className="text-xxs font-bold tracking-wide uppercase">{action.label}</span>
@@ -230,27 +202,27 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Activity Feed */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md flex flex-col">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Recent Audit Activity</h3>
-          <div className="flex flex-col gap-4 flex-grow justify-between">
+        {/* Audit activity logs */}
+        <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-4">Recent Audit Activity</h3>
             <div className="flex flex-col gap-4">
               {recentActivities.map(activity => (
                 <div key={activity.id} className="flex items-start gap-3">
-                  <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 mt-0.5">
+                  <div className="p-1.5 rounded-lg bg-[#FAF8F5] text-[#7A5F5F] mt-0.5 border border-[#EDE7E1]">
                     <Clock className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-250 leading-snug">{activity.text}</p>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">{activity.time}</span>
+                    <p className="text-xs font-semibold text-[#1A1210] leading-snug">{activity.text}</p>
+                    <span className="text-[10px] text-[#7A5F5F] block mt-0.5">{activity.time}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <Link to="/inventory" className="text-xxs font-bold text-rose-500 uppercase tracking-widest hover:text-rose-400 transition-colors flex items-center justify-center gap-1 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-              Audit Full Inventory <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
           </div>
+          <Link to="/inventory" className="text-xxs font-bold text-[#BE1F2E] uppercase tracking-widest hover:text-[#9E1825] transition-colors flex items-center justify-center gap-1 mt-6 pt-4 border-t border-[#EDE7E1]">
+            Audit Full Inventory <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
 
       </div>
@@ -258,26 +230,26 @@ export const Dashboard = () => {
   );
 };
 
-// Sub-component for Module Navigation Cards
+// Module card helper component
 const ModuleCard = ({ title, description, icon: Icon, color, onClick }) => {
   const colorMap = {
-    rose: 'border-rose-500/10 hover:border-rose-500/40 text-rose-500 hover:bg-rose-500/5',
-    emerald: 'border-emerald-500/10 hover:border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/5',
-    amber: 'border-amber-500/10 hover:border-amber-500/40 text-amber-500 hover:bg-amber-500/5',
-    blue: 'border-blue-500/10 hover:border-blue-500/40 text-blue-500 hover:bg-blue-500/5',
+    rose: 'hover:border-[#BE1F2E]/40 text-[#BE1F2E]',
+    emerald: 'hover:border-[#22A06B]/40 text-[#22A06B]',
+    amber: 'hover:border-[#E07B00]/40 text-[#E07B00]',
+    blue: 'hover:border-blue-600/40 text-blue-600',
   };
 
   return (
     <div
       onClick={onClick}
-      className={`p-6 rounded-[2rem] bg-white dark:bg-slate-900 border transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between gap-4 group ${colorMap[color] || ''}`}
+      className={`p-6 rounded-2xl bg-white border border-[#EDE7E1] transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between gap-4 group ${colorMap[color] || ''}`}
     >
       <div className="flex flex-col gap-2">
-        <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-700 dark:text-slate-300 w-fit group-hover:scale-105 transition-transform">
+        <div className="p-3 bg-[#FAF8F5] rounded-xl text-[#7A5F5F] w-fit group-hover:scale-105 transition-transform border border-[#EDE7E1]">
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className="text-sm font-black text-slate-800 dark:text-white font-outfit mt-1">{title}</h3>
-        <p className="text-xxs text-slate-400 dark:text-slate-500 leading-relaxed font-semibold">{description}</p>
+        <h3 className="text-[18px] font-medium text-[#1A1210] font-serif mt-1">{title}</h3>
+        <p className="text-xxs text-[#5A5A5A] leading-relaxed font-semibold">{description}</p>
       </div>
       <div className="flex items-center gap-1 text-xxs font-bold uppercase tracking-widest mt-2">
         Open Module <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -285,26 +257,5 @@ const ModuleCard = ({ title, description, icon: Icon, color, onClick }) => {
     </div>
   );
 };
-
-// Quick shim for UserPlus Icon to avoid importing user-plus when doing fast setup
-const UserPlusIconShim = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <line x1="19" x2="19" y1="8" y2="14" />
-    <line x1="22" x2="16" y1="11" y2="11" />
-  </svg>
-);
 
 export default Dashboard;

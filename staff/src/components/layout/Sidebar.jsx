@@ -33,19 +33,14 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
   };
 
   const content = (
-    <div className="flex flex-col h-full bg-slate-50/80 dark:bg-slate-900/80 border-r border-slate-200/50 dark:border-slate-800/40 backdrop-blur-xl p-6 select-none">
-      <div className="flex items-center gap-3 mb-8 px-2">
-        <div className="bg-rose-600 p-2.5 rounded-2xl text-white shadow-lg shadow-rose-600/30">
-          <Heart className="h-6 w-6 fill-current animate-pulse" />
-        </div>
-        <div>
-          <span className="text-xl font-black text-slate-800 dark:text-slate-100 font-outfit tracking-tight">
-            Rakt<span className="text-rose-600">Setu</span>
-          </span>
-          <span className="block text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">
-            Hospital Portal
-          </span>
-        </div>
+    <div className="flex flex-col h-full bg-[#FFFFFF]/90 border-r border-[#EDE7E1] backdrop-blur-xl p-6 select-none">
+      <div className="mb-8 px-2">
+        <span className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0 block" style={{ fontFeatureSettings: '"liga" 0' }}>
+          RaktSetu
+        </span>
+        <span className="block text-[10px] text-[#7A5F5F] uppercase font-bold tracking-wider mt-1">
+          Hospital Staff
+        </span>
       </div>
 
       <nav className="flex-grow flex flex-col gap-1.5 overflow-y-auto pr-1">
@@ -59,10 +54,10 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
               to={item.path}
               onClick={onClose}
               className={({ isActive }) => `
-                relative flex items-center justify-between px-4 py-3 rounded-2xl font-semibold text-sm transition-all group cursor-pointer
+                relative flex items-center justify-between px-4 py-3 rounded-2xl font-[500] text-[14px] transition-all group cursor-pointer
                 ${isActive 
-                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/25' 
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/40 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-100'}
+                  ? 'bg-[rgba(190,31,46,0.06)] text-[#BE1F2E] font-[600]' 
+                  : 'text-[#5A5A5A] hover:bg-[#F0EBE5] hover:text-[#1A1210]'}
               `}
             >
               {({ isActive }) => (
@@ -76,8 +71,8 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
                     <span className={`
                       text-[10px] font-extrabold px-2 py-0.5 rounded-full border transition-colors
                       ${isActive 
-                        ? 'bg-white text-rose-600 border-white' 
-                        : 'bg-amber-500 text-white border-amber-600/10'}
+                        ? 'bg-[#BE1F2E] text-white border-[#BE1F2E]' 
+                        : 'bg-[rgba(224,123,0,0.1)] text-[#E07B00] border-[#E07B00]/10'}
                     `}>
                       {badgeCount}
                     </span>
@@ -89,26 +84,28 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
         })}
       </nav>
 
-      <div className="border-t border-slate-200/50 dark:border-slate-800/40 pt-4 mt-4 flex flex-col gap-4">
+      <div className="border-t border-[#EDE7E1] pt-4 mt-4 flex flex-col gap-4">
         <div className="flex items-center gap-3 px-2">
-          <img
-            src={user.logo}
-            alt={user.name}
-            className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-800 shadow-sm"
-          />
+          {user?.logo && (
+            <img
+              src={user.logo}
+              alt={user.name}
+              className="w-10 h-10 rounded-2xl object-cover border border-[#EDE7E1] shadow-sm"
+            />
+          )}
           <div className="overflow-hidden">
-            <span className="block text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-              {user.name}
+            <span className="block text-xs font-bold text-[#1A1210] truncate">
+              {user?.name}
             </span>
-            <span className="block text-[10px] text-slate-400 dark:text-slate-500 truncate">
-              ID: {user.bloodBankId}
+            <span className="block text-[10px] text-[#7A5F5F] truncate">
+              ID: {user?.bloodBankId}
             </span>
           </div>
         </div>
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-semibold text-sm text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 dark:hover:bg-rose-500/5 transition-all cursor-pointer"
+          className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-semibold text-sm text-[#7A5F5F] hover:text-[#BE1F2E] hover:bg-red-50/50 transition-all cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           Logout Account
@@ -126,7 +123,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
       {isOpen && (
         <div
           onClick={onClose}
-          className="lg:hidden fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-xs transition-opacity"
+          className="lg:hidden fixed inset-0 z-40 bg-[#1A1210]/40 backdrop-blur-xs transition-opacity"
         />
       )}
 
@@ -139,7 +136,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
         {content}
         <button
           onClick={onClose}
-          className="absolute top-5 right-[-45px] p-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-md text-slate-500 dark:text-slate-400 cursor-pointer"
+          className="absolute top-5 right-[-45px] p-2 rounded-xl bg-white border border-[#EDE7E1] shadow-md text-[#5A5A5A] cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>

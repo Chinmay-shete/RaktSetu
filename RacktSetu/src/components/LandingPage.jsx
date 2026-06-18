@@ -582,7 +582,17 @@ const LandingPage = () => {
                 },
                 active: true,
               },
-              { icon: 'food_bank', title: 'Blood Bank', desc: 'Manage inventory and supply logic.', active: false },
+              {
+                icon: 'group',
+                title: 'Hospital Staff',
+                desc: 'Access clinical blood inventory, requests, and updates.',
+                action: () => {
+                  window.location.href = window.location.hostname === 'localhost'
+                    ? 'http://localhost:5174/'
+                    : '/staff/';
+                },
+                active: true,
+              },
               { icon: 'shield', title: 'Government', desc: 'District or State level monitoring.', active: false },
             ].map(({ icon, title, desc, action, active }) => (
               <div

@@ -101,31 +101,31 @@ export const Navbar = ({ onMenuOpen }) => {
 
   const getNotifIcon = (type) => {
     switch (type) {
-      case 'Expiry': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+      case 'Expiry': return <AlertTriangle className="h-4 w-4 text-[#E07B00]" />;
       case 'Transfer': return <ArrowLeftRight className="h-4 w-4 text-blue-500" />;
-      case 'Stock Low': return <PlusCircle className="h-4 w-4 text-rose-500" />;
-      default: return <Bell className="h-4 w-4 text-slate-500" />;
+      case 'Stock Low': return <PlusCircle className="h-4 w-4 text-[#BE1F2E]" />;
+      default: return <Bell className="h-4 w-4 text-[#7A5F5F]" />;
     }
   };
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-slate-50/50 dark:bg-slate-950/40 border-b border-slate-200/40 dark:border-slate-800/30 backdrop-blur-md flex-shrink-0">
+    <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-white/95 backdrop-blur-lg border-b border-[#E0DAD4] flex-shrink-0 transition-all duration-300" style={{ height: 72 }}>
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuOpen}
-          className="lg:hidden p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 shadow-sm text-slate-500 dark:text-slate-400 cursor-pointer"
+          className="lg:hidden p-2 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] cursor-pointer"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 select-none">
-          <Link to="/dashboard" className="hover:text-slate-600 dark:hover:text-slate-300">
+        <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-[#7A5F5F] select-none">
+          <Link to="/dashboard" className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0" style={{ fontFeatureSettings: '"liga" 0' }}>
             RaktSetu
           </Link>
           {breadcrumbs.map((bc, idx) => (
             <React.Fragment key={bc.path}>
-              <span className="text-slate-300 dark:text-slate-700 font-normal">/</span>
-              <span className={idx === breadcrumbs.length - 1 ? "text-slate-700 dark:text-slate-200 font-bold" : "hover:text-slate-600 dark:hover:text-slate-300"}>
+              <span className="text-[#EDE7E1] font-normal">/</span>
+              <span className={idx === breadcrumbs.length - 1 ? "text-[#1A1210] font-bold" : "hover:text-[#BE1F2E] transition-colors"}>
                 {bc.label}
               </span>
             </React.Fragment>
@@ -134,26 +134,26 @@ export const Navbar = ({ onMenuOpen }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/40 shadow-inner w-48 focus-within:w-56 transition-all duration-300">
-          <Search className="h-4 w-4 text-slate-400" />
+        <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#FFFFFF] border border-[#EDE7E1] shadow-inner w-48 focus-within:w-56 transition-all duration-300">
+          <Search className="h-4 w-4 text-[#7A5F5F]" />
           <input
             type="text"
             placeholder="Search portal..."
-            className="bg-transparent border-none outline-none text-xs w-full text-slate-750 dark:text-slate-250 placeholder-slate-400"
+            className="bg-transparent border-none outline-none text-xs w-full text-[#1A1210] placeholder-[#A8A0A0]"
           />
         </div>
 
         <button
           onClick={handleSync}
           disabled={isSyncing}
-          className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 shadow-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer transition-all active:scale-95"
+          className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95 disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-rose-500" : ""}`} />
+          <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-[#BE1F2E]" : ""}`} />
         </button>
 
         <button
           onClick={toggleTheme}
-          className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 shadow-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer transition-all active:scale-95"
+          className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95"
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -161,11 +161,11 @@ export const Navbar = ({ onMenuOpen }) => {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 shadow-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer transition-all relative active:scale-95"
+            className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all relative active:scale-95"
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 border border-white dark:border-slate-900 rounded-full animate-pulse" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#BE1F2E] border border-white rounded-full animate-pulse" />
             )}
           </button>
 
@@ -175,16 +175,16 @@ export const Navbar = ({ onMenuOpen }) => {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-3 w-80 glass-panel rounded-3xl shadow-2xl overflow-hidden z-50 border border-slate-200/60 dark:border-slate-800/40"
+                className="absolute right-0 mt-3 w-80 bg-[#FFFFFF] rounded-3xl shadow-2xl overflow-hidden z-50 border border-[#EDE7E1]"
               >
-                <div className="flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-800/40">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 font-outfit">
+                <div className="flex items-center justify-between p-4 border-b border-[#EDE7E1]">
+                  <span className="text-sm font-bold text-[#1A1210]">
                     Notifications ({unreadCount})
                   </span>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      className="text-xxs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 cursor-pointer"
+                      className="text-xxs text-[#BE1F2E] hover:text-[#9E1825] font-bold flex items-center gap-1 cursor-pointer"
                     >
                       <CheckCheck className="h-3 w-3" />
                       Mark all read
@@ -192,26 +192,26 @@ export const Navbar = ({ onMenuOpen }) => {
                   )}
                 </div>
 
-                <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/40">
+                <div className="max-h-60 overflow-y-auto divide-y divide-[#EDE7E1]">
                   {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-slate-400">
+                    <div className="p-6 text-center text-xs text-[#7A5F5F]">
                       No notifications active
                     </div>
                   ) : (
                     notifications.map((notif) => (
                       <div
                         key={notif.id}
-                        className={`flex gap-3 p-3.5 text-xs transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-800/20 ${!notif.read ? 'bg-slate-100/30 dark:bg-slate-800/10' : ''}`}
+                        className={`flex gap-3 p-3.5 text-xs transition-colors hover:bg-red-50/20 ${!notif.read ? 'bg-red-50/10' : ''}`}
                       >
                         <div className="flex-shrink-0 mt-0.5">{getNotifIcon(notif.type)}</div>
                         <div className="flex-grow">
-                          <p className="font-bold text-slate-800 dark:text-slate-200">{notif.title}</p>
-                          <p className="text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{notif.message}</p>
+                          <p className="font-bold text-[#1A1210]">{notif.title}</p>
+                          <p className="text-[#5A5A5A] mt-0.5 leading-relaxed">{notif.message}</p>
                         </div>
                         {!notif.read && (
                           <button
                             onClick={(e) => markRead(notif.id, e)}
-                            className="flex-shrink-0 text-slate-450 hover:text-slate-700 dark:hover:text-slate-350 self-center cursor-pointer p-1"
+                            className="flex-shrink-0 text-[#7A5F5F] hover:text-[#BE1F2E] self-center cursor-pointer p-1"
                           >
                             <Check className="h-3 w-3" />
                           </button>
@@ -221,11 +221,11 @@ export const Navbar = ({ onMenuOpen }) => {
                   )}
                 </div>
                 
-                <div className="p-3 border-t border-slate-200/50 dark:border-slate-800/40 text-center bg-slate-50/50 dark:bg-slate-900/30">
+                <div className="p-3 border-t border-[#EDE7E1] text-center bg-[#FAF8F5]">
                   <Link
                     to="/expiry-alerts"
                     onClick={() => setIsNotifOpen(false)}
-                    className="text-xxs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-350"
+                    className="text-xxs font-bold text-[#7A5F5F] hover:text-[#BE1F2E] transition-colors"
                   >
                     View System Alerts
                   </Link>
@@ -236,14 +236,17 @@ export const Navbar = ({ onMenuOpen }) => {
         </div>
 
         <div className="flex items-center gap-2 select-none">
-          <img
-            src={user?.logo}
-            alt={user?.name}
-            className="w-9 h-9 rounded-2xl object-cover border border-slate-200 dark:border-slate-800 hover:scale-105 transition-all shadow-sm"
-          />
+          {user?.logo && (
+            <img
+              src={user.logo}
+              alt={user.name}
+              className="w-9 h-9 rounded-2xl object-cover border border-[#EDE7E1] hover:scale-105 transition-all shadow-sm"
+            />
+          )}
         </div>
       </div>
     </header>
   );
 };
+
 export default Navbar;

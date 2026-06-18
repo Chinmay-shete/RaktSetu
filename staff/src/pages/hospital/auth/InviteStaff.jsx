@@ -42,56 +42,54 @@ export const InviteStaff = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-in max-w-4xl mx-auto w-full">
-      <div className="relative p-8 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white dark:border-slate-800 border">
-        <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl -z-10" />
-        <div className="flex flex-col gap-2 relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-emerald-500/20 p-2.5 rounded-2xl">
-              <UserPlus className="h-6 w-6 text-emerald-400" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold font-outfit">Invite Hospital Staff</h1>
-          </div>
-          <p className="text-sm text-slate-400 max-w-xl">
+    <div className="flex flex-col gap-6 animate-fade-in max-w-4xl mx-auto w-full select-none">
+      
+      {/* Editorial Header */}
+      <section className="border-b border-[#EDE7E1] pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[36px] md:text-[52px] italic leading-none mb-3 tracking-[-0.03em] text-[#1A1210]">
+            Invite Hospital Staff
+          </h1>
+          <p className="text-[15px] text-[#5A5A5A] max-w-xl leading-[24px]">
             Generate secure access tokens and dispatch invitations to medical officers and inventory managers to grant them access to this hospital's dashboard.
           </p>
         </div>
-      </div>
+        <div className="bg-red-50 text-[#BE1F2E] p-3 rounded-2xl border border-[#BE1F2E]/10 w-fit h-fit self-start md:self-center">
+          <UserPlus className="h-6 w-6" />
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
         {/* Left Column: Form */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-xl flex flex-col gap-6">
+        <div className="bg-white border border-[#EDE7E1] p-8 rounded-2xl shadow-sm flex flex-col gap-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white font-outfit">Generate Invitation</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <h2 className="text-[20px] font-medium text-[#1A1210] font-serif">Generate Invitation</h2>
+            <p className="text-xs text-[#5A5A5A] mt-1">
               Enter the staff member's email address to create a unique enrollment link.
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xxs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
                 Staff Email Address
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 text-slate-400" />
-                </div>
                 <input
                   type="email"
                   placeholder="doctor@hospital.org"
                   {...register("email", { 
-                      required: "Email address is required",
-                      pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: "Invalid email format"
-                      }
+                    required: "Email address is required",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Invalid email format"
+                    }
                   })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-inner"
+                  className={`input-field ${errors.email ? 'error' : ''}`}
                 />
               </div>
               {errors.email && (
-                <span className="text-[10px] text-rose-500 flex items-center gap-1 font-bold pl-1 mt-0.5">
+                <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5">
                   <AlertCircle className="h-3 w-3" /> {errors.email.message}
                 </span>
               )}
@@ -100,7 +98,8 @@ export const InviteStaff = () => {
             <button
               type="submit"
               disabled={isGenerating}
-              className="w-full py-3.5 mt-2 rounded-2xl bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-500 text-white text-sm font-bold shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="btn-primary w-full mt-2"
+              style={{ minHeight: 52 }}
             >
               {isGenerating ? (
                 <>
@@ -118,7 +117,7 @@ export const InviteStaff = () => {
         </div>
 
         {/* Right Column: Result */}
-        <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl flex flex-col justify-center items-center text-center min-h-[300px]">
+        <div className="bg-[#FAF8F5] border border-[#EDE7E1] p-8 rounded-2xl flex flex-col justify-center items-center text-center min-h-[300px]">
           <AnimatePresence mode="wait">
             {!inviteLink ? (
               <motion.div
@@ -126,12 +125,12 @@ export const InviteStaff = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center gap-4 text-slate-400"
+                className="flex flex-col items-center gap-4 text-[#7A5F5F]"
               >
-                <div className="p-4 rounded-full bg-slate-200/50 dark:bg-slate-800/50">
-                  <UserPlus className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                <div className="p-4 rounded-full bg-white border border-[#EDE7E1]">
+                  <UserPlus className="h-8 w-8 text-[#7A5F5F]" />
                 </div>
-                <p className="text-sm font-medium">Link will appear here once generated.</p>
+                <p className="text-xs font-bold uppercase tracking-wider">Link will appear here once generated</p>
               </motion.div>
             ) : (
               <motion.div
@@ -140,26 +139,27 @@ export const InviteStaff = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center gap-6 w-full"
               >
-                <div className="bg-emerald-500/20 p-3 rounded-full border border-emerald-500/30">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                <div className="bg-[#22A06B]/10 p-3 rounded-full border border-[#22A06B]/20">
+                  <CheckCircle2 className="h-10 w-10 text-[#22A06B]" />
                 </div>
                 
                 <div className="w-full">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Unique Access Token</p>
+                  <p className="text-[11px] font-bold text-[#7A5F5F] uppercase tracking-wider mb-2">Unique Access Token Link</p>
                   <div 
                     onClick={copyToClipboard}
-                    className="w-full p-4 bg-white dark:bg-slate-950 border-2 border-emerald-500/30 rounded-2xl text-xs text-slate-800 dark:text-emerald-400 font-mono break-all cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all shadow-sm group relative"
+                    className="w-full p-4 bg-white border-2 border-[#BE1F2E]/20 rounded-xl text-xs text-[#BE1F2E] font-mono break-all cursor-pointer hover:border-[#BE1F2E] hover:bg-red-50/10 transition-all shadow-sm group relative"
                   >
                     {inviteLink}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white/80 dark:bg-slate-950/80 rounded-xl transition-opacity font-bold font-sans">
-                      Click to Copy
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white/95 rounded-xl transition-opacity font-bold font-sans text-[#1A1210]">
+                      Click to Copy Link
                     </div>
                   </div>
                 </div>
 
                 <button
                   onClick={handleSendEmail}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-sm font-bold shadow-lg shadow-emerald-600/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  className="btn-primary w-full"
+                  style={{ minHeight: 52 }}
                 >
                   <Mail className="h-4 w-4" />
                   Dispatch Email Invitation
@@ -172,3 +172,5 @@ export const InviteStaff = () => {
     </div>
   );
 };
+
+export default InviteStaff;

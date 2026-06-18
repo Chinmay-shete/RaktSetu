@@ -9,7 +9,6 @@ import {
   PlusCircle,
   Calendar,
   Layers,
-  HeartHandshake,
   FileText,
   AlertCircle
 } from 'lucide-react';
@@ -32,7 +31,7 @@ export const UpdateStock = () => {
       bloodGroup: 'O-',
       units: 10,
       collectionDate: new Date().toISOString().split('T')[0],
-      expiryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 35 days from now
+      expiryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       source: 'Voluntary Donation',
       remarks: ''
     }
@@ -65,40 +64,44 @@ export const UpdateStock = () => {
     }
   };
 
+  const fieldLabel = "text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2";
+  const errorMsg = "text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5";
+
   return (
-    <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-black font-outfit text-slate-800 dark:text-slate-100">
-          Update Stock / Add Bags
+    <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto animate-fade-in select-none">
+      {/* Editorial Header */}
+      <div className="border-b border-[#EDE7E1] pb-6">
+        <h1 className="font-serif text-[36px] md:text-[48px] italic leading-none mb-2 tracking-[-0.03em] text-[#1A1210]">
+          Update Stock
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-[14px] text-[#5A5A5A]">
           Register new blood units received from donation camps, replacement donors, or peer lab transfers.
         </p>
       </div>
 
-      <div className="glass-panel p-6 rounded-3xl shadow-lg">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#EDE7E1]">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           {/* Blood Group & Units */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Blood Group</label>
+              <label className={fieldLabel}>Blood Group</label>
               <select
                 {...register("bloodGroup", { required: "Blood group is required" })}
-                className="px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-xs font-semibold text-slate-855 focus:ring-2 focus:ring-rose-500/20 focus:outline-none cursor-pointer"
+                className="input-field custom-select"
               >
                 {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(g => (
                   <option key={g} value={g}>{g}</option>
                 ))}
               </select>
               {errors.bloodGroup && (
-                <span className="text-[10px] text-rose-500 flex items-center gap-1 font-bold mt-0.5">
+                <span className={errorMsg}>
                   <AlertCircle className="h-3 w-3" /> {errors.bloodGroup.message}
                 </span>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quantity (Units)</label>
+              <label className={fieldLabel}>Quantity (Units)</label>
               <input
                 type="number"
                 placeholder="10"
@@ -106,10 +109,10 @@ export const UpdateStock = () => {
                   required: "Quantity is required",
                   min: { value: 1, message: "Minimum quantity is 1 unit" }
                 })}
-                className="px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-rose-500/20 focus:outline-none"
+                className={`input-field ${errors.units ? 'error' : ''}`}
               />
               {errors.units && (
-                <span className="text-[10px] text-rose-500 flex items-center gap-1 font-bold mt-0.5">
+                <span className={errorMsg}>
                   <AlertCircle className="h-3 w-3" /> {errors.units.message}
                 </span>
               )}
@@ -119,7 +122,7 @@ export const UpdateStock = () => {
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Collection Date</label>
+              <label className={fieldLabel}>Collection Date</label>
               <div className="relative">
                 <input
                   type="date"
@@ -127,19 +130,19 @@ export const UpdateStock = () => {
                     required: "Collection date is required",
                     validate: val => new Date(val) <= new Date() || "Collection date cannot be in the future"
                   })}
-                  className="px-4 py-3 pl-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:outline-none w-full"
+                  className={`input-field pl-10 ${errors.collectionDate ? 'error' : ''}`}
                 />
-                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
               </div>
               {errors.collectionDate && (
-                <span className="text-[10px] text-rose-500 flex items-center gap-1 font-bold mt-0.5">
+                <span className={errorMsg}>
                   <AlertCircle className="h-3 w-3" /> {errors.collectionDate.message}
                 </span>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Expiry Date</label>
+              <label className={fieldLabel}>Expiry Date</label>
               <div className="relative">
                 <input
                   type="date"
@@ -147,12 +150,12 @@ export const UpdateStock = () => {
                     required: "Expiry date is required",
                     validate: val => new Date(val) > new Date(watchCollectionDate) || "Expiry date must be after the collection date"
                   })}
-                  className="px-4 py-3 pl-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:outline-none w-full"
+                  className={`input-field pl-10 ${errors.expiryDate ? 'error' : ''}`}
                 />
-                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
               </div>
               {errors.expiryDate && (
-                <span className="text-[10px] text-rose-500 flex items-center gap-1 font-bold mt-0.5">
+                <span className={errorMsg}>
                   <AlertCircle className="h-3 w-3" /> {errors.expiryDate.message}
                 </span>
               )}
@@ -161,21 +164,21 @@ export const UpdateStock = () => {
 
           {/* Source */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Supply Source</label>
+            <label className={fieldLabel}>Supply Source</label>
             <div className="relative">
               <select
                 {...register("source", { required: "Supply source is required" })}
-                className="px-4 py-3 pl-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:outline-none w-full cursor-pointer"
+                className="input-field custom-select pl-10"
               >
                 <option value="Voluntary Donation">Voluntary Donation</option>
                 <option value="Replacement Donation">Replacement Donation</option>
                 <option value="Apex Lab Transfer">Apex Lab Transfer</option>
                 <option value="Emergency Camp">Emergency Camp</option>
               </select>
-              <Layers className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <Layers className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F] pointer-events-none" />
             </div>
             {errors.source && (
-              <span className="text-[10px] text-rose-500 flex items-center gap-1 font-bold mt-0.5">
+              <span className={errorMsg}>
                 <AlertCircle className="h-3 w-3" /> {errors.source.message}
               </span>
             )}
@@ -183,22 +186,23 @@ export const UpdateStock = () => {
 
           {/* Remarks */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Batch Remarks (Optional)</label>
+            <label className={fieldLabel}>Batch Remarks (Optional)</label>
             <div className="relative">
               <textarea
                 placeholder="E.g., cold chain validated, screened for typical infections, unique donor reference..."
                 rows="3"
                 {...register("remarks")}
-                className="px-4 py-3 pl-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-rose-500/20 focus:outline-none w-full resize-none"
+                className="input-field pl-10 resize-none"
               />
-              <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
             </div>
           </div>
 
           {/* Submit */}
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition-all shadow-lg shadow-rose-600/10 cursor-pointer active:scale-98"
+            className="btn-primary mt-2 w-full"
+            style={{ minHeight: 52 }}
           >
             <PlusCircle className="h-4 w-4" />
             Register Stock Batch
@@ -214,61 +218,61 @@ export const UpdateStock = () => {
       >
         {formDataCache && (
           <div className="flex flex-col gap-4">
-            <p className="text-xs text-slate-500 leading-relaxed text-center">
+            <p className="text-xs text-[#5A5A5A] leading-relaxed text-center">
               Please double check the details below. Once confirmed, this blood batch will be added to the registry and visible immediately across search tables.
             </p>
 
-            <div className="bg-slate-50 dark:bg-slate-900/60 p-4 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl flex items-center justify-between">
-              <span className="text-4xl font-extrabold text-rose-600 font-outfit">
+            <div className="bg-[#FAF8F5] p-4 border border-[#EDE7E1] rounded-2xl flex items-center justify-between">
+              <span className="text-4xl font-extrabold text-[#BE1F2E] font-serif">
                 {formDataCache.bloodGroup}
               </span>
               <div className="text-right">
-                <span className="text-xs text-slate-400 block uppercase font-bold tracking-wider">Quantity</span>
-                <span className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                <span className="text-[11px] text-[#7A5F5F] block uppercase font-bold tracking-wider">Quantity</span>
+                <span className="text-xl font-bold text-[#1A1210]">
                   {formDataCache.units} Units
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs font-medium text-slate-600">
+            <div className="grid grid-cols-2 gap-4 text-xs font-medium text-[#3D2B2B]">
               <div>
-                <span className="text-slate-400 block mb-0.5">Collection Date</span>
-                <span className="font-bold text-slate-850 dark:text-slate-200">{formDataCache.collectionDate}</span>
+                <span className="text-[#7A5F5F] block mb-0.5">Collection Date</span>
+                <span className="font-bold text-[#1A1210]">{formDataCache.collectionDate}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">Expiry Date</span>
-                <span className="font-bold text-slate-850 dark:text-slate-200">{formDataCache.expiryDate}</span>
+                <span className="text-[#7A5F5F] block mb-0.5">Expiry Date</span>
+                <span className="font-bold text-[#1A1210]">{formDataCache.expiryDate}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">Supply Source</span>
-                <span className="font-bold text-slate-850 dark:text-slate-200">{formDataCache.source}</span>
+                <span className="text-[#7A5F5F] block mb-0.5">Supply Source</span>
+                <span className="font-bold text-[#1A1210]">{formDataCache.source}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">Days Shelf Life</span>
-                <span className="font-bold text-emerald-600">
+                <span className="text-[#7A5F5F] block mb-0.5">Days Shelf Life</span>
+                <span className="font-bold text-[#22A06B]">
                   {Math.round((new Date(formDataCache.expiryDate) - new Date(formDataCache.collectionDate)) / (1000 * 60 * 60 * 24))} Days
                 </span>
               </div>
             </div>
 
             {formDataCache.remarks && (
-              <div className="p-3 bg-white dark:bg-slate-900 border border-slate-250/50 dark:border-slate-800/40 rounded-xl text-xs">
-                <span className="text-slate-450 block mb-0.5 font-semibold">Remarks</span>
-                <p className="font-normal text-slate-700 dark:text-slate-300 leading-normal">{formDataCache.remarks}</p>
+              <div className="p-3 bg-white border border-[#EDE7E1] rounded-xl text-xs">
+                <span className="text-[#7A5F5F] block mb-0.5 font-semibold">Remarks</span>
+                <p className="font-normal text-[#3D2B2B] leading-normal">{formDataCache.remarks}</p>
               </div>
             )}
 
-            <div className="flex gap-3 mt-4 border-t border-slate-100 dark:border-slate-800/50 pt-4">
+            <div className="flex gap-3 mt-4 border-t border-[#EDE7E1] pt-4">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="w-1/2 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 hover:bg-slate-50 cursor-pointer"
+                className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmSubmit}
                 disabled={addStockMutation.isPending}
-                className="w-1/2 px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold cursor-pointer"
+                className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 {addStockMutation.isPending ? "Submitting..." : "Yes, Register"}
               </button>

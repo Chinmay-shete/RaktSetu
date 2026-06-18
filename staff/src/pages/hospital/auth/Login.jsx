@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../hooks/useToast';
-import { Heart, Mail, Lock, Building2, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, Building2, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
 
 export const Login = () => {
   const { login, isAuthenticated } = useAuth();
@@ -42,141 +42,147 @@ export const Login = () => {
   };
 
   const handleForgotPassword = () => {
-      toast.warning("Password reset instructions have been sent to your registered email if it exists in our system.");
+    toast.warning("Password reset instructions have been sent to your registered email if it exists in our system.");
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-center items-center p-6 relative overflow-hidden select-none">
-      {/* Background Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-rose-600/15 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-600/15 blur-[100px] pointer-events-none" />
+    <div className="min-h-screen bg-[#FAF8F5] flex flex-col font-sans relative overflow-y-auto selection:bg-[#BE1F2E] selection:text-white">
+      <div className="noise-filter" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md z-10"
-      >
-        <div className="flex flex-col items-center mb-8 gap-3">
-          <motion.div 
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="bg-rose-600 p-4 rounded-3xl text-white shadow-xl shadow-rose-600/35"
-          >
-            <Heart className="h-8 w-8 fill-current animate-pulse" />
-          </motion.div>
-          <div className="text-center mt-2">
-            <h1 className="text-3xl font-extrabold font-outfit tracking-tight">
-              Rakt<span className="text-rose-500">Setu</span> Hub
-            </h1>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-              Secure Hospital Portal
-            </p>
-          </div>
+      {/* Auth Navbar */}
+      <nav className="w-full bg-white border-b border-[#EDE7E1] sticky top-0 z-40">
+        <div className="flex justify-between items-center h-16 px-6 md:px-10 lg:px-16 w-full">
+          <Link to="/" className="font-serif text-[22px] font-bold text-[#BE1F2E]">
+            RaktSetu
+          </Link>
+          <span className="text-[13px] text-[#7A5F5F] uppercase tracking-widest font-bold">
+            Hospital Staff Portal
+          </span>
         </div>
+      </nav>
 
-        <div className="glass-panel p-8 rounded-[2rem] shadow-2xl border border-slate-700/50 relative overflow-hidden bg-slate-900/40">
-          {/* Subtle top border gradient */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-rose-400 to-blue-500 opacity-80" />
-
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-white mb-1">Authorized Login</h2>
-            <p className="text-xs text-slate-400">Enter your credentials to access the inventory and SOS network.</p>
+      {/* Main Content Card */}
+      <main className="flex-grow flex items-center justify-center py-16 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="w-full max-w-[500px] bg-white border border-[#EDE7E1] rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-10 relative overflow-hidden"
+        >
+          {/* Header row */}
+          <div className="flex justify-between items-center mb-8">
+            <span className="font-serif text-[20px] font-bold text-[#BE1F2E] italic">RaktSetu</span>
+            <span className="badge-neutral">Staff Access</span>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xxs font-bold text-slate-400 uppercase tracking-wider pl-1">Facility Email</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 text-slate-500" />
-                </div>
-                <input
-                  type="email"
-                  placeholder="contact@citylifehospital.org"
-                  {...register("email", { 
+          <div className="space-y-6">
+            <div>
+              <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A1210] leading-[1.1]">
+                Authorized Sign In
+              </h1>
+              <p className="text-[15px] text-[#5A5A5A] leading-[1.6]">
+                Secure dashboard access for managing hospital blood inventories and transfer pipelines.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+                  Staff Email
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="name@citylifehospital.org"
+                    {...register("email", { 
                       required: "Email is required",
                       pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: "Invalid email format"
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: "Invalid email format"
                       }
-                  })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-                />
-              </div>
-              {errors.email && (
-                <span className="text-[10px] text-rose-400 flex items-center gap-1 font-bold pl-1 mt-0.5">
-                  <AlertCircle className="h-3 w-3" /> {errors.email.message}
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xxs font-bold text-slate-400 uppercase tracking-wider pl-1">Secure Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-4 w-4 text-slate-500" />
+                    })}
+                    className={`input-field ${errors.email ? 'error' : ''}`}
+                  />
                 </div>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password", { required: "Password is required" })}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-                />
+                {errors.email && (
+                  <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5">
+                    <AlertCircle className="h-3 w-3" /> {errors.email.message}
+                  </span>
+                )}
               </div>
-              {errors.password && (
-                <span className="text-[10px] text-rose-400 flex items-center gap-1 font-bold pl-1 mt-0.5">
-                  <AlertCircle className="h-3 w-3" /> {errors.password.message}
-                </span>
-              )}
-            </div>
 
-            <div className="flex items-center justify-between px-1">
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <div className="relative flex items-center justify-center">
-                    <input 
-                      type="checkbox" 
-                      {...register("rememberMe")}
-                      className="appearance-none w-4 h-4 rounded border border-slate-600 bg-slate-800/50 checked:bg-rose-500 checked:border-rose-500 transition-colors cursor-pointer"
-                    />
-                    <ShieldCheck className="h-3 w-3 text-white absolute pointer-events-none opacity-0 peer-checked:opacity-100" style={{ opacity: 0 }} />
-                    <svg className="w-2.5 h-2.5 absolute pointer-events-none text-white hidden group-has-[:checked]:block" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+              <div>
+                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+                  Secure Password
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    {...register("password", { required: "Password is required" })}
+                    className={`input-field ${errors.password ? 'error' : ''}`}
+                  />
                 </div>
-                <span className="text-xs text-slate-400 font-medium group-hover:text-slate-300 transition-colors">Remember device</span>
-              </label>
+                {errors.password && (
+                  <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5">
+                    <AlertCircle className="h-3 w-3" /> {errors.password.message}
+                  </span>
+                )}
+              </div>
 
-              <button 
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-xs text-rose-400 font-bold hover:text-rose-300 transition-colors cursor-pointer"
+              <div className="flex items-center justify-between px-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    {...register("rememberMe")}
+                    className="appearance-none w-4 h-4 rounded border border-[#D8D0CA] bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors cursor-pointer"
+                  />
+                  <span className="text-xs text-[#5A5A5A] font-medium group-hover:text-[#1A1210] transition-colors">Remember device</span>
+                </label>
+
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-[#BE1F2E] font-bold hover:underline transition-colors cursor-pointer"
+                >
+                  Lost access?
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-primary w-full mt-2"
+                style={{ minHeight: 52 }}
               >
-                Lost access?
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verifying Credentials...
+                  </>
+                ) : (
+                  <>
+                    <Building2 className="h-4 w-4" />
+                    Enter Dashboard
+                  </>
+                )}
               </button>
-            </div>
+            </form>
+          </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 mt-2 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white text-sm font-bold shadow-lg shadow-rose-600/25 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Authenticating...
-                </>
-              ) : (
-                <>
-                  <Building2 className="h-4 w-4" />
-                  Enter Dashboard
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-      </motion.div>
+          <p className="text-center text-[11px] text-[#7A5F5F] leading-relaxed mt-8 px-4">
+            Authorized hospital staff use only. Transactions are audited under institutional HIPAA agreements.
+          </p>
+        </motion.div>
+      </main>
+
+      <footer className="py-6 text-center text-[12px] text-[#7A5F5F] border-t border-[#EDE7E1]">
+        © 2026 RaktSetu ·{' '}
+        <a className="hover:text-[#BE1F2E] transition-colors" href="#">Privacy Policy</a> ·{' '}
+        <a className="hover:text-[#BE1F2E] transition-colors" href="#">Terms of Service</a>
+      </footer>
     </div>
   );
 };
+
+export default Login;
