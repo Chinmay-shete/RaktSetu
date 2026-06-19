@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./staff.css";
 @import "./admin.css";
+@import "./district.css";
 
 /* ─────────────────────────────────────────────
    GLOBAL DESIGN TOKENS

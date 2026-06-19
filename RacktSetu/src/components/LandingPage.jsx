@@ -570,6 +570,7 @@ const LandingPage = () => {
                 desc: 'Register to donate blood and track impact.',
                 action: () => navigate('/register-donor'),
                 active: true,
+                badge: null,
               },
               {
                 icon: 'local_hospital',
@@ -577,6 +578,7 @@ const LandingPage = () => {
                 desc: 'Access the clinical blood supply command center.',
                 action: () => navigate('/admin'),
                 active: true,
+                badge: null,
               },
               {
                 icon: 'group',
@@ -584,9 +586,17 @@ const LandingPage = () => {
                 desc: 'Access clinical blood inventory, requests, and updates.',
                 action: () => navigate('/staff/login'),
                 active: true,
+                badge: null,
               },
-              { icon: 'shield', title: 'Government', desc: 'District or State level monitoring.', active: false },
-            ].map(({ icon, title, desc, action, active }) => (
+              {
+                icon: 'account_balance',
+                title: 'District Officer',
+                desc: 'Government oversight — shortage heatmap, camp planning & district analytics.',
+                action: () => navigate('/district/login'),
+                active: true,
+                badge: 'Gov. Portal',
+              },
+            ].map(({ icon, title, desc, action, active, badge }) => (
               <div
                 key={title}
                 className={`p-6 rounded-xl border transition-all cursor-pointer group ${
@@ -599,7 +609,14 @@ const LandingPage = () => {
                 <div className="w-12 h-12 rounded-xl bg-[rgba(190,31,46,0.08)] flex items-center justify-center mb-4">
                   <span className="material-symbols-outlined text-[#BE1F2E] text-[24px]">{icon}</span>
                 </div>
-                <h6 className="font-[700] text-[15px] text-[#1A1A1A] mb-1">{title}</h6>
+                <div className="flex items-center gap-2 mb-1">
+                  <h6 className="font-[700] text-[15px] text-[#1A1A1A]">{title}</h6>
+                  {badge && (
+                    <span className="text-[9px] font-[700] px-2 py-0.5 rounded-full bg-[var(--district-light)] text-[#1D6A38] uppercase tracking-wider border border-[var(--district-border)]">
+                      {badge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-[13px] text-[#9A9A9A] leading-[1.5]">{desc}</p>
                 {!active && (
                   <p className="text-[11px] font-[600] text-[#BE1F2E] mt-3 uppercase tracking-wide">Coming soon</p>

@@ -39,6 +39,17 @@ import AIDemandForecast from './pages/admin/AIDemandForecast';
 import WasteAnalytics from './pages/admin/WasteAnalytics';
 import AlertThresholds from './pages/admin/AlertThresholds';
 
+// -- District Officer Imports --
+import { DistrictProvider } from './context/DistrictContext';
+import DistrictLayout from './layouts/DistrictLayout/DistrictLayout';
+import DistrictLogin from './pages/district/DistrictLogin';
+import DistrictDashboard from './pages/district/DistrictDashboard';
+import DistrictMap from './pages/district/DistrictMap';
+import DistrictAlerts from './pages/district/DistrictAlerts';
+import CampApprovals from './pages/district/CampApprovals';
+import DistrictReports from './pages/district/DistrictReports';
+import HospitalRegistry from './pages/district/HospitalRegistry';
+
 import './index.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -51,7 +62,8 @@ function App() {
       <AuthProvider>
       <ThemeProvider>
         <ToastProvider>
-          <HospitalProvider>
+            <HospitalProvider>
+            <DistrictProvider>
             <Router>
               <Routes>
                 {/* --------------------------- */}
@@ -97,8 +109,21 @@ function App() {
                 <Route path="/admin/forecast" element={<AdminLayout><AIDemandForecast /></AdminLayout>} />
                 <Route path="/admin/waste" element={<AdminLayout><WasteAnalytics /></AdminLayout>} />
                 <Route path="/admin/thresholds" element={<AdminLayout><AlertThresholds /></AdminLayout>} />
+
+                {/* --------------------------------- */}
+                {/* 4. DISTRICT OFFICER ROUTES        */}
+                {/* --------------------------------- */}
+                <Route path="/district" element={<Navigate to="/district/login" replace />} />
+                <Route path="/district/login" element={<DistrictLogin />} />
+                <Route path="/district/dashboard" element={<DistrictLayout><DistrictDashboard /></DistrictLayout>} />
+                <Route path="/district/map" element={<DistrictLayout><DistrictMap /></DistrictLayout>} />
+                <Route path="/district/alerts" element={<DistrictLayout><DistrictAlerts /></DistrictLayout>} />
+                <Route path="/district/camps" element={<DistrictLayout><CampApprovals /></DistrictLayout>} />
+                <Route path="/district/reports" element={<DistrictLayout><DistrictReports /></DistrictLayout>} />
+                <Route path="/district/hospitals" element={<DistrictLayout><HospitalRegistry /></DistrictLayout>} />
               </Routes>
             </Router>
+          </DistrictProvider>
           </HospitalProvider>
         </ToastProvider>
       </ThemeProvider>
