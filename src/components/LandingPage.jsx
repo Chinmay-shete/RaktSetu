@@ -668,6 +668,27 @@ const LandingPage = () => {
                 ]
               },
               {
+                id: 'state',
+                title: 'State Admin',
+                icon: 'domain',
+                desc: 'State-level oversight — cross-district analytics, waste KPIs, and funding approvals.',
+                actions: [
+                  {
+                    label: 'State Login',
+                    primary: true,
+                    onClick: () => {
+                      navigate('/state/login');
+                      setIsModalOpen(false);
+                    }
+                  },
+                  {
+                    label: 'Gov. Nominated',
+                    disabled: true,
+                    desc: 'By Nomination'
+                  }
+                ]
+              },
+              {
                 id: 'systemadmin',
                 title: 'System Admin',
                 icon: 'settings',

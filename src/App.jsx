@@ -52,6 +52,17 @@ import CampApprovals from './pages/district/CampApprovals';
 import DistrictReports from './pages/district/DistrictReports';
 import HospitalRegistry from './pages/district/HospitalRegistry';
 
+// -- State Admin Imports --
+import { StateAdminProvider } from './context/StateAdminContext';
+import StateAdminLayout from './layouts/StateAdminLayout/StateAdminLayout';
+import StateAdminLogin from './pages/state/StateAdminLogin';
+import StateAdminDashboard from './pages/state/StateAdminDashboard';
+import CrossDistrictTransfers from './pages/state/CrossDistrictTransfers';
+import WasteKPIs from './pages/state/WasteKPIs';
+import PolicyAlerts from './pages/state/PolicyAlerts';
+import DistrictOfficerReports from './pages/state/DistrictOfficerReports';
+import FundingRecommendations from './pages/state/FundingRecommendations';
+
 // -- System Admin Imports --
 import { SystemAdminProvider } from './context/SystemAdminContext';
 import SystemAdminLayout from './layouts/SystemAdminLayout/SystemAdminLayout';
@@ -76,6 +87,7 @@ function App() {
         <ToastProvider>
             <HospitalProvider>
             <DistrictProvider>
+            <StateAdminProvider>
             <SystemAdminProvider>
             <Router>
               <Routes>
@@ -138,7 +150,19 @@ function App() {
                 <Route path="/district/hospitals" element={<DistrictLayout><HospitalRegistry /></DistrictLayout>} />
 
                 {/* --------------------------------- */}
-                {/* 5. SYSTEM ADMIN ROUTES            */}
+                {/* 5. STATE ADMIN ROUTES             */}
+                {/* --------------------------------- */}
+                <Route path="/state" element={<Navigate to="/state/login" replace />} />
+                <Route path="/state/login" element={<StateAdminLogin />} />
+                <Route path="/state/dashboard" element={<StateAdminLayout><StateAdminDashboard /></StateAdminLayout>} />
+                <Route path="/state/transfers" element={<StateAdminLayout><CrossDistrictTransfers /></StateAdminLayout>} />
+                <Route path="/state/waste" element={<StateAdminLayout><WasteKPIs /></StateAdminLayout>} />
+                <Route path="/state/alerts" element={<StateAdminLayout><PolicyAlerts /></StateAdminLayout>} />
+                <Route path="/state/reports" element={<StateAdminLayout><DistrictOfficerReports /></StateAdminLayout>} />
+                <Route path="/state/funding" element={<StateAdminLayout><FundingRecommendations /></StateAdminLayout>} />
+
+                {/* --------------------------------- */}
+                {/* 6. SYSTEM ADMIN ROUTES            */}
                 {/* --------------------------------- */}
                 <Route path="/systemadmin" element={<Navigate to="/systemadmin/login" replace />} />
                 <Route path="/systemadmin/login" element={<SystemAdminLogin />} />
@@ -150,6 +174,7 @@ function App() {
               </Routes>
             </Router>
             </SystemAdminProvider>
+            </StateAdminProvider>
           </DistrictProvider>
           </HospitalProvider>
         </ToastProvider>
