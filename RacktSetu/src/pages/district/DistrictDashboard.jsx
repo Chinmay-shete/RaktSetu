@@ -24,9 +24,34 @@ const BLOOD_GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
 const DistrictDashboard = () => {
   const navigate = useNavigate();
-  const { appState } = useDistrict();
+  const { appState, approveCamp, rejectCamp, addCamp } = useDistrict();
   const hospitals = appState.hospitals || [];
   const alerts = appState.alerts || [];
+  const camps = appState.camps || [];
+
+  const [campTab, setCampTab] = useState('list');
+  const [campForm, setCampForm] = useState({
+    name: '', location: '', date: '', organizer: '', capacity: '', expectedDonors: '', bloodGroups: []
+  });
+  const [campSubmitted, setCampSubmitted] = useState(false);
+
+  const handlePlanSubmit = (e) => {
+    e.preventDefault();
+    if (!campForm.name || !campForm.location || !campForm.date || !campForm.organizer) return;
+    addCamp({
+      ...campForm,
+      capacity: Number(campForm.capacity),
+      expectedDonors: Number(campForm.expectedDonors)
+    });
+    setCampSubmitted(true);
+    setTimeout(() => {
+      setCampSubmitted(false);
+      setCampForm({
+        name: '', location: '', date: '', organizer: '', capacity: '', expectedDonors: '', bloodGroups: []
+      });
+      setCampTab('list');
+    }, 2000);
+  };
 
   const district = appState.officerDetails?.district || 'Pune';
 
@@ -195,6 +220,220 @@ const DistrictDashboard = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Donation Camps Hub */}
+          <div className="bg-white rounded-lg border border-[rgba(26,18,16,0.09)] overflow-hidden">
+            <div className="p-6 border-b border-[rgba(26,18,16,0.09)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-[24px] font-[500] italic">Donation Camps Hub</h3>
+                <p className="text-[13px] text-[#737373] mt-0.5">Schedule, approve, and organize district-wide donation drives.</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCampTab('list')}
+                  className={`px-4 py-1.5 rounded-full text-[12px] font-[600] transition-all ${
+                    campTab === 'list' 
+                      ? 'bg-[#BE1F2E] text-white shadow-sm' 
+                      : 'bg-[#f5f3f0] text-[#5A5A5A] hover:text-[#BE1F2E]'
+                  }`}
+                >
+                  Camps List ({camps.length})
+                </button>
+                <button
+                  onClick={() => setCampTab('plan')}
+                  className={`px-4 py-1.5 rounded-full text-[12px] font-[600] transition-all ${
+                    campTab === 'plan' 
+                      ? 'bg-[#BE1F2E] text-white shadow-sm' 
+                      : 'bg-[#f5f3f0] text-[#5A5A5A] hover:text-[#BE1F2E]'
+                  }`}
+                >
+                  + Plan Camp
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {campTab === 'list' ? (
+                <div className="space-y-4">
+                  {camps.length === 0 ? (
+                    <p className="text-[13px] text-[#9A9A9A] text-center py-4">No donation camps scheduled.</p>
+                  ) : (
+                    camps.map(camp => (
+                      <div key={camp.id} className="p-4 bg-[#fbf9f6] rounded-lg border border-[#E0DAD4] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-[600] text-[15px] text-[#1A1A1A]">{camp.name}</span>
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                              camp.status === 'Approved' 
+                                ? 'bg-[rgba(34,160,107,0.1)] text-[#22A06B]' 
+                                : camp.status === 'Pending' 
+                                ? 'bg-[#eae8e5] text-[#685c59]' 
+                                : 'bg-[#ffdad6] text-[#93000a]'
+                            }`}>
+                              {camp.status}
+                            </span>
+                          </div>
+                          <div className="text-[12px] text-[#737373] space-y-1">
+                            <p className="flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[15px]">location_on</span>
+                              {camp.location}
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[15px]">calendar_today</span>
+                              {new Date(camp.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[15px]">group</span>
+                              <span>Beneficiary: <span className="font-[600] text-[#1A1A1A]">{camp.organizer}</span> · Expected Donors: {camp.expectedDonors}</span>
+                            </p>
+                          </div>
+                          {camp.bloodGroups && camp.bloodGroups.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {camp.bloodGroups.map(g => (
+                                <span key={g} className="bg-[rgba(190,31,46,0.06)] text-[#BE1F2E] px-2.5 py-0.5 rounded text-[10px] font-[600] uppercase">
+                                  {g}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {camp.status === 'Pending' && (
+                          <div className="flex gap-2 shrink-0 self-end md:self-center">
+                            <button
+                              onClick={() => approveCamp(camp.id)}
+                              className="bg-[#1a1210] text-white px-4 py-1.5 rounded-full text-[12px] font-[500] hover:scale-105 active:scale-95 transition-transform"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => rejectCamp(camp.id)}
+                              className="border border-[#E0DAD4] text-[#5A5A5A] px-4 py-1.5 rounded-full text-[12px] font-[500] hover:bg-[#eae8e5] transition-colors"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {campSubmitted ? (
+                    <div className="text-center py-8">
+                      <CheckCircle size={40} className="text-[#22A06B] mx-auto mb-3 animate-bounce" />
+                      <h4 className="font-serif text-[20px] italic text-[#1a1a1a] mb-1">Camp Request Scheduled!</h4>
+                      <p className="text-[12px] text-[#737373]">Camp created and added to the list.</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handlePlanSubmit} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Camp Name</label>
+                          <input 
+                            value={campForm.name} 
+                            onChange={e => setCampForm(p => ({ ...p, name: e.target.value }))} 
+                            className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
+                            placeholder="e.g. Kothrud Community Camp" 
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Date</label>
+                          <input 
+                            type="date" 
+                            value={campForm.date} 
+                            onChange={e => setCampForm(p => ({ ...p, date: e.target.value }))} 
+                            className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
+                            required 
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Location</label>
+                        <input 
+                          value={campForm.location} 
+                          onChange={e => setCampForm(p => ({ ...p, location: e.target.value }))} 
+                          className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
+                          placeholder="Venue name, area, Pune" 
+                          required 
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Organizing Hospital</label>
+                          <select 
+                            value={campForm.organizer} 
+                            onChange={e => setCampForm(p => ({ ...p, organizer: e.target.value }))} 
+                            className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E] appearance-none" 
+                            required
+                          >
+                            <option value="">Select hospital…</option>
+                            {hospitals.map(h => <option key={h.id} value={h.name}>{h.name}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Capacity</label>
+                          <input 
+                            type="number" 
+                            value={campForm.capacity} 
+                            onChange={e => setCampForm(p => ({ ...p, capacity: e.target.value }))} 
+                            className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
+                            placeholder="e.g. 200" 
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Expected Donors</label>
+                          <input 
+                            type="number" 
+                            value={campForm.expectedDonors} 
+                            onChange={e => setCampForm(p => ({ ...p, expectedDonors: e.target.value }))} 
+                            className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
+                            placeholder="e.g. 150" 
+                            required 
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Target Blood Groups</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {BLOOD_GROUPS.map(g => (
+                            <button
+                              key={g}
+                              type="button"
+                              onClick={() => {
+                                setCampForm(p => ({
+                                  ...p,
+                                  bloodGroups: p.bloodGroups.includes(g)
+                                    ? p.bloodGroups.filter(x => x !== g)
+                                    : [...p.bloodGroups, g]
+                                }));
+                              }}
+                              className={`px-3 py-1.5 rounded-full text-[11px] font-[600] transition-all ${
+                                campForm.bloodGroups.includes(g)
+                                  ? 'bg-[#BE1F2E] text-white shadow-sm'
+                                  : 'bg-[#f5f3f0] text-[#5A5A5A] hover:bg-[rgba(190,31,46,0.08)] hover:text-[#BE1F2E]'
+                              }`}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="w-full bg-[#BE1F2E] text-white py-2.5 rounded-full text-[13px] font-[600] hover:scale-102 active:scale-98 transition-all"
+                      >
+                        Schedule Camp Drive
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
