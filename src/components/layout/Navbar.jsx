@@ -115,7 +115,7 @@ export const Navbar = ({ onMenuOpen }) => {
         </button>
 
         <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-[#7A5F5F] select-none">
-          <Link to="/dashboard" className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0" style={{ fontFeatureSettings: '"liga" 0' }}>
+          <Link to="/staff/dashboard" className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0" style={{ fontFeatureSettings: '"liga" 0' }}>
             RaktSetu
           </Link>
           {breadcrumbs.map((bc, idx) => (
@@ -214,7 +214,7 @@ export const Navbar = ({ onMenuOpen }) => {
                 
                 <div className="p-3 border-t border-[#EDE7E1] text-center bg-[#FAF8F5]">
                   <Link
-                    to="/expiry-alerts"
+                    to="/staff/expiry-alerts"
                     onClick={() => setIsNotifOpen(false)}
                     className="text-xxs font-bold text-[#7A5F5F] hover:text-[#BE1F2E] transition-colors"
                   >

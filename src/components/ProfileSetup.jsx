@@ -13,6 +13,14 @@ const ProfileSetup = () => {
   const [touched, setTouched] = useState({});
   const [bgSelected, setBgSelected] = useState(null);
 
+  useEffect(() => {
+    const hasProfile = localStorage.getItem('raktsetu_donor_profile');
+    const otpVerified = localStorage.getItem('raktsetu_otp_verified');
+    if (!hasProfile && !otpVerified) {
+      navigate('/');
+    }
+  }, [navigate]);
+
   // Inline validation on blur
   const validateField = (name, val) => {
     const errs = { ...errors };

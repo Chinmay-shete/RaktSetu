@@ -110,6 +110,7 @@ const DonorRegistration = () => {
       setTimeout(() => {
         setButtonState('default');
         const isLogin = localStorage.getItem('raktsetu_login_flow');
+        localStorage.setItem('raktsetu_otp_verified', 'true');
         if (isLogin) {
           localStorage.removeItem('raktsetu_login_flow');
           navigate('/location');

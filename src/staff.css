@@ -102,26 +102,28 @@ body {
   box-shadow: none;
 }
 
-.input-field {
-  width: 100%;
-  border: 1.5px solid #D8D0CA;
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-size: 16px;
-  color: #1A1A1A;
-  background: #FFFFFF;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-  font-family: inherit;
-}
-.input-field::placeholder { color: #A8A0A0; }
-.input-field:focus {
-  border-color: #BE1F2E;
-  box-shadow: 0 0 0 3px rgba(190,31,46,0.12);
-}
-.input-field.error {
-  border-color: #BE1F2E;
-  background: rgba(190,31,46,0.03);
+@layer components {
+  .input-field {
+    width: 100%;
+    border: 1.5px solid #D8D0CA;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 16px;
+    color: #1A1A1A;
+    background: #FFFFFF;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-field::placeholder { color: #A8A0A0; }
+  .input-field:focus {
+    border-color: #BE1F2E;
+    box-shadow: 0 0 0 3px rgba(190,31,46,0.12);
+  }
+  .input-field.error {
+    border-color: #BE1F2E;
+    background: rgba(190,31,46,0.03);
+  }
 }
 
 /* Toggle Switch */

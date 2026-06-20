@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useDistrict } from '../../context/DistrictContext';
 import { 
   LayoutDashboard, 
@@ -21,6 +21,10 @@ const DistrictLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  if (appState.status !== 'logged_in') {
+    return <Navigate to="/district/login" replace />;
+  }
 
   const navigation = [
     { name: 'Dashboard', path: '/district/dashboard', icon: LayoutDashboard },

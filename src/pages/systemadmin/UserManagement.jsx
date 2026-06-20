@@ -66,7 +66,7 @@ export const UserManagement = () => {
           </span>
           <input
             type="text"
-            className="input-field pl-12"
+            className="input-field !pl-12"
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

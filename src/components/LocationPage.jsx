@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const LocationPage = () => {
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const hasProfile = localStorage.getItem('raktsetu_donor_profile');
+    const otpVerified = localStorage.getItem('raktsetu_otp_verified');
+    if (!hasProfile && !otpVerified) {
+      navigate('/');
+    }
+  }, [navigate]);
+
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
   const [donatedBefore, setDonatedBefore] = useState(false);
@@ -72,6 +81,7 @@ const LocationPage = () => {
       donationTimes: donatedBefore ? donationTimes : '',
       gpsEnabled,
     }));
+    localStorage.removeItem('raktsetu_otp_verified');
     navigate('/dashboard');
   };
 

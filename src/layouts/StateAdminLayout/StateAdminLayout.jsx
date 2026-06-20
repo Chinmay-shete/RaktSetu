@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useStateAdmin } from '../../context/StateAdminContext';
 import {
   LayoutDashboard,
@@ -20,6 +20,10 @@ const StateAdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  if (appState.status !== 'logged_in') {
+    return <Navigate to="/state/login" replace />;
+  }
 
   const navigation = [
     { name: 'State Overview', path: '/state/dashboard', icon: LayoutDashboard },

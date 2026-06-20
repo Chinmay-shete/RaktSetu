@@ -40,7 +40,7 @@ const DistrictMap = () => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search hospital or area…"
-            className="input-field pl-10 text-[14px]"
+            className="input-field !pl-10 text-[14px]"
           />
         </div>
         <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">

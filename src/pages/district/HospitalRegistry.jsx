@@ -76,7 +76,7 @@ const HospitalRegistry = () => {
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex-1 min-w-[220px] relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9A9A] text-[18px]">search</span>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search hospital, area, or license…" className="input-field pl-10 text-[14px]" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search hospital, area, or license…" className="input-field !pl-10 text-[14px]" />
         </div>
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">
           <option value="All">All Types</option>

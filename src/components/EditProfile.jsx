@@ -62,9 +62,9 @@ const EditProfile = () => {
         return merged;
       });
     } else {
-      setInitialProfile(profile);
+      navigate('/');
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (initialProfile) {
@@ -131,7 +131,7 @@ const EditProfile = () => {
       >
         <div className="flex justify-between items-center h-full w-full px-6 md:px-10 lg:px-16">
           <Link
-            to="/"
+            to="/dashboard"
             className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
             style={{ fontFeatureSettings: '"liga" 0' }}
           >
@@ -263,7 +263,7 @@ const EditProfile = () => {
                         name="gender"
                         value={profile.gender}
                         onChange={handleChange}
-                        className="input-field appearance-none pr-10"
+                        className="input-field appearance-none !pr-10"
                       >
                         <option>Male</option>
                         <option>Female</option>

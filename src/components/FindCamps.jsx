@@ -29,6 +29,13 @@ const FindCamps = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const stored = localStorage.getItem('raktsetu_donor_profile');
+    if (!stored) {
+      navigate('/');
+    }
+  }, [navigate]);
+
   const handleSearch = () => {
     setActiveDistrict(selectedDistrict);
   };
@@ -52,7 +59,7 @@ const FindCamps = () => {
       >
         <div className="flex justify-between items-center h-full w-full px-6 md:px-10 lg:px-16">
           <Link
-            to="/"
+            to="/dashboard"
             className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
             style={{ fontFeatureSettings: '"liga" 0' }}
           >

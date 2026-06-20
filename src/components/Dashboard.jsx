@@ -35,8 +35,10 @@ const Dashboard = () => {
     if (stored) {
       const data = JSON.parse(stored);
       if (data.fullName) setDonorName(data.fullName.split(' ')[0]);
+    } else {
+      navigate('/');
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#c8102e] selection:text-white" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -53,7 +55,7 @@ const Dashboard = () => {
       >
         <div className="flex justify-between items-center h-full w-full px-6 md:px-10 lg:px-16">
           <Link
-            to="/"
+            to="/dashboard"
             className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
             style={{ fontFeatureSettings: '"liga" 0' }}
           >

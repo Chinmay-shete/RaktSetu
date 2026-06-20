@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { 
   LayoutDashboard, 
@@ -20,6 +20,10 @@ const SystemAdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  if (adminState.status !== 'logged_in') {
+    return <Navigate to="/systemadmin/login" replace />;
+  }
 
   const navigation = [
     { name: 'Dashboard', path: '/systemadmin/dashboard', icon: LayoutDashboard },

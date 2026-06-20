@@ -45,7 +45,7 @@ export const AuditLogs = () => {
           </span>
           <input
             type="text"
-            className="input-field pl-12"
+            className="input-field !pl-12"
             placeholder="Search by actor, action or IP..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

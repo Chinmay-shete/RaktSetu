@@ -130,7 +130,7 @@ export const UpdateStock = () => {
                     required: "Collection date is required",
                     validate: val => new Date(val) <= new Date() || "Collection date cannot be in the future"
                   })}
-                  className={`input-field pl-10 ${errors.collectionDate ? 'error' : ''}`}
+                  className={`input-field !pl-10 ${errors.collectionDate ? 'error' : ''}`}
                 />
                 <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
               </div>
@@ -150,7 +150,7 @@ export const UpdateStock = () => {
                     required: "Expiry date is required",
                     validate: val => new Date(val) > new Date(watchCollectionDate) || "Expiry date must be after the collection date"
                   })}
-                  className={`input-field pl-10 ${errors.expiryDate ? 'error' : ''}`}
+                  className={`input-field !pl-10 ${errors.expiryDate ? 'error' : ''}`}
                 />
                 <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
               </div>
@@ -168,7 +168,7 @@ export const UpdateStock = () => {
             <div className="relative">
               <select
                 {...register("source", { required: "Supply source is required" })}
-                className="input-field custom-select pl-10"
+                className="input-field custom-select !pl-10"
               >
                 <option value="Voluntary Donation">Voluntary Donation</option>
                 <option value="Replacement Donation">Replacement Donation</option>
@@ -192,7 +192,7 @@ export const UpdateStock = () => {
                 placeholder="E.g., cold chain validated, screened for typical infections, unique donor reference..."
                 rows="3"
                 {...register("remarks")}
-                className="input-field pl-10 resize-none"
+                className="input-field !pl-10 resize-none"
               />
               <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
             </div>
