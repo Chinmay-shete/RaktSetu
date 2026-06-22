@@ -150,16 +150,35 @@ const DonorRegistration = () => {
       // Route users automatically based on their roles
       if (mockRole === 'staff') {
         localStorage.setItem('raktsetu_hospital_authenticated', 'true');
-        navigate('/staff/dashboard');
+        window.location.href = '/staff/dashboard';
       } else if (mockRole === 'admin') {
-        localStorage.setItem('raktsetu_admin_authenticated', 'true');
-        navigate('/admin/dashboard');
+        const adminState = {
+          status: 'logged_in',
+          hospitalDetails: { hospitalName: 'Apex City Hospital' },
+          invitedStaff: [
+            { id: 1, name: 'Dr. Ramesh Kumar', email: 'ramesh.kumar@hospital.com', role: 'Medical Officer', status: 'Accepted', date: '2026-06-10' }
+          ]
+        };
+        localStorage.setItem('raktsetu_admin_app_state', JSON.stringify(adminState));
+        window.location.href = '/admin/dashboard';
       } else if (mockRole === 'district') {
-        localStorage.setItem('raktsetu_district_authenticated', 'true');
-        navigate('/district/dashboard');
+        const districtState = {
+          status: 'logged_in',
+          officerDetails: { name: 'Rajesh Patil', district: 'Pune' }
+        };
+        localStorage.setItem('raktsetu_district_state', JSON.stringify(districtState));
+        window.location.href = '/district/dashboard';
       } else if (mockRole === 'state') {
-        localStorage.setItem('raktsetu_state_authenticated', 'true');
-        navigate('/state/dashboard');
+        const stateState = {
+          status: 'logged_in',
+          officerDetails: { name: 'Arvind Sawant', state: 'Maharashtra' }
+        };
+        localStorage.setItem('raktsetu_state_admin', JSON.stringify(stateState));
+        window.location.href = '/state/dashboard';
+      } else if (mockRole === 'systemadmin') {
+        const sysAdminState = { status: 'logged_in' };
+        localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify(sysAdminState));
+        window.location.href = '/systemadmin/dashboard';
       } else {
         localStorage.setItem('raktsetu_otp_verified', 'true');
         navigate('/profile-setup');
@@ -176,6 +195,7 @@ const DonorRegistration = () => {
     if (domain.includes('admin')) return 'admin';
     if (domain.includes('district')) return 'district';
     if (domain.includes('state')) return 'state';
+    if (domain.includes('systemadmin') || domain.includes('sysadmin')) return 'systemadmin';
     return 'donor';
   };
 
