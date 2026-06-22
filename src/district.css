@@ -1,0 +1,10 @@
+/* ─────────────────────────────────────────────
+   DISTRICT OFFICER — Heatmap & Alert cells
+   (Uses the same #BE1F2E brand red as all portals)
+───────────────────────────────────────────── */
+
+/* Shortage Heatmap — critical cell pulse */
+@keyframes heatPulse {
+  0%, 100% { background: rgba(190, 31, 46, 0.08); }
+  50% { background: rgba(190, 31, 46, 0.16); }
+}

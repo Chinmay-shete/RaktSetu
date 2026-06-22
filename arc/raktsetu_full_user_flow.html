@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>RaktSetu · Unified user flow for blood ecosystem</title>
+  
+  <!-- Tabler Icons (lightweight, crisp) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: system-ui, -apple-system, 'Segoe UI', 'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
+      padding: 2rem 1rem;
+    }
+
+    /* main container — like a pristine whiteboard */
+    .flow-wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+      border: 1px solid #eef2f6;
+      padding: 1.75rem 1.5rem 2rem 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .flow-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #5b6e8c;
+      background: #f8fafc;
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+      border: 0.5px solid #e2e8f0;
+    }
+
+    /* User row: fixed label + fluid diagram */
+    .user-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .user-label {
+      width: 130px;
+      flex-shrink: 0;
+      padding-top: 0.25rem;
+    }
+
+    /* role badges */
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      background: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      letter-spacing: -0.01em;
+    }
+    .donor-chip { background: #fff1f0; color: #b91c1c; border: 1px solid #ffdbd8; }
+    .staff-chip { background: #eff6ff; color: #1e40af; border: 1px solid #d0e2ff; }
+    .admin-chip { background: #ecfdf5; color: #0b5e42; border: 1px solid #bcf0da; }
+    .officer-chip { background: #fefce8; color: #8a6300; border: 1px solid #fde68a; }
+
+    /* horizontal diagram container — smooth scroll */
+    .screens {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding-bottom: 1rem;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screens::-webkit-scrollbar {
+      height: 5px;
+    }
+    .screens::-webkit-scrollbar-track {
+      background: #f1f1f3;
+      border-radius: 10px;
+    }
+    .screens::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    /* each screen card */
+    .screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .screen-box {
+      background: #ffffff;
+      border: 1px solid #e9edf2;
+      border-radius: 14px;
+      padding: 0.55rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 520;
+      color: #121826;
+      text-align: center;
+      white-space: nowrap;
+      min-width: 108px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      transition: all 0.1s ease;
+      backdrop-filter: blur(0px);
+    }
+
+    /* role-specific top border accent */
+    .donor-box { border-top: 3px solid #b91c1c; background: #fffdfc; }
+    .staff-box { border-top: 3px solid #1d4ed8; background: #fafcff; }
+    .admin-box { border-top: 3px solid #15803d; background: #fefef8; }
+    .officer-box { border-top: 3px solid #a16207; background: #fffdf7; }
+    .gate-box { 
+      border-top: 3px solid #7c3aed; 
+      background: #f8f6fe; 
+      box-shadow: 0 1px 1px rgba(124, 58, 237, 0.05);
+    }
+
+    .screen-box.start {
+      background: #fbfdff;
+      border-color: #e2e8f0;
+      border-top-color: #94a3b8;
+      color: #1e293b;
+    }
+
+    .screen-sub {
+      font-size: 0.65rem;
+      color: #5f6c84;
+      text-align: center;
+      max-width: 120px;
+      line-height: 1.35;
+      font-weight: 450;
+      letter-spacing: -0.01em;
+    }
+
+    /* directional arrow */
+    .arrow {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      flex-shrink: 0;
+      padding: 0 0.5rem;
+      margin-top: 0.25rem;
+      font-weight: 500;
+      align-self: flex-start;
+      transition: color 0.1s;
+    }
+
+    /* branch container (multiple actions) */
+    .branch {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      flex-shrink: 0;
+      margin-left: 0.25rem;
+    }
+
+    .branch-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: transform 0.05s;
+    }
+
+    .branch-row .screen-box {
+      min-width: 125px;
+      white-space: nowrap;
+      text-align: left;
+      padding: 0.45rem 1rem;
+    }
+
+    /* subtle divider between roles */
+    .divider {
+      height: 1px;
+      background: radial-gradient(circle, #e2e8f0 30%, transparent);
+      margin: 1rem 0 1.6rem 0;
+    }
+
+    /* legend panel */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: #f9fafc;
+      border-radius: 20px;
+      margin-top: 2rem;
+      border: 1px solid #edf2f7;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #2d3a5e;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* responsive: avoid hard break, keep readability */
+    @media (max-width: 860px) {
+      .flow-wrap {
+        padding: 1.25rem;
+      }
+      .user-label {
+        width: 110px;
+      }
+      .screen-box {
+        min-width: 92px;
+        font-size: 0.7rem;
+        padding: 0.45rem 0.8rem;
+      }
+      .branch-row .screen-box {
+        min-width: 112px;
+      }
+      .screen-sub {
+        font-size: 0.6rem;
+        max-width: 105px;
+      }
+      .arrow {
+        padding: 0 0.25rem;
+      }
+      .user-chip {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .user-row {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .user-label {
+        width: auto;
+      }
+      .screens {
+        width: 100%;
+      }
+      .screen-box {
+        min-width: 85px;
+      }
+      .branch-row .screen-box {
+        min-width: 100px;
+      }
+    }
+
+    /* smooth hover for clarity */
+    .screen-box:hover {
+      border-color: #cbdff2;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    /* align arrow with screen visually */
+    .arrow {
+      transform: translateY(2px);
+    }
+
+    /* i icon alignment */
+    .ti {
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="flow-wrap">
+  <div class="flow-title">
+    <i class="ti ti-sitemap" style="margin-right: 6px;"></i> RAKTSETU · END‑TO‑END USER FLOW (4 ROLES)
+  </div>
+
+  <!-- DONOR (open self-signup) -->
+  <div class="user-row">
+    <div class="user-label">
+      <span class="user-chip donor-chip"><i class="ti ti-heart"></i> Blood donor</span>
+    </div>
+    <div class="screens">
+      <div class="screen">
+        <div class="screen-box start">Landing page</div>
+        <div class="screen-sub">Select "I want to donate"</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box donor-box">Phone OTP</div>
+        <div class="screen-sub">Mobile number (+91)</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box donor-box">Verify OTP</div>
+        <div class="screen-sub">6‑digit code</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box donor-box">Profile setup</div>
+        <div class="screen-sub">Name, blood group, city</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box donor-box">Donor home</div>
+        <div class="screen-sub">Personal dashboard</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="branch">
+        <div class="branch-row">
+          <div class="dot" style="background: #b91c1c"></div>
+          <div class="screen-box donor-box">Find blood request</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #b91c1c"></div>
+          <div class="screen-box donor-box">Eligibility check</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #b91c1c"></div>
+          <div class="screen-box donor-box">Nearby camps</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #b91c1c"></div>
+          <div class="screen-box donor-box">Donation history</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- STAFF (invite-only, hospital staff) -->
+  <div class="user-row">
+    <div class="user-label">
+      <span class="user-chip staff-chip"><i class="ti ti-building-hospital"></i> Hospital staff</span>
+    </div>
+    <div class="screens">
+      <div class="screen">
+        <div class="screen-box start">Invite email/SMS</div>
+        <div class="screen-sub">Admin‑generated link</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box gate-box">Invite token</div>
+        <div class="screen-sub">One‑click validation</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box staff-box">Set password</div>
+        <div class="screen-sub">First access only</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box staff-box">Staff login</div>
+        <div class="screen-sub">Email + password</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box staff-box">Staff dashboard</div>
+        <div class="screen-sub">Hospital inventory view</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="branch">
+        <div class="branch-row">
+          <div class="dot" style="background: #1d4ed8"></div>
+          <div class="screen-box staff-box">Blood inventory</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #1d4ed8"></div>
+          <div class="screen-box staff-box">Update stock</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #1d4ed8"></div>
+          <div class="screen-box staff-box">Expiry alerts</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #1d4ed8"></div>
+          <div class="screen-box staff-box">Transfer request</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- HOSPITAL ADMIN (apply + manual verification) -->
+  <div class="user-row">
+    <div class="user-label">
+      <span class="user-chip admin-chip"><i class="ti ti-user-shield"></i> Hospital admin</span>
+    </div>
+    <div class="screens">
+      <div class="screen">
+        <div class="screen-box start">Landing page</div>
+        <div class="screen-sub">"Register as hospital"</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box admin-box">Application form</div>
+        <div class="screen-sub">Hospital reg. no., address</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box gate-box">Pending review</div>
+        <div class="screen-sub">48h manual verification</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box admin-box">Approval email</div>
+        <div class="screen-sub">Secure credentials</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box admin-box">Admin login</div>
+        <div class="screen-sub">Email + password</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box admin-box">Admin panel</div>
+        <div class="screen-sub">Full hospital oversight</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="branch">
+        <div class="branch-row">
+          <div class="dot" style="background: #15803d"></div>
+          <div class="screen-box admin-box">Invite staff</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #15803d"></div>
+          <div class="screen-box admin-box">AI demand forecast</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #15803d"></div>
+          <div class="screen-box admin-box">Waste analytics</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #15803d"></div>
+          <div class="screen-box admin-box">Alert thresholds</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DISTRICT OFFICER (.gov.in + secured verification) -->
+  <div class="user-row">
+    <div class="user-label">
+      <span class="user-chip officer-chip"><i class="ti ti-chart-bar"></i> District officer</span>
+    </div>
+    <div class="screens">
+      <div class="screen">
+        <div class="screen-box start">Landing page</div>
+        <div class="screen-sub">"District health officer"</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box officer-box">Gov application</div>
+        <div class="screen-sub">Official .gov.in email</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box gate-box">Email OTP</div>
+        <div class="screen-sub">Domain‑restricted</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box gate-box">Manual verification</div>
+        <div class="screen-sub">RaktSetu team call/ID check</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box officer-box">Officer login</div>
+        <div class="screen-sub">Email + strong password</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="screen">
+        <div class="screen-box officer-box">District panel</div>
+        <div class="screen-sub">Multi‑hospital oversight</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="branch">
+        <div class="branch-row">
+          <div class="dot" style="background: #a16207"></div>
+          <div class="screen-box officer-box">Shortage heatmap</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #a16207"></div>
+          <div class="screen-box officer-box">All hospitals view</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #a16207"></div>
+          <div class="screen-box officer-box">Camp planning</div>
+        </div>
+        <div class="branch-row">
+          <div class="dot" style="background: #a16207"></div>
+          <div class="screen-box officer-box">District reports</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND + KEY INFRA -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #b91c1c"></div>
+      <span>Donor · self‑signup (OTP flow)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #1d4ed8"></div>
+      <span>Hospital staff · invite only</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #15803d"></div>
+      <span>Hospital admin · apply + manual approval</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #a16207"></div>
+      <span>District officer · gov email + verification</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #7c3aed"></div>
+      <span>🛡️ Security gate (mandatory validation)</span>
+    </div>
+    <div class="legend-item">
+      <i class="ti ti-arrow-right" style="color: #8ba0bc; font-size: 0.8rem;"></i>
+      <span>Linear step → &nbsp; | &nbsp; ◉ parallel actions</span>
+    </div>
+  </div>
+
+  <!-- micro note: system architecture clarity -->
+  <div style="font-size: 0.65rem; text-align: center; margin-top: 1.2rem; color: #8b9bb5; border-top: 0.5px dashed #eef2f6; padding-top: 1rem;">
+    <i class="ti ti-shield-check"></i> RaktSetu v2 — unified access layer | OTP, invite tokens, manual verification, and AI readiness
+  </div>
+</div>
+
+</body>
+</html>
