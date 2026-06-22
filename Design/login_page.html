@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Donor Registration | RaktSetu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Instrument+Serif:ital,wght@0,400;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#eae8e5",
+                        "bone-bg": "#faf8f5",
+                        "secondary-fixed": "#f0dfdb",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#30312f",
+                        "secondary": "#685c59",
+                        "on-secondary-fixed-variant": "#4f4442",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#5c403f",
+                        "on-primary-fixed-variant": "#92001c",
+                        "surface-bright": "#fbf9f6",
+                        "primary-fixed": "#ffdad8",
+                        "primary-container": "#c8102e",
+                        "outline": "#906f6e",
+                        "inverse-primary": "#ffb3b1",
+                        "surface-container": "#efeeeb",
+                        "on-tertiary-container": "#b5eaff",
+                        "on-primary-fixed": "#410007",
+                        "secondary-container": "#f0dfdb",
+                        "primary-fixed-dim": "#ffb3b1",
+                        "tertiary-fixed": "#b6eaff",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#6e625f",
+                        "on-error": "#ffffff",
+                        "text-muted": "#737373",
+                        "charcoal-card": "#1a1210",
+                        "on-tertiary-fixed": "#001f28",
+                        "on-secondary-fixed": "#221a17",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#91d0e7",
+                        "inverse-on-surface": "#f2f0ed",
+                        "surface-variant": "#e4e2df",
+                        "on-background": "#1b1c1a",
+                        "tertiary-container": "#296c81",
+                        "on-surface": "#1b1c1a",
+                        "tertiary": "#005468",
+                        "surface": "#fbf9f6",
+                        "on-primary-container": "#ffdad8",
+                        "on-tertiary-fixed-variant": "#004e60",
+                        "on-error-container": "#93000a",
+                        "border-subtle": "rgba(26, 18, 16, 0.09)",
+                        "surface-container-highest": "#e4e2df",
+                        "secondary-fixed-dim": "#d3c3bf",
+                        "primary": "#9e001f",
+                        "crimson-accent": "#c8102e",
+                        "surface-container-low": "#f5f3f0",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dbdad7",
+                        "background": "#fbf9f6",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#bf0229",
+                        "outline-variant": "#e5bdbb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Dm Sans"],
+                        "label-md": ["Dm Sans"],
+                        "display-xl": ["Instrument Serif"],
+                        "body-lg": ["Dm Sans"],
+                        "label-sm": ["Dm Sans"],
+                        "headline-lg": ["Instrument Serif"],
+                        "body-md": ["Dm Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-xl": ["100px", {"lineHeight": "90px", "letterSpacing": "-0.04em", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(200, 16, 46, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(200, 16, 46, 0.02) 0px, transparent 50%);
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.05;
+            z-index: -1;
+            pointer-events: none;
+            background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+        }
+
+        .input-focus-ring:focus-within {
+            box-shadow: 0 0 0 4px rgba(200, 16, 46, 0.1);
+            border-color: #c8102e;
+        }
+
+        .spring-transition {
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .spring-transition:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-bone-bg min-h-screen flex flex-col font-body-md text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="w-full bg-bone-bg sticky top-0 z-50 border-b border-border-subtle">
+<nav class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<span class="font-display-xl text-headline-md text-crimson-accent italic">RaktSetu</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8 items-center mr-8">
+<a class="text-secondary hover:text-primary transition-transform duration-300 hover:scale-105 font-label-md text-label-md" href="#">Find Donors</a>
+<a class="text-secondary hover:text-primary transition-transform duration-300 hover:scale-105 font-label-md text-label-md" href="#">Blood Banks</a>
+<a class="text-secondary hover:text-primary transition-transform duration-300 hover:scale-105 font-label-md text-label-md" href="#">About Us</a>
+</div>
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-wider">Donor Registration</span>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-secondary hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-secondary hover:text-primary transition-colors">help</button>
+<button class="text-secondary hover:text-primary font-label-md text-label-md transition-all duration-300 hover:scale-105 ml-2">Login</button>
+</div>
+</div>
+</nav>
+</header>
+<!-- Main Registration Container -->
+<main class="flex-grow flex items-center justify-center py-32 px-margin-mobile">
+<div class="w-full max-w-[520px] bg-white border border-border-subtle rounded-xl p-10 shadow-sm relative overflow-hidden">
+<!-- Decorative Serif Watermark -->
+<div class="absolute -top-6 -right-6 text-[120px] font-display-xl text-primary/5 select-none pointer-events-none">01</div>
+<!-- Content -->
+<div class="space-y-8">
+<div class="space-y-2">
+<h1 class="font-headline-lg text-[32px] leading-tight text-charcoal-card">Create your donor account</h1>
+<p class="font-body-md text-body-md text-text-muted">Join thousands of donors saving lives across Maharashtra</p>
+</div>
+<!-- Google OAuth -->
+<div class="space-y-4">
+<button class="w-full h-[52px] flex items-center justify-center gap-3 bg-white border border-border-subtle rounded-full spring-transition hover:shadow-md transition-all">
+<img alt="Google G Logo" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlZahqAhaI-_VqJ5BfF0k5ymhZSzpKch_ARN0A-lz26JDTzLbQYrr5NJGPaD6kQpcZwJOokaotXh9SClB-JPTIX4w-inEFtsP819-EgdhCR11soMFjkgxonKtH20A-UYwYvL3RGbK1hfUzXsiqzxCM5_50KpdJgC5SxqIxh2W5M1y3NFl2s4AiEP8WgnWiQyrunEeBS-L0kHQIkZd7_4i9gxvc1TvLy7dpM39Zee2AMiGpWrNStYfAnL-LsZXJZdHVzxFKXu66cHo"/>
+<span class="font-label-md text-label-md text-on-surface">Continue with Google</span>
+</button>
+</div>
+<!-- Divider -->
+<div class="relative flex items-center py-2">
+<div class="flex-grow border-t border-border-subtle"></div>
+<span class="flex-shrink mx-4 font-label-sm text-label-sm text-text-muted bg-white">or register with mobile number</span>
+<div class="flex-grow border-t border-border-subtle"></div>
+</div>
+<!-- Mobile Registration Form -->
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider ml-1" for="mobile">Mobile number</label>
+<div class="flex items-center w-full h-[56px] border border-border-subtle rounded-xl bg-surface-bright input-focus-ring overflow-hidden group transition-all">
+<div class="flex items-center px-4 border-r border-border-subtle h-1/2">
+<span class="font-label-md text-label-md text-secondary">+91</span>
+</div>
+<input class="flex-grow bg-transparent border-none focus:ring-0 px-4 font-body-md text-body-md placeholder:text-text-muted/60" id="mobile" maxlength="10" name="mobile" oninput="validatePhone(this)" placeholder="Enter your 10-digit mobile number" type="tel"/>
+</div>
+</div>
+<button class="w-full h-[52px] bg-primary-container text-on-primary-container rounded-full font-label-md text-label-md flex items-center justify-center gap-2 spring-transition disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none" disabled="" id="otpButton">
+                        Send OTP
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<!-- Legal Footer -->
+<p class="text-center font-label-sm text-[11px] text-text-muted leading-relaxed px-8">
+                    By continuing you agree to RaktSetu's 
+                    <a class="text-primary hover:underline transition-colors" href="#">Terms of Service</a> and 
+                    <a class="text-primary hover:underline transition-colors" href="#">Privacy Policy</a>.
+                </p>
+</div>
+</div>
+</main>
+<!-- Footer Section -->
+<footer class="w-full py-16 px-margin-desktop bg-charcoal-card">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
+<div class="space-y-4">
+<span class="font-display-xl text-headline-md text-white italic">RaktSetu</span>
+<p class="font-body-md text-body-md text-text-muted max-w-md">© 2024 RaktSetu Medical Logistics. Clinical Excellence meets Modern Intelligence.</p>
+</div>
+<div class="grid grid-cols-2 gap-x-12 gap-y-4">
+<a class="text-text-muted hover:text-white transition-colors font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-text-muted hover:text-white transition-colors font-body-md text-body-md" href="#">Terms of Service</a>
+<a class="text-text-muted hover:text-white transition-colors font-body-md text-body-md" href="#">Donor Guidelines</a>
+<a class="text-text-muted hover:text-white transition-colors font-body-md text-body-md" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+<script>
+        function validatePhone(input) {
+            const button = document.getElementById('otpButton');
+            // Remove non-digits
+            input.value = input.value.replace(/\D/g, '');
+            
+            if (input.value.length === 10) {
+                button.disabled = false;
+                button.classList.remove('opacity-40');
+                button.classList.add('shadow-lg', 'shadow-primary/20');
+            } else {
+                button.disabled = true;
+                button.classList.add('opacity-40');
+                button.classList.remove('shadow-lg', 'shadow-primary/20');
+            }
+        }
+
+        // Simple click interaction for the button
+        document.getElementById('otpButton').addEventListener('click', function() {
+            if(!this.disabled) {
+                this.innerHTML = `<span class="animate-spin material-symbols-outlined">progress_activity</span> Sending...`;
+                setTimeout(() => {
+                    this.innerHTML = `OTP Sent! <span class="material-symbols-outlined text-[18px]">check_circle</span>`;
+                    this.classList.remove('bg-primary-container');
+                    this.classList.add('bg-green-600');
+                }, 1500);
+            }
+        });
+    </script>
+</body></html>

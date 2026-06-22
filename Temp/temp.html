@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RaktSetu — FAANG-level Engineering Guide</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f9fafb;
+    --color-background-info: #eff6ff;
+    --color-background-success: #ecfdf5;
+    --color-background-warning: #fffbe6;
+    --color-background-danger: #fef2f2;
+    --color-border-tertiary: #e5e7eb;
+    --color-border-info: #bfdbfe;
+    --color-border-warning: #ffe58f;
+    --color-text-primary: #111827;
+    --color-text-secondary: #4b5563;
+    --color-text-info: #1d4ed8;
+    --color-text-success: #047857;
+    --color-text-warning: #d46b08;
+    --color-text-danger: #b91c1c;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", Courier, monospace;
+    --border-radius-md: 6px;
+    --border-radius-lg: 10px;
+  }
+  body { font-family: var(--font-sans); color: var(--color-text-primary); background: #fafafa; margin: 0; padding: 20px; line-height: 1.5; }
+  h2.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:10px}
+  .tab{font-size:12px;font-weight:500;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .15s; display:flex; align-items:center; gap:6px;}
+  .tab.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+  .pane{display:none}.pane.active{display:block}
+  .card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:.5rem}
+  .badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap; text-transform: uppercase;}
+  .b-blue{background:var(--color-background-info);color:var(--color-text-info)}
+  .b-green{background:var(--color-background-success);color:var(--color-text-success)}
+  .b-warn{background:var(--color-background-warning);color:var(--color-text-warning)}
+  .b-red{background:var(--color-background-danger);color:var(--color-text-danger)}
+  .b-gray{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+  .title{font-size:14px;font-weight:600;color:var(--color-text-primary)}
+  .sub{font-size:12px;color:var(--color-text-secondary);margin:.25rem 0 .6rem}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+  @media(max-width: 768px) { .row { grid-template-columns: 1fr; } }
+  ul.fn{list-style:none;padding:0;margin:0}
+  ul.fn li{font-size:12px;color:var(--color-text-primary);padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;gap:8px;align-items:flex-start;line-height:1.4}
+  ul.fn li:last-child{border:none}
+  ul.fn li i{color:var(--color-text-secondary);font-size:14px;flex-shrink:0;margin-top:2px}
+  .code{font-family:var(--font-mono);font-size:11px;background:var(--color-background-secondary);padding:10px 12px;border-radius:var(--border-radius-md);margin:.4rem 0;color:var(--color-text-primary);white-space:pre;overflow-x:auto; border: 0.5px solid var(--color-border-tertiary);}
+  .method{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-right:8px;width:50px; text-align:center; display:inline-block;}
+  .get{background:#EAF3DE;color:#27500A}.post{background:#E6F1FB;color:#0C447C}.put{background:#FAEEDA;color:#633806}.del{background:#FCEBEB;color:#791F1F}
+  .api-row{font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:6px;font-family:var(--font-mono)}
+  .api-row:last-child{border:none}
+  .api-desc{font-family:var(--font-sans);color:var(--color-text-secondary);font-size:11px;margin-left:auto}
+  .who{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--color-background-secondary);color:var(--color-text-secondary);white-space:nowrap;flex-shrink:0}
+  .accent-left{border-left:4px solid var(--color-text-info);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding-left:12px}
+  .warn-left{border-left:4px solid var(--color-text-warning);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding-left:12px}
+  .added-tag { font-size: 10px; font-weight: bold; color: var(--color-text-success); background: var(--color-background-success); padding: 1px 4px; border-radius: 3px; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">RaktSetu — FAANG-level engineering guide: system design, sprint plan, all website functions, and API design</h2>
+
+<div style="padding:1rem 0 0">
+<div class="tabs">
+  <button class="tab active" onclick="show('arch')"><i class="ti ti-topology-star"></i> System design</button>
+  <button class="tab" onclick="show('sprint')"><i class="ti ti-list-check"></i> Sprint plan</button>
+  <button class="tab" onclick="show('features')"><i class="ti ti-layout-dashboard"></i> All functions</button>
+  <button class="tab" onclick="show('api')"><i class="ti ti-api"></i> API design</button>
+  <button class="tab" onclick="show('db')"><i class="ti ti-database"></i> Database</button>
+  <button class="tab" onclick="show('resume')"><i class="ti ti-briefcase"></i> Resume bullets</button>
+</div>
+
+<div id="pane-arch" class="pane active">
+  <div class="card accent-left">
+    <div class="title" style="margin-bottom:.4rem">The 3-layer architecture — how a FAANG engineer thinks about this</div>
+    <div class="sub">Your system has 3 completely separate concerns. Each layer can fail independently, be replaced, or scaled. Never mix them.</div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <div class="card-head"><span class="badge b-blue">Layer 1</span><span class="title">Client layer</span></div>
+      <div class="sub">What users see and touch</div>
+      <ul class="fn">
+        <li><i class="ti ti-browser"></i>React web app — hospital dashboard + district officer panel [cite: 109]</li>
+        <li><i class="ti ti-device-mobile"></i>Flutter mobile app — donor-facing, public emergency search [cite: 110, 111]</li>
+        <li><i class="ti ti-api"></i>Both talk ONLY to the REST API. Never touch DB directly. [cite: 109]</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="badge b-warn">Layer 2</span><span class="title">API + business logic</span></div>
+      <div class="sub">The brain of the system</div>
+      <ul class="fn">
+        <li><i class="ti ti-server"></i>Node.js + Express REST API — all CRUD, auth, routing [cite: 109]</li>
+        <li><i class="ti ti-shield"></i>JWT auth middleware — every request verified here</li>
+        <li><i class="ti ti-bell"></i>Cron job scheduler — runs batch expiration checks every hour [cite: 95]</li>
+        <li><i class="ti ti-arrow-right"></i>Calls Python AI engine via internal HTTP protocols [cite: 104]</li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <div class="card-head"><span class="badge b-green">Layer 3</span><span class="title">AI engine (Python)</span></div>
+      <div class="sub">Completely separate time-series service</div>
+      <ul class="fn">
+        <li><i class="ti ti-brain"></i>Flask API — exposes /predict and /shortage endpoints [cite: 104]</li>
+        <li><i class="ti ti-chart-line"></i>Prophet model — trained on historical transfusion data trends [cite: 103]</li>
+        <li><i class="ti ti-calendar"></i>Reads surgical schedules from DB to improve accuracy [cite: 93, 109]</li>
+        <li><i class="ti ti-alert-triangle"></i>Returns JSON predictions — Node.js acts on them [cite: 104]</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="badge b-gray">Storage + services</span></div>
+      <div class="sub">External dependencies</div>
+      <ul class="fn">
+        <li><i class="ti ti-database"></i>MySQL — split inventory logic (summary counts + granular asset logs)</li>
+        <li><i class="ti ti-brand-firebase"></i>Firebase — real-time push notifications to Flutter mobile clients</li>
+        <li><i class="ti ti-message"></i>Twilio & WhatsApp API — automated dispatch alerts and donor communications [cite: 113]</li>
+        <li><i class="ti ti-map-pin"></i>Google Maps API — distance matrices, live asset routing [cite: 109, 112]</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="card accent-left" style="border-left-color: var(--color-text-success); background: var(--color-background-success);">
+    <div class="title" style="color: var(--color-text-success);"><span class="added-tag">✨ [ADDED]</span> Idempotency & Fault-Tolerance Architecture Layer</div>
+    <div class="sub" style="color: var(--color-text-success);">Ensures system stability even if the Python AI model crashes or database connections get bottlenecked.</div>
+    <ul class="fn">
+      <li><i class="ti ti-refresh" style="color: var(--color-text-success);"></i><strong>Graceful Forecast Degradation:</strong> If the Flask AI endpoint handles an error or drops, Node.js transparently catches the failure and serves cached predictions from yesterday's database sync.</li>
+      <li><i class="ti ti-git-commit" style="color: var(--color-text-success);"></i><strong>Database Connection Pool Overload Protection:</strong> Configured Express framework pool connections safely limit concurrent write loads during peak disaster coordination alerts.</li>
+    </ul>
+  </div>
+
+  <div class="card warn-left">
+    <div class="title" style="margin-bottom:.3rem">FAANG interview answer: "Why this architecture?"</div>
+    <div class="sub">Separation of concerns. The AI engine is an independent microservice — if the ML model needs retraining, you redeploy just Flask without touching Node.js or React[cite: 104, 109]. The DB never speaks to clients. JWT stateless auth scales horizontally. Every layer has exactly one job.</div>
+  </div>
+</div>
+
+<div id="pane-sprint" class="pane">
+  <div class="card accent-left">
+    <div class="title">Think in weekly sprints — each sprint has a shippable output</div>
+    <div class="sub">A FAANG engineer never starts by "building everything". They ship something working every week. Your partner can see it, test it, break it.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-gray">Week 1</span><span class="title">Foundation — zero code until this is done</span><span class="who">Both together</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-git-branch"></i>Create GitHub repo with 3 folders: /backend, /frontend, /ai-engine. Protect main branch.</li>
+      <li><i class="ti ti-database"></i>Draw and agree on the normalized 2-table inventory design before writing code.</li>
+      <li><i class="ti ti-file-code"></i>Write the MySQL CREATE TABLE scripts — run them, verify they work.</li>
+      <li><i class="ti ti-users"></i>Divide work clearly: Person A handles backend + Python AI, Person B handles frontend + Flutter[cite: 104, 109, 111].</li>
+      <li><i class="ti ti-list"></i>Write 20 fake rows of sample data for hospitals, batches, and donor records.</li>
+    </ul>
+    <div class="code">Deliverable: GitHub repo live, DB schema created, sample data inserted</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-blue">Week 2</span><span class="title">Auth & Hospital Stock Counters</span><span class="who">Person A</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-lock"></i>Build POST /auth/register and POST /auth/login — return JWT token.</li>
+      <li><i class="ti ti-shield"></i>Build JWT middleware — every protected route validates roles (Hospital Admin vs Officer).</li>
+      <li><i class="ti ti-droplet"></i>Build GET /blood-stock/:hospitalId — returns aggregated summary stock counters[cite: 56].</li>
+      <li><i class="ti ti-edit"></i>Build PUT /blood-stock/:hospitalId — updates transactional safety metrics.</li>
+    </ul>
+    <div class="code">Deliverable: Can register, login, read and update blood stock counters via Postman</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-blue">Week 3</span><span class="title">Hospital Dashboard UI + Donor Registration</span><span class="who">Person B</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-layout"></i>Person B: Build React login page → connects to /auth/login, stores JWT in memory[cite: 109].</li>
+      <li><i class="ti ti-chart-bar"></i>Person B: Build dashboard page — shows blood group stock summaries as bar chart[cite: 109].</li>
+      <li><i class="ti ti-user-plus"></i>Person A: Build POST /donors/register — name, blood group, phone, location coordinates (lat/lng)[cite: 110].</li>
+      <li><i class="ti ti-search"></i>Person A: Build GET /donors/search?bloodGroup=O+&lat=18.5&lng=73.8 — returns nearby matching donors[cite: 110].</li>
+      <li><i class="ti ti-map-pin"></i>Person B: Add Google Maps to dashboard — show hospital location + nearby donors[cite: 109].</li>
+    </ul>
+    <div class="code">Deliverable: Hospital can log in, see their stock, see donors on a map</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-blue">Week 4</span><span class="title">Emergency Search + Granular Batch Inputs</span><span class="who">Both</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-urgent"></i>Person A: Build GET /emergency/search?bloodGroup=AB-&lat=X&lng=Y — returns top 3 closest hospitals with live stock[cite: 97].</li>
+      <li><i class="ti ti-package"></i>Person A: Create POST /blood-stock/batches endpoint to log separate items with independent expiry dates.</li>
+      <li><i class="ti ti-device-mobile"></i>Person B: Start Flutter app — donor registration screen + emergency blood search screen[cite: 111].</li>
+      <li><i class="ti ti-map"></i>Person B: Flutter: show nearest hospital with blood on map with one-tap call button[cite: 111, 112].</li>
+    </ul>
+    <div class="code">Deliverable: Emergency blood search works end-to-end on mobile powered by summary indices</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-warn">Week 5</span><span class="title">AI Demand Forecasting Microservice</span><span class="who">Person A</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-brain"></i>Set up Python Flask app in /ai-engine with endpoint: POST /predict[cite: 104].</li>
+      <li><i class="ti ti-chart-line"></i>Train Prophet model on historical trends (generate mock CSV time-series first)[cite: 103].</li>
+      <li><i class="ti ti-calendar"></i>Feed surgical schedule data in — if procedures increase, demand weights change[cite: 93, 109].</li>
+      <li><i class="ti ti-arrow-right"></i>Node.js calls Python /predict every morning via cron job, storing metrics into DB[cite: 104].</li>
+      <li><i class="ti ti-chart-bar"></i>Person B: Build forecast chart on dashboard — "predicted units needed next 7 days"[cite: 109].</li>
+    </ul>
+    <div class="code">Deliverable: Dashboard shows AI-predicted blood demand for next week</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-warn">Week 6</span><span class="title">Granular Expiry Alerts & Cross-Hospital Transfers</span><span class="who">Person A</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-alert-triangle"></i>Build cron job: hourly scan on blood_inventory_batches for items expiring in less than 24 hours[cite: 95].</li>
+      <li><i class="ti ti-search"></i>For each expiring item, query summary counters to find hospitals within 50km running low[cite: 95].</li>
+      <li><i class="ti ti-send"></i>Auto-trigger POST /transfers — creates a transfer record + sends alert notification[cite: 95].</li>
+      <li><i class="ti ti-check"></i>Hospital B accepts/declines transfer via PUT /transfers/:id, auto-shifting inventory row allocations[cite: 95].</li>
+    </ul>
+    <div class="code">Deliverable: System auto-detects expiring blood rows + matches destinations + opens transfer workflows</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-red">Week 7</span><span class="title">District Heatmaps & Intelligent Re-notification</span><span class="who">Both</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-map"></i>Person A: Build GET /district/shortage-forecast — aggregates predictions across district bounds[cite: 96].</li>
+      <li><i class="ti ti-chart-area"></i>Person B: Build district officer dashboard — heatmap showing regional risk zones in 3-7 days[cite: 96, 109].</li>
+      <li><i class="ti ti-bell"></i>Person A: Build donor re-notification cron — automated outreach triggered if localized shortage matches eligibility logs[cite: 86, 113].</li>
+    </ul>
+    <div class="code">Deliverable: District officers gain predictive visibility. Eligible donors receive demand alerts.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-red">Week 8</span><span class="title">Polish, Testing & Cloud Deployment</span><span class="who">Both</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-test-pipe"></i>Write API integration test sets inside Postman covering edge failure scenarios.</li>
+      <li><i class="ti ti-palette"></i>UI polish: implement unified blood-red accent styling tokens across web and mobile views.</li>
+      <li><i class="ti ti-cloud-upload"></i>Deploy: Node.js on Railway, React on Vercel, Flask on Render, Flutter APK via GitHub.</li>
+    </ul>
+    <div class="code">Deliverable: Production live URL, standalone Flutter APK download, functional database pipeline</div>
+  </div>
+</div>
+
+<div id="pane-features" class="pane">
+  <div class="card accent-left">
+    <div class="title">Every function on the website — organized by who uses it</div>
+    <div class="sub">Your website has 3 types of users. Each sees a completely different dashboard. Design for the user, not for the database.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-blue">Hospital staff portal</span><span class="title">Web — React dashboard</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-login"></i>Login / logout with secure JWT — strictly role-managed views[cite: 109].</li>
+      <li><i class="ti ti-droplet"></i>View summary stock meters alongside granular inventory batches with distinct expiry dates.</li>
+      <li><i class="ti ti-edit"></i>Log manual updates — received units map to batch logs; used counters deduct summaries[cite: 109].</li>
+      <li><i class="ti ti-calendar-plus"></i>Enter surgical schedules — link scheduled operations directly to predictive weights[cite: 93, 109].</li>
+      <li><i class="ti ti-chart-line"></i>View AI demand forecast graphs — lookahead predictive needs for next 7 days[cite: 109].</li>
+      <li><i class="ti ti-alert-triangle"></i>Expiry management center — displays clear risk horizons for items approaching baseline lifespan limits[cite: 95, 109].</li>
+      <li><i class="ti ti-transfer"></i>Redistribution board — accept/decline incoming or manage outbound transport items[cite: 95, 109].</li>
+      
+      <li><i class="ti ti-trash" style="color: var(--color-text-success);"></i><strong><span class="added-tag">✨ [ADDED]</span> Batch Wastage Reclamation & Logging Tool:</strong> Allows staff to manually flag specific blood rows as contaminated, damaged, or hemolyzed before formal chronological expiry occurs, instantly updating matching analytics.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-warn">District officer portal</span><span class="title">Web — separate dashboard view</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-map"></i>District status map — all geographic pins color-coded by stock severity limits[cite: 96].</li>
+      <li><i class="ti ti-chart-area"></i>Shortage prediction map view — isolates supply shortfalls across 3-7 day timelines[cite: 96].</li>
+      <li><i class="ti ti-megaphone"></i>Trigger mass supply campaigns — direct multi-facility scheduling alerts during anticipated supply drops[cite: 81].</li>
+      
+      <li><i class="ti ti-arrows-left-right" style="color: var(--color-text-success);"></i><strong><span class="added-tag">✨ [ADDED]</span> Inter-District Emergency Supply Escrow Line:</strong> Enables district officers to electronically approve out-of-district supply requests when neighboring regions indicate extreme deficits that local clusters cannot resolve.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="badge b-green">Donor + public app</span><span class="title">Flutter mobile app</span></div>
+    <ul class="fn">
+      <li><i class="ti ti-user-plus"></i>Donor onboarding profiles — captures blood type variations alongside mandatory location parameters[cite: 110, 111].</li>
+      <li><i class="ti ti-urgent"></i>Emergency routing locator — matches blood variants to closest unexpired facility arrays with click-to-call links[cite: 97, 111].</li>
+      <li><i class="ti ti-calendar-check"></i>Campaign registries — RSVP tracking logs for organized upcoming regional drives[cite: 110].</li>
+      <li><i class="ti ti-clock"></i>Eligibility counter meters — visual cooldown countdown tracking legal donor eligibility spaces[cite: 86].</li>
+    </ul>
+  </div>
+</div>
+
+<div id="pane-api" class="pane">
+  <div class="card accent-left">
+    <div class="title">Every API endpoint — this is what you build in Node.js</div>
+    <div class="sub">RESTful design. Every endpoint follows: method + noun + optional filter. No verbs in URLs. A FAANG interviewer will ask you to defend each one.</div>
+  </div>
+
+  <div class="card">
+    <div class="title" style="margin-bottom:.6rem">Auth</div>
+    <div class="api-row"><span class="method post">POST</span>/auth/register<span class="api-desc">create hospital / donor account</span></div>
+    <div class="api-row"><span class="method post">POST</span>/auth/login<span class="api-desc">returns JWT token securely</span></div>
+  </div>
+
+  <div class="card">
+    <div class="title" style="margin-bottom:.6rem">Blood Stock & Granular Inventories</div>
+    <div class="api-row"><span class="method get">GET</span>/blood-stock/:hospitalId<span class="api-desc">get aggregated summary counters [cite: 56]</span></div>
+    <div class="api-row"><span class="method put">PUT</span>/blood-stock/:hospitalId<span class="api-desc">manually modify safety thresholds</span></div>
+    
+    <div class="api-row" style="color: var(--color-text-success);"><span class="method post" style="background:#E6F1FB;color:#0C447C">POST</span>/blood-stock/batches<span class="api-desc" style="color: var(--color-text-success);"><span class="added-tag">✨ [ADDED]</span> Log new independent batch rows with specific expiries</span></div>
+    <div class="api-row" style="color: var(--color-text-success);"><span class="method put" style="background:#FAEEDA;color:#633806">PUT</span>/blood-stock/batches/:batchId/wastage<span class="api-desc" style="color: var(--color-text-success);"><span class="added-tag">✨ [ADDED]</span> Flag rows as contaminated/spoiled manually</span></div>
+    
+    <div class="api-row"><span class="method get">GET</span>/blood-stock/search?bloodGroup=O+&lat=X&lng=Y<span class="api-desc">nearest hospital with verified live stock items [cite: 56]</span></div>
+  </div>
+
+  <div class="card">
+    <div class="title" style="margin-bottom:.6rem">Emergency Operations</div>
+    <div class="api-row"><span class="method get">GET</span>/emergency/search?bloodGroup=AB-&lat=X&lng=Y<span class="api-desc">top 3 closest supply rows containing valid stock [cite: 97]</span></div>
+  </div>
+
+  <div class="card">
+    <div class="title" style="margin-bottom:.6rem">Transfer Allocations</div>
+    <div class="api-row"><span class="method post">POST</span>/transfers<span class="api-desc">open inventory shifting requests [cite: 95]</span></div>
+    <div class="api-row"><span class="method put">PUT</span>/transfers/:id<span class="api-desc">accept/decline routing items, modifying summary locks [cite: 95]</span></div>
+  </div>
+
+  <div class="card">
+    <div class="title" style="margin-bottom:.6rem">Forecasting Microservice Connections</div>
+    <div class="api-row"><span class="method get">GET</span>/forecast/:hospitalId<span class="api-desc">pull 7-day algorithmic forecasting arrays [cite: 93, 109]</span></div>
+    <div class="api-row"><span class="method post">POST</span>/surgical-schedules<span class="api-desc">log scheduled clinical operations to inform weights [cite: 93, 109]</span></div>
+  </div>
+</div>
+
+<div id="pane-db" class="pane">
+  <div class="card accent-left">
+    <div class="title">Normalized Production Schema — 7 Core Tables Design</div>
+    <div class="sub">Separating aggregated tracking summaries from granular expiration batch rows prevents data overwrites and ensures cron precision.</div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <div class="title" style="margin-bottom:.5rem">hospitals</div>
+      <div class="code">id          INT PK AUTO_INCREMENT
+name        VARCHAR(100)
+address     VARCHAR(255)
+district    VARCHAR(50)
+lat         DECIMAL(9,6)
+lng         DECIMAL(9,6)
+phone       VARCHAR(15)
+created_at  TIMESTAMP DEFAULT NOW()</div>
+    </div>
+    
+    <div class="card" style="border: 1px solid var(--color-border-info);">
+      <div class="title" style="margin-bottom:.5rem; color: var(--color-text-info);"><span class="added-tag" style="background-color:var(--color-background-info); color:var(--color-text-info);">REORGANIZED</span> blood_stock_summary</div>
+      <div class="sub">Aggregated live counts for lightning-fast UI reads and emergency queries.</div>
+      <div class="code">id               INT PK AUTO_INCREMENT
+hospital_id      INT FK → hospitals.id
+blood_group      ENUM('O+','O-','A+','A-',...)
+total_available  INT DEFAULT 0
+updated_at       TIMESTAMP DEFAULT NOW()
+-- UNIQUE KEY (hospital_id, blood_group)</div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="card" style="border: 1px solid var(--color-border-info);">
+      <div class="title" style="margin-bottom:.5rem; color: var(--color-text-info);"><span class="added-tag" style="background-color:var(--color-background-info); color:var(--color-text-info);">REORGANIZED</span> blood_inventory_batches</div>
+      <div class="sub">Tracks individual items, shelf life records, and precise expiration dates.</div>
+      <div class="code">id             INT PK AUTO_INCREMENT
+hospital_id    INT FK → hospitals.id
+blood_group    ENUM('O+','O-','A+','A-',...)
+units_in_batch INT NOT NULL
+status         ENUM('available','transferred',
+                    'utilized','expired','spoiled')
+expiry_date    DATE NOT NULL
+created_at     TIMESTAMP DEFAULT NOW()</div>
+    </div>
+
+    <div class="card">
+      <div class="title" style="margin-bottom:.5rem">transfer_requests</div>
+      <div class="code">id              INT PK AUTO_INCREMENT
+from_hospital   INT FK → hospitals.id
+to_hospital     INT FK → hospitals.id
+blood_group     ENUM(...)
+units           INT
+status          ENUM('pending','accepted',
+                     'declined','completed')
+trigger_type    ENUM('auto','manual')
+created_at      TIMESTAMP DEFAULT NOW()</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <div class="title" style="margin-bottom:.5rem">donors</div>
+      <div class="code">id           INT PK AUTO_INCREMENT
+name         VARCHAR(100)
+phone        VARCHAR(15) UNIQUE
+blood_group  ENUM(...)
+lat          DECIMAL(9,6)
+lng          DECIMAL(9,6)
+last_donated DATE
+eligible_on  DATE -- last_donated + 90 days
+created_at   TIMESTAMP DEFAULT NOW()</div>
+    </div>
+
+    <div class="card">
+      <div class="title" style="margin-bottom:.5rem">surgical_schedules</div>
+      <div class="code">id           INT PK AUTO_INCREMENT
+hospital_id  INT FK → hospitals.id
+surgery_type VARCHAR(50)
+count        INT
+scheduled_on DATE
+created_at   TIMESTAMP DEFAULT NOW()</div>
+    </div>
+  </div>
+</div>
+
+<div id="pane-resume" class="pane">
+  <div class="card accent-left">
+    <div class="title">How to write this on your resume — FAANG style</div>
+    <div class="sub">Avoid "built a blood bank system". Frame accomplishments around architectural impact, optimization, and structural consistency.</div>
+  </div>
+  <div class="card">
+    <div class="title" style="margin-bottom:.6rem">Strong resume bullets — copy and adapt these</div>
+    <ul class="fn">
+      <li><i class="ti ti-star"></i>Architected a decoupled, 3-tier health-tech platform (Node.js REST API, React UI dashboards, Flutter mobile) implementing structured role-based access security constraints across individual system access vectors[cite: 109, 110, 111].</li>
+      <li><i class="ti ti-star"></i>Engineered an independent time-series ML prediction microservice using Python and Flask; integrated the Prophet framework to ingest upcoming surgical schedules and historical usage trends, forecasting localized demand metrics up to 7 days in advance[cite: 93, 103, 104, 109].</li>
+      <li><i class="ti ti-star"></i>Designed a highly optimized, dual-table inventory management module inside MySQL that separates real-time live availability indices from individual batch shelf-life metrics, optimizing core query times for emergency lookups.</li>
+      <li><i class="ti ti-star"></i>Developed background automation routines utilizing Node.js cron modules to track imminent 24-hour batch expirations and automatically handle logistics routing matches inside 50km target perimeters[cite: 95].</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  event.target.closest('.tab').classList.add('active');
+}
+</script>
+</body>
+</html>

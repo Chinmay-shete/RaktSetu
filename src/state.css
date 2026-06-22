@@ -1,0 +1,107 @@
+/* ─────────────────────────────────────────────
+   STATE ADMIN — Styling, Badges & Nav Hover
+   Purple accent — Highest government authority
+───────────────────────────────────────────── */
+:root {
+  --state:        #BE1F2E;
+  --state-hover:  #9E1825;
+  --state-light:  rgba(190, 31, 46, 0.08);
+  --state-border: rgba(190, 31, 46, 0.18);
+}
+
+/* Badge */
+.badge-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--state-light);
+  color: var(--state);
+  border: 1px solid var(--state-border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Sidebar nav link */
+.state-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5A5A5A;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+.state-nav-link:hover {
+  background: var(--state-light);
+  color: var(--state);
+}
+.state-nav-link.active {
+  background: var(--state);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(190, 31, 46, 0.25);
+}
+
+/* State primary button (overrides the global .btn-primary red) */
+.btn-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--state);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  min-height: 52px;
+  min-width: 160px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-state:hover {
+  background: var(--state-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(190, 31, 46, 0.35);
+}
+.btn-state:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.btn-state:disabled {
+  background: #D9C4C6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Input focus in state portal — red ring */
+.state-portal .input-field:focus {
+  border-color: var(--state);
+  box-shadow: 0 0 0 3px rgba(190, 31, 46, 0.12);
+}
+
+/* Stat card accent */
+.state-stat-number {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--state);
+}
+
+/* Page animation */
+@keyframes statePageEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.state-page-enter {
+  animation: statePageEnter 0.35s ease-out forwards;
+}
