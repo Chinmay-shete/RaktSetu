@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 // -- Donor Imports --
 import LandingPage from './components/LandingPage';
+import UnifiedLogin from './components/Login';
 import DonorRegistration from './components/DonorRegistration';
 import ProfileSetup from './components/ProfileSetup';
 import LocationPage from './components/LocationPage';
@@ -95,6 +96,7 @@ function App() {
                 {/* 1. DONOR / PUBLIC ROUTES    */}
                 {/* --------------------------- */}
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<UnifiedLogin />} />
                 <Route path="/register-donor" element={<DonorRegistration />} />
                 <Route path="/profile-setup" element={<ProfileSetup />} />
                 <Route path="/location" element={<LocationPage />} />

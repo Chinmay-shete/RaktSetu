@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const DonorRegistration = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: Phone, 2: OTP
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState(1); // 1: Email/Phone, 2: OTP, 3: Create Password
+  const [inputVal, setInputVal] = useState('');
+  const [isEmail, setIsEmail] = useState(false);
   const [buttonState, setButtonState] = useState('default');
 
   // OTP
@@ -16,12 +17,19 @@ const DonorRegistration = () => {
   const [allFilled, setAllFilled] = useState(false);
   const otpRefs = useRef([]);
 
-  // Detect when all 6 digits are filled → pulse the button
+  // Password Setup
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+
+  // Detect when all 6 digits are filled
   useEffect(() => {
     setAllFilled(otp.every((d) => d !== ''));
   }, [otp]);
 
-  // Countdown
+  // Countdown for OTP
   useEffect(() => {
     if (step !== 2) return;
     if (timer <= 0) { setResendDisabled(false); return; }
@@ -36,13 +44,14 @@ const DonorRegistration = () => {
     }
   }, [step]);
 
-  const handlePhoneChange = (e) => {
-    const v = e.target.value.replace(/\D/g, '');
-    if (v.length <= 10) setPhone(v);
+  const handleInputChange = (e) => {
+    const v = e.target.value;
+    setInputVal(v);
+    setIsEmail(v.includes('@'));
   };
 
   const handleSendOTP = () => {
-    if (phone.length !== 10 || buttonState !== 'default') return;
+    if (!inputVal || buttonState !== 'default') return;
     setButtonState('sending');
     setTimeout(() => {
       setButtonState('sent');
@@ -87,7 +96,6 @@ const DonorRegistration = () => {
     }
   };
 
-  // Handle paste of 6-digit code
   const handleOtpPaste = (e) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
@@ -104,24 +112,74 @@ const DonorRegistration = () => {
     if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
     setButtonState('sending');
     setTimeout(() => {
-      // Any 6-digit code is accepted — no real verification
       setOtpSuccess(true);
       setOtpError('');
       setTimeout(() => {
         setButtonState('default');
-        const isLogin = localStorage.getItem('raktsetu_login_flow');
-        localStorage.setItem('raktsetu_otp_verified', 'true');
-        if (isLogin) {
-          localStorage.removeItem('raktsetu_login_flow');
-          navigate('/location');
-        } else {
-          navigate('/profile-setup');
-        }
+        setStep(3); // Go to Password setup step
       }, 700);
     }, 900);
   };
 
-  const isPhoneValid = phone.length === 10;
+  const handleCreatePassword = (e) => {
+    e.preventDefault();
+    if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+
+    setPasswordError('');
+    setButtonState('sending');
+
+    setTimeout(() => {
+      setButtonState('default');
+      const normalizedInput = inputVal.toLowerCase().trim();
+      const userKey = 'raktsetu_user_' + normalizedInput;
+      const mockRole = getRoleFromEmail(inputVal);
+      
+      localStorage.setItem(userKey, JSON.stringify({
+        username: normalizedInput,
+        password: password,
+        role: mockRole
+      }));
+
+      // Route users automatically based on their roles
+      if (mockRole === 'staff') {
+        localStorage.setItem('raktsetu_hospital_authenticated', 'true');
+        navigate('/staff/dashboard');
+      } else if (mockRole === 'admin') {
+        localStorage.setItem('raktsetu_admin_authenticated', 'true');
+        navigate('/admin/dashboard');
+      } else if (mockRole === 'district') {
+        localStorage.setItem('raktsetu_district_authenticated', 'true');
+        navigate('/district/dashboard');
+      } else if (mockRole === 'state') {
+        localStorage.setItem('raktsetu_state_authenticated', 'true');
+        navigate('/state/dashboard');
+      } else {
+        localStorage.setItem('raktsetu_otp_verified', 'true');
+        navigate('/profile-setup');
+      }
+    }, 1000);
+  };
+
+  const getRoleFromEmail = (val) => {
+    const email = val.toLowerCase().trim();
+    if (email.endsWith('staff@raktasetu.gov')) return 'staff';
+    if (email.endsWith('admin@raktasetu.gov')) return 'admin';
+    if (email.endsWith('district@raktasetu.gov')) return 'district';
+    if (email.endsWith('state@raktasetu.gov')) return 'state';
+    return 'donor';
+  };
+
+  // Basic validation for Step 1
+  const isInputValid = isEmail 
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputVal)
+    : /^\d{10}$/.test(inputVal.replace(/\D/g, ''));
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -154,41 +212,25 @@ const DonorRegistration = () => {
             <span className="badge-neutral">Donor Registration</span>
           </div>
 
-          {/* ── STEP 1: PHONE ────────────────────────────────────────── */}
+          {/* ── STEP 1: EMAIL OR MOBILE ───────────────────────────────── */}
           {step === 1 && (
             <div className="animate-fade-in">
               <h1 className="font-serif mb-2" style={{ fontSize: 'clamp(32px,5vw,42px)', fontWeight: 700, color: '#1A0A0A', lineHeight: 1.1, fontFeatureSettings: '"liga" 0' }}>
-                Create your donor account
+                Create your account
               </h1>
-              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">Join thousands of donors saving lives across Maharashtra.</p>
-
-              {/* Google Button */}
-              <button className="w-full h-[52px] flex items-center justify-center gap-3 bg-white border border-[#D8D0CA] rounded-full hover:shadow-md transition-all cursor-pointer mb-6">
-                <img alt="Google" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlZahqAhaI-_VqJ5BfF0k5ymhZSzpKch_ARN0A-lz26JDTzLbQYrr5NJGPaD6kQpcZwJOokaotXh9SClB-JPTIX4w-inEFtsP819-EgdhCR11soMFjkgxonKtH20A-UYwYvL3RGbK1hfUzXsiqzxCM5_50KpdJgC5SxqIxh2W5M1y3NFl2s4AiEP8WgnWiQyrunEeBS-L0kHQIkZd7_4i9gxvc1TvLy7dpM39Zee2AMiGpWrNStYfAnL-LsZXJZdHVzxFKXu66cHo" />
-                <span className="text-[15px] font-[500] text-[#1A1A1A]">Continue with Google</span>
-              </button>
-
-              <div className="relative flex items-center py-3 mb-6">
-                <div className="flex-grow border-t border-[#E0DAD4]" />
-                <span className="mx-4 text-[12px] text-[#9A9A9A] bg-white px-2">or register with mobile number</span>
-                <div className="flex-grow border-t border-[#E0DAD4]" />
-              </div>
+              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">Join thousands of users saving lives across Maharashtra.</p>
 
               <div className="mb-5">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Mobile Number</label>
-                <div className={`flex items-center h-[52px] border rounded-xl bg-white overflow-hidden transition-all ${isPhoneValid ? 'border-[#BE1F2E]' : 'border-[#D8D0CA]'} focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]`}>
-                  <div className="flex items-center px-4 border-r border-[#E0DAD4] h-1/2">
-                    <span className="text-[14px] font-[500] text-[#5A5A5A]">+91</span>
-                  </div>
+                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Email or Mobile Number</label>
+                <div className={`flex items-center h-[52px] border rounded-xl bg-white overflow-hidden transition-all ${isInputValid ? 'border-[#BE1F2E]' : 'border-[#D8D0CA]'} focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]`}>
                   <input
                     className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] placeholder:text-[#A8A0A0] outline-none"
-                    id="mobile"
-                    maxLength="10"
-                    type="tel"
-                    value={phone}
-                    onChange={handlePhoneChange}
+                    id="authInput"
+                    type="text"
+                    value={inputVal}
+                    onChange={handleInputChange}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
-                    placeholder="Enter 10-digit number"
+                    placeholder="Enter email or 10-digit mobile"
                   />
                 </div>
               </div>
@@ -196,24 +238,24 @@ const DonorRegistration = () => {
               <button
                 className="btn-primary w-full"
                 style={{ minHeight: 52 }}
-                disabled={!isPhoneValid || buttonState !== 'default'}
+                disabled={!isInputValid || buttonState !== 'default'}
                 onClick={handleSendOTP}
               >
-                {buttonState === 'default' && <>Send OTP <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>}
-                {buttonState === 'sending' && <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Sending…</>}
+                {buttonState === 'default' && <>Verify <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>}
+                {buttonState === 'sending' && <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Sending OTP…</>}
                 {buttonState === 'sent' && <><span className="material-symbols-outlined text-[18px]">check_circle</span> OTP Sent!</>}
               </button>
             </div>
           )}
 
-          {/* ── STEP 2: OTP ──────────────────────────────────────────── */}
+          {/* ── STEP 2: OTP VERIFICATION ──────────────────────────────── */}
           {step === 2 && (
             <div className="animate-fade-in">
               <h1 className="font-serif mb-2" style={{ fontSize: 'clamp(28px,5vw,38px)', fontWeight: 700, color: '#1A0A0A', lineHeight: 1.1, fontFeatureSettings: '"liga" 0' }}>
-                Verify your mobile
+                Verify your contact
               </h1>
               <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
-                We've sent a 6-digit code to <strong className="text-[#1A1A1A]">+91 {phone}</strong>
+                We've sent a 6-digit code to <strong className="text-[#1A1A1A]">{inputVal}</strong>
               </p>
 
               {/* OTP Boxes */}
@@ -244,7 +286,7 @@ const DonorRegistration = () => {
               {otpSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(34,160,107,0.08)] border border-[rgba(34,160,107,0.2)] mb-4 animate-fade-in">
                   <span className="material-symbols-outlined text-[#22A06B] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                  <p className="text-[13px] font-[600] text-[#22A06B]">Verified! Redirecting…</p>
+                  <p className="text-[13px] font-[600] text-[#22A06B]">Verified! Moving to password setup…</p>
                 </div>
               )}
 
@@ -278,16 +320,84 @@ const DonorRegistration = () => {
                   )}
                 </button>
               </div>
+            </div>
+          )}
 
-              {/* Back link */}
-              <div className="text-center">
+          {/* ── STEP 3: PASSWORD SETUP ────────────────────────────────── */}
+          {step === 3 && (
+            <div className="animate-fade-in">
+              <h1 className="font-serif mb-2" style={{ fontSize: 'clamp(28px,5vw,38px)', fontWeight: 700, color: '#1A0A0A', lineHeight: 1.1, fontFeatureSettings: '"liga" 0' }}>
+                Create a Password
+              </h1>
+              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">Secure your account with a strong password.</p>
+
+              <form onSubmit={handleCreatePassword} className="space-y-5">
+                <div>
+                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                  <div className="relative flex items-center h-[52px] border border-[#D8D0CA] rounded-xl bg-white focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]">
+                    <input
+                      className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] outline-none"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 text-[#9A9A9A] hover:text-[#BE1F2E] focus:outline-none"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Confirm Password</label>
+                  <div className="relative flex items-center h-[52px] border border-[#D8D0CA] rounded-xl bg-white focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]">
+                    <input
+                      className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] outline-none"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Repeat your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 text-[#9A9A9A] hover:text-[#BE1F2E] focus:outline-none"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {passwordError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] animate-fade-in">
+                    <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                    <p className="text-[13px] font-[600] text-[#BE1F2E]">{passwordError}</p>
+                  </div>
+                )}
+
                 <button
-                  className="text-[14px] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors border-b border-transparent hover:border-[#BE1F2E] pb-px"
-                  onClick={() => { setStep(1); setButtonState('default'); }}
+                  type="submit"
+                  disabled={buttonState === 'sending'}
+                  className="btn-primary w-full mt-6"
+                  style={{ minHeight: 52 }}
                 >
-                  ← Back to change mobile number
+                  {buttonState === 'sending' ? (
+                    <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Creating account…</>
+                  ) : (
+                    <>Complete Setup <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>
+                  )}
                 </button>
-              </div>
+              </form>
             </div>
           )}
 
