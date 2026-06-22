@@ -169,10 +169,13 @@ const DonorRegistration = () => {
 
   const getRoleFromEmail = (val) => {
     const email = val.toLowerCase().trim();
-    if (email.endsWith('staff@raktasetu.gov')) return 'staff';
-    if (email.endsWith('admin@raktasetu.gov')) return 'admin';
-    if (email.endsWith('district@raktasetu.gov')) return 'district';
-    if (email.endsWith('state@raktasetu.gov')) return 'state';
+    const parts = email.split('@');
+    if (parts.length < 2) return 'donor';
+    const domain = parts[1];
+    if (domain.includes('staff')) return 'staff';
+    if (domain.includes('admin')) return 'admin';
+    if (domain.includes('district')) return 'district';
+    if (domain.includes('state')) return 'state';
     return 'donor';
   };
 

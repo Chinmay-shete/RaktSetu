@@ -102,11 +102,14 @@ const Login = () => {
   };
 
   const getRoleFromEmail = (val) => {
-    const emailLower = val.toLowerCase().trim();
-    if (emailLower.endsWith('staff@raktasetu.gov')) return 'staff';
-    if (emailLower.endsWith('admin@raktasetu.gov')) return 'admin';
-    if (emailLower.endsWith('district@raktasetu.gov')) return 'district';
-    if (emailLower.endsWith('state@raktasetu.gov')) return 'state';
+    const email = val.toLowerCase().trim();
+    const parts = email.split('@');
+    if (parts.length < 2) return 'donor';
+    const domain = parts[1];
+    if (domain.includes('staff')) return 'staff';
+    if (domain.includes('admin')) return 'admin';
+    if (domain.includes('district')) return 'district';
+    if (domain.includes('state')) return 'state';
     return 'donor';
   };
 
