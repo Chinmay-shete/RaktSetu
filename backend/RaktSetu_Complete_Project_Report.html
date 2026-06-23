@@ -414,6 +414,7 @@
     <a href="#part-backend">Backend</a>
     <a href="#db-schema">DB Schema</a>
     <a href="#api-map">API Map</a>
+    <a href="#maintenance">Maintenance</a>
     <a href="#roadmap">Roadmap</a>
 
   </div>
@@ -1304,6 +1305,34 @@ CREATE INDEX idx_inventory_hospital ON blood_inventory(hospital_id);
 CREATE INDEX idx_inventory_blood_group ON blood_inventory(blood_group);
 CREATE INDEX idx_inventory_expiry ON blood_inventory(expiry_date);
 CREATE INDEX idx_inventory_status ON blood_inventory(status);</pre>
+</div>
+
+<hr class="section-sep" style="max-width:1100px;margin:0 auto 0;">
+
+<!-- PRE-BACKEND MAINTENANCE -->
+<div class="container" id="maintenance">
+  <div class="section-header">
+    <span class="section-label">Section 8 — Maintenance & Optimization</span>
+    <h2 class="section-title">Pre-Backend <em>Bug Fixes</em></h2>
+    <p class="section-desc">Before initiating backend integration, 9 critical UI and architectural issues were identified and resolved. This ensures a stable, optimized, and secure foundation for API connections.</p>
+  </div>
+
+  <div class="highlight-box">
+    <h3>Maintenance Log: <em>What, Why, and How</em></h3>
+    <p>We are executing a multi-step cleanup process to prepare the frontend code for production data flow.</p>
+    <ul>
+      <li><strong>[WHAT] Hooks Violation Fix</strong> · <strong>[WHY]</strong> `useQuery` called after conditional return crashes React. · <strong>[HOW]</strong> Moved auth checks into a dedicated `ProtectedRoute` wrapper.</li>
+      <li><strong>[WHAT] Emergency Badge Fix</strong> · <strong>[WHY]</strong> Badge was hardcoded to 0, hiding real SOS alerts. · <strong>[HOW]</strong> Added `getEmergencyRequests` query to `HospitalLayout`.</li>
+      <li><strong>[WHAT] Route Guards Added</strong> · <strong>[WHY]</strong> Anyone could type `/admin/dashboard` to bypass login. · <strong>[HOW]</strong> Enforced role-based access control via `ProtectedRoute.jsx`.</li>
+      <li><strong>[WHAT] 51 ESLint Errors Cleared</strong> · <strong>[WHY]</strong> Unused variables bloat bundle size and mask real errors. · <strong>[HOW]</strong> Stripped out unused imports across 7 files.</li>
+      <li><strong>[WHAT] useWatch Optimization</strong> · <strong>[WHY]</strong> `watch()` triggered full-page re-renders on every keystroke. · <strong>[HOW]</strong> Refactored to React Hook Form's `useWatch` for isolated renders.</li>
+      <li><strong>[WHAT] Distance Calculation Fixed</strong> · <strong>[WHY]</strong> Used `Math.random()`, which breaks logic. · <strong>[HOW]</strong> Tied to mockAPI distance field (prepping for PostGIS).</li>
+      <li><strong>[WHAT] package.json Typos</strong> · <strong>[WHY]</strong> Name "racktsetu" and duplicated dependencies cause NPM issues. · <strong>[HOW]</strong> Fixed typos and deduplicated Tailwind dependencies.</li>
+      <li><strong>[WHAT] Axios Service Configured</strong> · <strong>[WHY]</strong> Need a central place for JWT auth headers. · <strong>[HOW]</strong> Created `src/services/api.js` with interceptors and 401 handling.</li>
+      <li><strong>[WHAT] Git Cleanup</strong> · <strong>[WHY]</strong> `node_modules` accidentally tracked in git, slowing down commits. · <strong>[HOW]</strong> Removed via `git rm -r --cached` and updated `.gitignore`.</li>
+    </ul>
+  </div>
+</div>
 
   <h3>transfer_requests</h3>
   <pre>CREATE TABLE transfer_requests (
