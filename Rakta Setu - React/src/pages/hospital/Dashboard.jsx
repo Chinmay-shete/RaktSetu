@@ -28,7 +28,7 @@ export const Dashboard = () => {
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);

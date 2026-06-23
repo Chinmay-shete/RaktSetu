@@ -18,10 +18,7 @@ export const SurgicalSchedule = () => {
   const [formDataCache, setFormDataCache] = useState(null);
   
   // Local state for the mock table since backend isn't there yet
-  const [schedules, setSchedules] = useState([
-    { id: 1, surgeryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], surgeryType: 'Cardiovascular', bloodGroup: 'O+', units: 4 },
-    { id: 2, surgeryDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], surgeryType: 'Orthopedic', bloodGroup: 'B-', units: 2 },
-  ]);
+  const [schedules, setSchedules] = useState([]);
 
   const {
     register,
@@ -30,12 +27,26 @@ export const SurgicalSchedule = () => {
     reset
   } = useForm({
     defaultValues: {
-      surgeryDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      surgeryDate: '',
       surgeryType: '',
       bloodGroup: 'O+',
       units: 2,
     }
   });
+
+  React.useEffect(() => {
+    const now = Date.now();
+    setSchedules([
+      { id: 1, surgeryDate: new Date(now + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], surgeryType: 'Cardiovascular', bloodGroup: 'O+', units: 4 },
+      { id: 2, surgeryDate: new Date(now + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], surgeryType: 'Orthopedic', bloodGroup: 'B-', units: 2 },
+    ]);
+    reset({
+      surgeryDate: new Date(now + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      surgeryType: '',
+      bloodGroup: 'O+',
+      units: 2,
+    });
+  }, [reset]);
 
   const onSubmit = (data) => {
     setFormDataCache(data);

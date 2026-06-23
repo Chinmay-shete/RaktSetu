@@ -24,6 +24,7 @@ Phase 1: Project Setup & Database
 - `donors` (id, user_id FK, full_name, age, gender, city, pincode, blood_group, weight, chronic_illness, last_donated_date)
 - `donation_camps` (id, name, camp_date, location, district_id FK, organizer, capacity, expected_donors, status)
 - `forecasts` (id, hospital_id FK, blood_group, predicted_units, forecast_date)
+- `surgical_schedules` (id, hospital_id FK, surgery_date, surgery_type, blood_group, units, created_at)
 - `alert_thresholds` (hospital_id FK, min_stock, max_stock, critical_units, expiry_days)
 - `audit_logs` (id, actor_id, action, severity, ip_address, timestamp)
 
@@ -106,6 +107,7 @@ Endpoints (Protected by `staff` or `admin` role):
    - PUT /hospital/inventory/:id
    - DELETE /hospital/inventory/:id
    - GET /hospital/expiry-alerts
+   - POST /hospital/surgical-schedule (Log upcoming surgery requirements)
 2. **Emergency Routing (`/hospital/emergencies`)**:
    - GET /hospital/emergencies (List active SOS requests for this hospital)
    - PATCH /hospital/emergencies/:id/status (Accept/Decline)

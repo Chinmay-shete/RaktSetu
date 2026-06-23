@@ -25,7 +25,7 @@ export const CampCreation = () => {
   } = useForm({
     defaultValues: {
       campName: '',
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      date: '',
       startTime: '09:00',
       endTime: '17:00',
       location: '',
@@ -33,6 +33,18 @@ export const CampCreation = () => {
       description: ''
     }
   });
+
+  React.useEffect(() => {
+    reset({
+      campName: '',
+      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      startTime: '09:00',
+      endTime: '17:00',
+      location: '',
+      targetDonors: 100,
+      description: ''
+    });
+  }, [reset]);
 
   const onSubmit = (data) => {
     setFormDataCache(data);

@@ -10,7 +10,7 @@
   - **District / State Health Officers** – monitor regional blood‑stock health, plan camps.
   - **Donors** – register, receive eligibility re‑notifications, find nearby camps.
   - **System Admin** – configure RBAC, environment settings, monitor pipelines.
-- **Scope**: Front‑end (React web dashboard + future Flutter donor app) + backend (Node/Express + Python AI micro‑services) + data pipeline (BigQuery, MySQL, Prophet/LSTM models).
+- **Scope**: Front‑end (React web dashboard) + backend (Node/Express + Python AI micro‑services) + data pipeline (BigQuery, MySQL, Prophet/LSTM models).
 
 ---
 
@@ -144,7 +144,7 @@
 - **Q2**: Do we need multi‑region data replication for high availability?
 - **Q3**: Final decision on Google OAuth vs custom email/password login.
 - **Q4**: What is the preferred notification channel for donors (push, SMS, email)?
-- **Q5**: Timeline for Flutter mobile app (Module 3) – MVP or later phase?
+
 
 ---
 
