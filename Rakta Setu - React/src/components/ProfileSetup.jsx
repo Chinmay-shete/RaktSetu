@@ -12,6 +12,14 @@ const ProfileSetup = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [bgSelected, setBgSelected] = useState(null);
+  
+  // New state for NBTC screening wizard
+  const [wizardStep, setWizardStep] = useState('basic'); // 'basic' | 'screening'
+  const [screeningAnswers, setScreeningAnswers] = useState({
+    q1: null, q2: null, q3: null, q4: null, q5: null,
+    q6: null, q7: null, q8: null, q9: null,
+  });
+  const [screeningError, setScreeningError] = useState('');
 
   useEffect(() => {
     const hasProfile = localStorage.getItem('raktsetu_donor_profile');
@@ -63,14 +71,43 @@ const ProfileSetup = () => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleBasicSubmit = (e) => {
     e.preventDefault();
     setTouched({ fullName: true, age: true, gender: true, bloodGroup: true });
     if (!validate()) return;
+    setWizardStep('screening');
+  };
+
+  const handleScreeningSubmit = (e) => {
+    e.preventDefault();
+    // Check if all questions are answered. q8 is only for females.
+    const questions = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q9'];
+    if (gender === 'Female') questions.push('q8');
+
+    const unanswered = questions.some((q) => screeningAnswers[q] === null);
+    if (unanswered) {
+      setScreeningError('Please answer all applicable questions.');
+      return;
+    }
+
     const existing = JSON.parse(localStorage.getItem('raktsetu_donor_profile') || '{}');
-    localStorage.setItem('raktsetu_donor_profile', JSON.stringify({ ...existing, fullName, age, gender, bloodGroup }));
+    localStorage.setItem('raktsetu_donor_profile', JSON.stringify({ 
+      ...existing, fullName, age, gender, bloodGroup, screeningAnswers 
+    }));
     navigate('/location');
   };
+
+  const questionsList = [
+    { id: 'q1', text: 'Are you currently taking any antibiotics or other medications?' },
+    { id: 'q2', text: 'Have you had a tattoo, ear, or skin piercing in the last 6 months?' },
+    { id: 'q3', text: 'Have you had any dental work or tooth extraction in the last 1 month?' },
+    { id: 'q4', text: 'Have you suffered from malaria, typhoid, or dengue in the last 1 year?' },
+    { id: 'q5', text: 'Have you ever tested positive for HIV, Hepatitis B, or Hepatitis C?' },
+    { id: 'q6', text: 'Do you have any chronic illness like diabetes, heart disease, or cancer?' },
+    { id: 'q7', text: 'Have you consumed alcohol in the last 24 hours?' },
+    { id: 'q8', text: 'Are you pregnant, breastfeeding, or have had a miscarriage in the last 6 months?', condition: gender === 'Female' },
+    { id: 'q9', text: 'Have you donated blood in the last 3 months?' }
+  ];
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -90,13 +127,17 @@ const ProfileSetup = () => {
           {/* Progress Indicator */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-label-tag text-[#9A9A9A]">Step 2 of 4</span>
-              <span className="text-label-tag text-[#BE1F2E]">Basic Profile</span>
+              <span className="text-label-tag text-[#9A9A9A]">
+                {wizardStep === 'basic' ? 'Step 2 of 4' : 'Step 2.5 of 4'}
+              </span>
+              <span className="text-label-tag text-[#BE1F2E]">
+                {wizardStep === 'basic' ? 'Basic Profile' : 'Health Screening'}
+              </span>
             </div>
             <div className="grid grid-cols-4 gap-1.5">
               <div className="step-bar-done" />
               <div className="step-bar-active" />
-              <div className="step-bar-upcoming" />
+              <div className={wizardStep === 'screening' ? 'step-bar-active' : 'step-bar-upcoming'} />
               <div className="step-bar-upcoming" />
             </div>
           </div>
@@ -104,12 +145,21 @@ const ProfileSetup = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="font-serif mb-2" style={{ fontSize: 'clamp(28px,5vw,38px)', fontWeight: 700, color: '#1A0A0A', lineHeight: 1.1, fontFeatureSettings: '"liga" 0' }}>
-              Basic <span className="text-[#BE1F2E] italic">Profile</span>
+              {wizardStep === 'basic' ? (
+                <>Basic <span className="text-[#BE1F2E] italic">Profile</span></>
+              ) : (
+                <>Health <span className="text-[#BE1F2E] italic">Screening</span></>
+              )}
             </h1>
-            <p className="text-[15px] text-[#9A9A9A] leading-[1.6]">Provide your core physiological details to ensure accurate matching.</p>
+            <p className="text-[15px] text-[#9A9A9A] leading-[1.6]">
+              {wizardStep === 'basic' 
+                ? 'Provide your core physiological details to ensure accurate matching.' 
+                : 'Please answer these NBTC eligibility questions honestly to ensure blood safety.'}
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {wizardStep === 'basic' ? (
+            <form onSubmit={handleBasicSubmit} className="space-y-6">
 
             {/* Full Name */}
             <div>
@@ -227,7 +277,7 @@ const ProfileSetup = () => {
             {/* Divider */}
             <div className="border-t border-[#E0DAD4] pt-6">
               <button type="submit" className="btn-primary w-full btn-arrow-hover" style={{ minHeight: 52, fontSize: 15 }}>
-                Continue to Location
+                Continue to Screening
                 <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span>
               </button>
               <p className="text-center text-[13px] text-[#8A8078] mt-4 flex items-center justify-center gap-1.5">
@@ -236,6 +286,70 @@ const ProfileSetup = () => {
               </p>
             </div>
           </form>
+          ) : (
+            <form onSubmit={handleScreeningSubmit} className="space-y-5">
+              <div className="max-h-[50vh] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                {questionsList.filter(q => q.condition !== false).map((q, index) => (
+                  <div key={q.id} className="bg-[#FAFAFA] border border-[#E0DAD4] rounded-xl p-4">
+                    <p className="text-[14px] font-[600] text-[#1A1A1A] mb-3">
+                      <span className="text-[#BE1F2E] mr-1.5">{index + 1}.</span>
+                      {q.text}
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScreeningAnswers(p => ({ ...p, [q.id]: true }));
+                          setScreeningError('');
+                        }}
+                        className={`flex-1 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
+                          screeningAnswers[q.id] === true
+                            ? 'bg-[#BE1F2E] border-[#BE1F2E] text-white shadow-sm'
+                            : 'bg-white border-[#D8D0CA] text-[#5A5A5A] hover:border-[#BE1F2E] hover:text-[#BE1F2E]'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScreeningAnswers(p => ({ ...p, [q.id]: false }));
+                          setScreeningError('');
+                        }}
+                        className={`flex-1 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
+                          screeningAnswers[q.id] === false
+                            ? 'bg-[#10B981] border-[#10B981] text-white shadow-sm'
+                            : 'bg-white border-[#D8D0CA] text-[#5A5A5A] hover:border-[#10B981] hover:text-[#10B981]'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {screeningError && (
+                <p className="text-[13px] text-[#BE1F2E] flex items-center justify-center gap-1 mt-2">
+                  <span className="material-symbols-outlined text-[16px]">error</span> {screeningError}
+                </p>
+              )}
+
+              <div className="border-t border-[#E0DAD4] pt-6 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setWizardStep('basic')}
+                  className="flex-1 py-3 rounded-xl border border-[#D8D0CA] bg-white text-[#5A5A5A] font-[600] text-[15px] hover:bg-gray-50 transition-colors"
+                >
+                  Back
+                </button>
+                <button type="submit" className="flex-[2] btn-primary btn-arrow-hover" style={{ minHeight: 52, fontSize: 15 }}>
+                  Finish & Setup Location
+                  <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span>
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </main>
 

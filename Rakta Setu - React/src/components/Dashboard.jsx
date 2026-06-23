@@ -21,6 +21,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [donorName, setDonorName] = useState('Aarav');
   const [navScrolled, setNavScrolled] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
   const totalDonations = useCountUp(12);
   const livesImpacted = useCountUp(36);
 
@@ -81,13 +82,31 @@ const Dashboard = () => {
 
       <main className="pt-32 pb-32 w-full px-6 md:px-10 lg:px-16">
         {/* Editorial Greeting */}
-        <section className="mb-16">
-          <h1 className="font-serif text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em]">
-            Welcome back, <span className="text-[#c8102e]">{donorName}.</span>
-          </h1>
-          <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
-            Your commitment to the clinical supply chain has directly supported three local trauma centers this month. Your precision saves lives.
-          </p>
+        <section className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div>
+            <h1 className="font-serif text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em]">
+              Welcome back, <span className="text-[#c8102e]">{donorName}.</span>
+            </h1>
+            <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
+              Your commitment to the clinical supply chain has directly supported three local trauma centers this month. Your precision saves lives.
+            </p>
+          </div>
+          
+          {/* Availability Toggle */}
+          <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-5 flex items-center gap-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] shrink-0">
+            <div>
+              <p className="text-[15px] font-[600] text-[#1b1c1a]">Available to Donate</p>
+              <p className="text-[13px] text-[#737373]">
+                {isAvailable ? 'Emergency alerts active' : 'Alerts paused'}
+              </p>
+            </div>
+            <button 
+              onClick={() => setIsAvailable(!isAvailable)}
+              className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ease-in-out flex ${isAvailable ? 'bg-[#10B981]' : 'bg-[#D8D0CA]'}`}
+            >
+              <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${isAvailable ? 'translate-x-6' : 'translate-x-0'}`} />
+            </button>
+          </div>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

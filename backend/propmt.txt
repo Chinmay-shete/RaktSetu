@@ -1,0 +1,127 @@
+
+Once I approve PROJECT_UNDERSTANDING.md, build the full backend using 
+this context:
+
+## Project
+RaktSetu — AI layer on top of India's eRaktKosh blood bank system. Reduces 
+the 8-10% annual blood wastage in India via AI demand forecasting, 
+cross-hospital expiry transfer automation, and real-time emergency blood 
+search. Web-only (no mobile app, no Flutter).
+
+## Tech stack
+- Backend API: Node.js + Express, REST architecture
+- Database: MySQL with geospatial indexing
+- Auth: JWT + Google OAuth (OAuth 2.0), role-based access control
+- AI microservice: Python + Flask, Prophet model for forecasting, 
+  scikit-learn for shortage classification, called internally by the 
+  Node.js API (not exposed directly to frontend)
+- Notifications: Firebase Cloud Messaging (web push) + Twilio (SMS) + 
+  WhatsApp Business API for donor re-notification
+- Maps/distance: Google Maps API or Haversine formula via MySQL spatial queries
+
+## User roles (only 2 self-register; rest are provisioned)
+1. Hospital Admin — self-registers (form: hospital name, city, state, 
+   phone, eRaktKosh ID [optional], admin name, work email, password). 
+   Requires manual verification before activation.
+2. Hospital Staff — invite-only, created by Hospital Admin from inside 
+   the dashboard (invite link/code flow)
+3. District Officer — provisioned by system admin only, no public signup
+4. Blood Donor — self-registers via web (phone+OTP, name, age 18-65, 
+   gender, blood group, city/pincode, donation history, basic health 
+   screening per NBTC rules, notification preferences). Build full 
+   donor onboarding flow as web pages, not a mobile app.
+5. System Admin — internal team only, seeded directly in DB
+6. State Admin — optional, provisioned manually, summary-only access
+
+All roles support Google OAuth in addition to email/password.
+
+## Database schema (build these 9+ tables with proper foreign keys, 
+indexes, and constraints)
+- districts (id, name, state)
+- hospitals (id, name, district_id FK, lat, lng, eraktkosh_id, phone, 
+  verification_status)
+- users (id, email, phone, password_hash, role ENUM, hospital_id FK 
+  nullable, district_id FK nullable, google_id nullable, created_at, 
+  last_login)
+- blood_stock (id, hospital_id FK, blood_group ENUM 8 types, 
+  total_available, updated_at) — unique constraint on (hospital_id, blood_group)
+- blood_batches (id, hospital_id FK, blood_group, units, expiry_date, 
+  status ENUM[available,expiring,expired,transferred,used])
+- transfer_requests (id, from_hospital FK, to_hospital FK, blood_group, 
+  units, status ENUM[pending,accepted,declined,completed], created_at, eta)
+- donors (id, user_id FK, blood_group, last_donated_date, donation_type, 
+  weight_above_45 bool, chronic_illness bool, lat, lng, available_now bool, 
+  notification_channel ENUM[sms,whatsapp,both])
+- donation_camps (id, name, camp_date, district_id FK, lat, lng, expected_units)
+- forecasts (id, hospital_id FK, blood_group, predicted_units, 
+  forecast_date, model_version, rmse_at_creation)
+- surgical_schedules (id, hospital_id FK, surgery_date, surgery_type, 
+  expected_blood_units, blood_group)
+- audit_log (id, table_name, record_id, user_id, action, old_value JSON, 
+  new_value JSON, changed_at)
+
+Add indexes on: hospital_id+blood_group composite, expiry_date, 
+transfer status+created_at, lat/lng spatial index on hospitals and donors.
+
+## Required API modules
+1. **Auth**: POST /auth/register (hospital-admin, donor), POST /auth/login, 
+   POST /auth/google, POST /auth/invite-staff, POST /auth/verify-invite, 
+   POST /auth/refresh-token, POST /auth/forgot-password
+2. **Inventory**: GET/PUT /inventory/:hospitalId, POST /inventory/batch 
+   (add new blood batch), GET /inventory/expiring-soon
+3. **Emergency search**: GET /emergency/search?bloodGroup=&lat=&lng=&radius= 
+   — real-time geospatial query, NOT cached, returns sorted by distance, 
+   excludes 0-unit results
+4. **Transfers**: POST /transfers, GET /transfers/:id, PATCH 
+   /transfers/:id/accept, PATCH /transfers/:id/decline — include 
+   idempotency-key header support
+5. **Forecasting**: GET /forecast/:hospitalId/:bloodGroup — calls internal 
+   Flask AI service, caches result for 24hrs, POST /forecast/retrain 
+   (admin only)
+6. **District dashboard**: GET /district/:id/heatmap, GET 
+   /district/:id/summary — aggregated/anonymized data only, never expose 
+   raw hospital-level numbers to district role beyond status tier 
+   (red/yellow/green)
+7. **Donors**: POST /donors/check-eligibility, GET /donors/nearby-camps, 
+   POST /donors/donation-complete (triggers certificate generation), 
+   GET /donors/:id/certificate
+8. **Donation camps**: CRUD /camps (district officer + hospital admin only)
+9. **Surgical schedules**: POST /hospitals/:id/surgical-schedule (feeds 
+   into forecast model)
+
+## Non-functional requirements — implement ALL of these, do not skip
+- RBAC middleware enforcing scope: hospital_staff/admin can only access 
+  their own hospital_id; district_officer scoped to own district_id; 
+  validate role + ownership on every protected route
+- Rate limiting: 100 req/min per user, return 429 with Retry-After header
+- Input validation on every endpoint (express-validator or zod) — reject 
+  invalid blood groups, out-of-range coordinates, malformed dates
+- Standardized error response shape: { error, message, code } with 
+  proper HTTP status codes (400/401/403/404/429/500)
+- Idempotency-Key support on POST /transfers to prevent duplicate 
+  transfers from network retries
+- Audit logging middleware on every UPDATE/DELETE to inventory and 
+  transfer tables
+- Pagination on all list endpoints (page, limit, total, total_pages)
+- API versioning: prefix all routes with /v1
+- Environment-based config (.env for DB creds, JWT secret, Twilio/Firebase 
+  keys, Google OAuth client ID/secret) — never hardcode secrets
+- CORS configured for the React frontend origin only
+- Unit tests (Jest) for auth, emergency search, and transfer logic — 
+  minimum 15 test cases covering edge cases (no stock found, invalid 
+  blood group, unauthorized cross-hospital access)
+- Seed script to populate 2-3 demo hospitals, sample inventory, and a 
+  test admin/staff/donor account for local development
+
+## Cross-reference check
+Before finalizing each endpoint, cross-check its response shape against 
+PROJECT_UNDERSTANDING.md from Phase 1 to ensure field names and data types 
+match exactly what the frontend expects. Flag any mismatch instead of 
+silently guessing.
+
+Build this in a clean, modular folder structure (routes/, controllers/, 
+middleware/, models/, services/, config/). Start with Auth + Inventory + 
+Emergency Search first since those unblock frontend testing fastest, then 
+proceed module by module. After each module, tell me what you built and 
+wait for my confirmation before moving to the next.
+ 

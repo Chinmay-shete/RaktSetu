@@ -12,7 +12,9 @@ import {
   Heart,
   LogOut,
   X,
-  BarChart3
+  BarChart3,
+  Calendar,
+  Search
 } from 'lucide-react';
 
 export const sidebarItems = [
@@ -21,6 +23,8 @@ export const sidebarItems = [
   { path: '/staff/update-stock', label: 'Update Stock', icon: PlusCircle },
   { path: '/staff/expiry-alerts', label: 'Expiry Alerts', icon: AlertTriangle, badgeKey: 'expiry' },
   { path: '/staff/transfer-request', label: 'Transfer Requests', icon: ArrowLeftRight },
+  { path: '/staff/surgical-schedule', label: 'Surgical Schedule', icon: Calendar },
+  { path: '/staff/donor-search', label: 'Donor Search', icon: Search },
   { path: '/staff/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/staff/invite', label: 'Invite Staff', icon: UserPlus }
 ];

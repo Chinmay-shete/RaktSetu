@@ -12,6 +12,8 @@ import EditProfile from './components/EditProfile';
 import FindCamps from './components/FindCamps';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
+import NotFound from './components/NotFound';
+import Unauthorized from './components/Unauthorized';
 
 // -- Staff/Hospital Imports --
 import { AuthProvider } from './context/AuthContext';
@@ -21,9 +23,11 @@ import { HospitalLayout } from './layouts/HospitalLayout';
 import { Dashboard as HospitalDashboard } from './pages/hospital/Dashboard';
 import { BloodInventory } from './pages/hospital/inventory/BloodInventory';
 import { UpdateStock } from './pages/hospital/inventory/UpdateStock';
-import { ExpiryAlerts } from './pages/hospital/alerts/ExpiryAlerts';
-import { TransferRequests } from './pages/hospital/requests/TransferRequests';
+import ExpiryAlerts from './pages/hospital/alerts/ExpiryAlerts';
+import { TransferRequests as TransferRequest } from './pages/hospital/requests/TransferRequests';
 import { Analytics } from './pages/hospital/Analytics';
+import { SurgicalSchedule } from './pages/hospital/SurgicalSchedule';
+import { DonorSearch } from './pages/hospital/DonorSearch';
 import { Login } from './pages/hospital/auth/Login';
 import { InviteToken } from './pages/hospital/auth/InviteToken';
 import { InviteStaff as InviteStaffHospital } from './pages/hospital/auth/InviteStaff';
@@ -41,6 +45,8 @@ import InviteStaffAdmin from './pages/admin/InviteStaff';
 import AIDemandForecast from './pages/admin/AIDemandForecast';
 import WasteAnalytics from './pages/admin/WasteAnalytics';
 import AlertThresholds from './pages/admin/AlertThresholds';
+import CampCreation from './pages/admin/CampCreation';
+import HospitalProfile from './pages/admin/HospitalProfile';
 
 // -- District Officer Imports --
 import { DistrictProvider } from './context/DistrictContext';
@@ -119,9 +125,11 @@ function App() {
                   <Route path="inventory" element={<BloodInventory />} />
                   <Route path="update-stock" element={<UpdateStock />} />
                   <Route path="expiry-alerts" element={<ExpiryAlerts />} />
-                  <Route path="transfer-request" element={<TransferRequests />} />
+                  <Route path="transfer-request" element={<TransferRequest />} />
                   <Route path="analytics" element={<Analytics />} />
                   <Route path="invite" element={<InviteStaffHospital />} />
+                  <Route path="surgical-schedule" element={<SurgicalSchedule />} />
+                  <Route path="donor-search" element={<DonorSearch />} />
                 </Route>
 
                 {/* --------------------------- */}
@@ -138,6 +146,8 @@ function App() {
                 <Route path="/admin/forecast" element={<AdminLayout><AIDemandForecast /></AdminLayout>} />
                 <Route path="/admin/waste" element={<AdminLayout><WasteAnalytics /></AdminLayout>} />
                 <Route path="/admin/thresholds" element={<AdminLayout><AlertThresholds /></AdminLayout>} />
+                <Route path="/admin/camp-creation" element={<AdminLayout><CampCreation /></AdminLayout>} />
+                <Route path="/admin/profile" element={<AdminLayout><HospitalProfile /></AdminLayout>} />
 
                 {/* --------------------------------- */}
                 {/* 4. DISTRICT OFFICER ROUTES        */}
@@ -173,6 +183,12 @@ function App() {
                 <Route path="/systemadmin/users" element={<SystemAdminLayout><UserManagement /></SystemAdminLayout>} />
                 <Route path="/systemadmin/audit-logs" element={<SystemAdminLayout><AuditLogs /></SystemAdminLayout>} />
                 <Route path="/systemadmin/settings" element={<SystemAdminLayout><SystemSettings /></SystemAdminLayout>} />
+
+                {/* --------------------------------- */}
+                {/* 7. FALLBACK ROUTES                */}
+                {/* --------------------------------- */}
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
             </SystemAdminProvider>

@@ -12,7 +12,10 @@ const EditProfile = () => {
     pincode: '110001',
     bloodGroup: 'O-Positive',
     weight: '78',
-    chronicIllness: false
+    chronicIllness: false,
+    notifySMS: true,
+    notifyWhatsApp: false,
+    notifyEmail: true
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -353,6 +356,40 @@ const EditProfile = () => {
                       <span className="toggle-thumb" />
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preferences Section */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-[rgba(26,18,16,0.04)]">
+              <div className="md:col-span-4">
+                <h3 className="text-[24px] font-[500] italic text-[#BE1F2E] leading-[32px]">Preferences</h3>
+                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Manage how you receive alerts.</p>
+              </div>
+              <div className="md:col-span-8 space-y-4">
+                <label className="text-[14px] font-[500] text-[#685c59]">Notification Channels</label>
+                <div className="flex flex-col gap-3">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input type="checkbox" name="notifySMS" checked={profile.notifySMS ?? true} onChange={handleChange} className="appearance-none w-5 h-5 border border-[#D8D0CA] rounded bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors" />
+                      <span className="material-symbols-outlined absolute text-white text-[14px] opacity-0 pointer-events-none" style={{ opacity: profile.notifySMS !== false ? 1 : 0 }}>check</span>
+                    </div>
+                    <span className="text-[14px] text-[#1b1c1a] group-hover:text-[#BE1F2E] transition-colors">SMS Alerts</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input type="checkbox" name="notifyWhatsApp" checked={profile.notifyWhatsApp ?? false} onChange={handleChange} className="appearance-none w-5 h-5 border border-[#D8D0CA] rounded bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors" />
+                      <span className="material-symbols-outlined absolute text-white text-[14px] opacity-0 pointer-events-none" style={{ opacity: profile.notifyWhatsApp ? 1 : 0 }}>check</span>
+                    </div>
+                    <span className="text-[14px] text-[#1b1c1a] group-hover:text-[#BE1F2E] transition-colors">WhatsApp Messages</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input type="checkbox" name="notifyEmail" checked={profile.notifyEmail ?? true} onChange={handleChange} className="appearance-none w-5 h-5 border border-[#D8D0CA] rounded bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors" />
+                      <span className="material-symbols-outlined absolute text-white text-[14px] opacity-0 pointer-events-none" style={{ opacity: profile.notifyEmail !== false ? 1 : 0 }}>check</span>
+                    </div>
+                    <span className="text-[14px] text-[#1b1c1a] group-hover:text-[#BE1F2E] transition-colors">Email Updates</span>
+                  </label>
                 </div>
               </div>
             </div>

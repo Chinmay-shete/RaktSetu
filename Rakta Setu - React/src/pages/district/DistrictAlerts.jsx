@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDistrict } from '../../context/DistrictContext';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Radio } from 'lucide-react';
+import { Modal } from '../../components/ui/Modal';
 
 const DistrictAlerts = () => {
   const { appState, resolveAlert } = useDistrict();
@@ -8,6 +9,7 @@ const DistrictAlerts = () => {
 
   const [filter, setFilter] = useState('Active');
   const [resolvedId, setResolvedId] = useState(null);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
 
   const activeAlerts = alerts.filter(a => a.status === 'Active');
   const resolvedAlerts = alerts.filter(a => a.status === 'Resolved');
@@ -26,6 +28,11 @@ const DistrictAlerts = () => {
     window.alert(`🚨 Escalation report sent to Maharashtra State Health Department for ${alert.bloodGroup} shortage at ${alert.hospitalName}. Response expected within 2 hours.`);
   };
 
+  const handleDistrictBroadcast = () => {
+    window.alert(`📢 District-wide emergency broadcast sent to all registered hospitals!`);
+    setShowBroadcastModal(false);
+  };
+
   const criticalCount = activeAlerts.filter(a => a.severity === 'Critical').length;
   const warningCount = activeAlerts.filter(a => a.severity === 'Warning').length;
   const watchCount = activeAlerts.filter(a => a.severity === 'Watch').length;
@@ -33,13 +40,23 @@ const DistrictAlerts = () => {
   return (
     <div className="space-y-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
       {/* Header */}
-      <section className="mb-12">
-        <h1 className="font-serif text-[60px] md:text-[80px] italic leading-none mb-4 tracking-[-0.04em] text-[#1a1a1a]">
-          Shortage <span className="text-[#BE1F2E]">Alerts.</span>
-        </h1>
-        <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
-          District-wide shortage alerts. Act proactively before hospitals run critically low.
-        </p>
+      <section className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div>
+          <h1 className="font-serif text-[60px] md:text-[80px] italic leading-none mb-4 tracking-[-0.04em] text-[#1a1a1a]">
+            Shortage <span className="text-[#BE1F2E]">Alerts.</span>
+          </h1>
+          <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
+            District-wide shortage alerts. Act proactively before hospitals run critically low.
+          </p>
+        </div>
+        
+        <button 
+          onClick={() => setShowBroadcastModal(true)}
+          className="btn-primary shrink-0 flex items-center gap-2 bg-[#1A1210] hover:bg-[#BE1F2E] text-white px-6 py-3.5 rounded-full font-bold shadow-lg shadow-[#1A1210]/10 transition-all hover:-translate-y-0.5"
+        >
+          <Radio size={18} />
+          Emergency Broadcast
+        </button>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -191,6 +208,50 @@ const DistrictAlerts = () => {
 
         </aside>
       </div>
+
+      <Modal
+        isOpen={showBroadcastModal}
+        onClose={() => setShowBroadcastModal(false)}
+        title="District-Wide Broadcast"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="bg-[#ffdad6] p-4 rounded-xl flex items-start gap-3 border border-[#93000a]/20">
+            <AlertTriangle className="text-[#93000a] shrink-0 mt-0.5" size={20} />
+            <div>
+              <h4 className="font-bold text-[#93000a] text-sm mb-1">Warning: High Priority Action</h4>
+              <p className="text-xs text-[#93000a]/80 leading-relaxed">
+                This will trigger an immediate emergency notification to the administrators of all registered hospitals within your district. 
+                Use this strictly for severe, multi-hospital shortages or mass-casualty events.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1.5 mt-2">
+            <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">Broadcast Message</label>
+            <textarea 
+              rows={4}
+              placeholder="E.g., CRITICAL SHORTAGE: O- blood urgently required across district. All hospitals report immediate inventory status."
+              className="input-field resize-none"
+            ></textarea>
+          </div>
+
+          <div className="flex gap-3 mt-4 border-t border-[#EDE7E1] pt-4">
+            <button
+              onClick={() => setShowBroadcastModal(false)}
+              className="w-1/2 px-4 py-3 rounded-full border border-[#EDE7E1] text-[13px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDistrictBroadcast}
+              className="w-1/2 px-4 py-3 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] text-white text-[13px] font-bold transition-colors flex items-center justify-center gap-2"
+            >
+              <Radio size={16} />
+              Send Broadcast
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

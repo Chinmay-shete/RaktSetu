@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHospital } from '../../context/HospitalContext';
-import { Sliders, Check, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Sliders, Check, AlertTriangle, ShieldCheck, HelpCircle, ArrowRightLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AlertThresholds = () => {
@@ -11,7 +11,8 @@ const AlertThresholds = () => {
     maxStock: appState.alertThresholds.maxStock,
     criticalUnits: appState.alertThresholds.criticalUnits,
     expiryDays: appState.alertThresholds.expiryDays,
-    emergencyAlerts: appState.alertThresholds.emergencyAlerts
+    emergencyAlerts: appState.alertThresholds.emergencyAlerts,
+    autoTransfer: appState.alertThresholds.autoTransfer || false
   });
 
   const [showToast, setShowToast] = useState(false);
@@ -127,6 +128,29 @@ const AlertThresholds = () => {
                 type="checkbox"
                 checked={formData.emergencyAlerts}
                 onChange={(e) => setFormData({ ...formData, emergencyAlerts: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#D8D0CA] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#BE1F2E]" />
+            </label>
+          </div>
+
+          {/* Auto-Transfer Toggle */}
+          <div className="flex items-center justify-between p-5 rounded-xl bg-[#fbf9f6] border border-[rgba(26,18,16,0.09)] mt-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-[rgba(190,31,46,0.08)] border border-[rgba(190,31,46,0.15)] text-[#BE1F2E]">
+                <ArrowRightLeft size={18} />
+              </div>
+              <div>
+                <h4 className="font-bold text-[#1a1a1a] text-sm">Auto-transfer on Expiry Warning</h4>
+                <p className="text-[#737373] text-xs mt-0.5">Automatically trigger transfer requests to Apex Labs when units hit the expiry buffer.</p>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.autoTransfer}
+                onChange={(e) => setFormData({ ...formData, autoTransfer: e.target.checked })}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-[#D8D0CA] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#BE1F2E]" />

@@ -116,7 +116,13 @@ const DonorRegistration = () => {
       setOtpError('');
       setTimeout(() => {
         setButtonState('default');
-        setStep(3); // Go to Password setup step
+        if (!isEmail) {
+          // Skip password creation for mobile numbers
+          localStorage.setItem('raktsetu_otp_verified', 'true');
+          navigate('/profile-setup');
+        } else {
+          setStep(3); // Go to Password setup step
+        }
       }, 700);
     }, 900);
   };

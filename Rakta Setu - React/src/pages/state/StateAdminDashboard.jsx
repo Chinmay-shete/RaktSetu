@@ -102,6 +102,46 @@ const StateAdminDashboard = () => {
             ))}
           </div>
 
+          {/* State Overview Map (Color-Coded) */}
+          <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h3 className="text-[22px] font-[500] italic">State Overview Map</h3>
+                <p className="text-[13px] text-[#737373] mt-0.5">Live health status of districts across Maharashtra.</p>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-[600] text-[#5a5a5a]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded bg-[#22A06B]" />
+                  <span>Healthy</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded bg-[#D97706]" />
+                  <span>Watch</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded bg-[#BE1F2E]" />
+                  <span>Critical</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="h-[300px] w-full bg-[#fbf9f6] rounded-xl border border-[#EDE7E1] flex items-center justify-center flex-col relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#1A1210 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+              <div className="absolute top-1/4 left-1/3 w-32 h-32 bg-[#22A06B]/20 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-[#BE1F2E]/20 rounded-full blur-3xl"></div>
+              
+              <div className="relative z-10 text-center flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-white border border-[#EDE7E1] flex items-center justify-center mb-4 text-[#BE1F2E]">
+                  <span className="material-symbols-outlined text-3xl">map</span>
+                </div>
+                <h3 className="font-serif italic text-2xl text-[#1A1210] mb-2">Interactive GIS Map Disabled</h3>
+                <p className="text-[#5A5A5A] max-w-md text-sm">
+                  The geographic overview requires valid API keys. Once configured, this will display a color-coded choropleth map of Maharashtra districts based on their critical status.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* State Aggregate Blood Stock Chart */}
           <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">

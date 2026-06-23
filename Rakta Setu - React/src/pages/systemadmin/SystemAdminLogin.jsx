@@ -6,7 +6,8 @@ const SystemAdminLogin = () => {
   const navigate = useNavigate();
   const { loginAdmin } = useSystemAdmin();
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '', mfaCode: '' });
+  const [step, setStep] = useState('credentials'); // 'credentials' | 'mfa'
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -16,7 +17,7 @@ const SystemAdminLogin = () => {
     return () => clearTimeout(timeout);
   }, [error]);
 
-  const handleSubmit = (e) => {
+  const handleSubmitCredentials = (e) => {
     e.preventDefault();
     setError('');
 
@@ -30,6 +31,27 @@ const SystemAdminLogin = () => {
     setTimeout(() => {
       setIsLoading(false);
       if (formData.email === 'admin@raktsetu.com' && formData.password === 'system123') {
+        setStep('mfa');
+      } else {
+        setError('Invalid email or password. Use admin@raktsetu.com / system123');
+      }
+    }, 1200);
+  };
+
+  const handleVerifyMFA = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (formData.mfaCode.length < 6) {
+      setError('Please enter a valid 6-digit TOTP code.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      setIsLoading(false);
+      if (formData.mfaCode === '123456') { // Mock MFA validation
         loginAdmin({
           name: 'Vikram Malhotra',
           designation: 'Lead Systems Architect',
@@ -37,9 +59,9 @@ const SystemAdminLogin = () => {
         });
         navigate('/systemadmin/dashboard');
       } else {
-        setError('Invalid email or password. Use admin@raktsetu.com / system123');
+        setError('Invalid MFA code. Use 123456 for testing.');
       }
-    }, 1200);
+    }, 800);
   };
 
   return (
@@ -74,62 +96,121 @@ const SystemAdminLogin = () => {
           </div>
 
           <div className="space-y-6">
-            <div>
-              <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
-                Sign in to Admin Console
-              </h1>
-              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
-                Root administrative access for user roles, feature flags, approvals, and platform backups.
-              </p>
-            </div>
+            {step === 'credentials' ? (
+              <>
+                <div>
+                  <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
+                    Sign in to Admin Console
+                  </h1>
+                  <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
+                    Root administrative access for user roles, feature flags, approvals, and platform backups.
+                  </p>
+                </div>
 
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
-                <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
-                <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
-              </div>
+                {/* Error */}
+                {error && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
+                    <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                    <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmitCredentials} className="space-y-5">
+                  <div className="mb-4">
+                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Administrator Email</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      className="input-field"
+                      placeholder="admin@raktsetu.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      className="input-field"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full bg-[#475569] hover:bg-[#334155] hover:shadow-[0_8px_24px_rgba(71,85,105,0.35)]"
+                    style={{ minHeight: 52 }}
+                  >
+                    {isLoading ? 'Verifying Admin Credentials…' : 'Authenticate Session'}
+                  </button>
+                </form>
+
+                <div className="mt-8 text-center text-xs text-[#5A5A5A]">
+                  Console credentials:{' '}
+                  <span className="font-semibold text-[#1a1a1a]">admin@raktsetu.com / system123</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
+                    Two-Factor Authentication
+                  </h1>
+                  <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
+                    Enter the 6-digit TOTP code from your authenticator app to verify your identity.
+                  </p>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
+                    <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                    <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleVerifyMFA} className="space-y-5">
+                  <div className="mb-6">
+                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Authenticator Code</label>
+                    <input
+                      type="text"
+                      maxLength="6"
+                      value={formData.mfaCode}
+                      onChange={e => setFormData({ ...formData, mfaCode: e.target.value.replace(/\D/g, '') })}
+                      className="input-field tracking-[0.5em] text-center font-mono text-xl"
+                      placeholder="••••••"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full bg-[#22A06B] hover:bg-[#1A7B52] hover:shadow-[0_8px_24px_rgba(34,160,107,0.35)] text-white"
+                    style={{ minHeight: 52 }}
+                  >
+                    {isLoading ? 'Verifying Token…' : 'Complete Sign In'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('credentials')}
+                    className="w-full text-center text-xs font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] mt-4 transition-colors"
+                  >
+                    &larr; Back to login
+                  </button>
+                </form>
+
+                <div className="mt-8 text-center text-xs text-[#5A5A5A]">
+                  Test TOTP code:{' '}
+                  <span className="font-semibold text-[#1a1a1a]">123456</span>
+                </div>
+              </>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="mb-4">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Administrator Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className="input-field"
-                  placeholder="admin@raktsetu.com"
-                  required
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  className="input-field"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-primary w-full bg-[#475569] hover:bg-[#334155] hover:shadow-[0_8px_24px_rgba(71,85,105,0.35)]"
-                style={{ minHeight: 52 }}
-              >
-                {isLoading ? 'Verifying Admin Credentials…' : 'Authenticate Session'}
-              </button>
-            </form>
-
-            <div className="mt-8 text-center text-xs text-[#5A5A5A]">
-              Console credentials:{' '}
-              <span className="font-semibold text-[#1a1a1a]">admin@raktsetu.com / system123</span>
-            </div>
           </div>
 
           <p className="text-center text-[11px] text-[#9A9A9A] leading-relaxed mt-8 px-4">

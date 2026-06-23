@@ -11,7 +11,9 @@ import {
   Bell, 
   Menu, 
   X,
-  Activity
+  Activity,
+  Tent,
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,10 +30,12 @@ const AdminLayout = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Camp Creation', path: '/admin/camp-creation', icon: Tent },
     { name: 'Invite Staff', path: '/admin/invite-staff', icon: UserPlus },
     { name: 'AI Demand Forecast', path: '/admin/forecast', icon: LineChart },
     { name: 'Waste Analytics', path: '/admin/waste', icon: Trash2 },
     { name: 'Alert Thresholds', path: '/admin/thresholds', icon: Sliders },
+    { name: 'Hospital Settings', path: '/admin/profile', icon: Settings },
   ];
 
   const handleLogout = () => {
