@@ -39,6 +39,20 @@ EMERGENCY_SEARCH_QUERY = {
     "radius": {"required": False, "type": "float", "min": 1, "max": 500, "default": 25},
 }
 
+TRANSFER_CREATE_SCHEMA = {
+    "toHospitalId": {"required": False, "type": "integer", "min": 1, "nullable": True},
+    "to_hospital_id": {"required": False, "type": "integer", "min": 1, "nullable": True},
+    "bloodGroup": {"required": True, "type": "string"},
+    "units": {"required": True, "type": "integer", "min": 1},
+    "unitsRequired": {"required": False, "type": "integer", "min": 1, "nullable": True},
+    "priority": {"required": False, "type": "string", "default": "High"},
+    "message": {"required": False, "type": "string", "nullable": True, "maxlength": 500},
+}
+
+TRANSFER_STATUS_SCHEMA = {
+    "status": {"required": True, "allowed": ["Approved", "Rejected", "approved", "rejected"]},
+}
+
 
 @dataclass
 class InventoryCreateData:
@@ -71,6 +85,20 @@ class EmergencySearchParams:
     lat: float
     lng: float
     radius_km: float = 25.0
+
+
+@dataclass
+class TransferCreateData:
+    to_hospital_id: int
+    blood_group: str
+    units: int
+    priority: str
+    message: Optional[str] = None
+
+
+@dataclass
+class TransferStatusData:
+    status: str
 
 
 def _validate(schema: dict, payload: dict) -> dict:
@@ -137,3 +165,51 @@ def validate_emergency_search_query(args: dict) -> EmergencySearchParams:
         lng=float(data["lng"]),
         radius_km=float(data.get("radius", 25)),
     )
+
+
+def _normalize_priority(value: str) -> str:
+    mapping = {
+        "critical": "critical",
+        "high": "high",
+        "medium": "normal",
+        "normal": "normal",
+        "low": "low",
+    }
+    key = value.strip().lower()
+    if key not in mapping:
+        raise ValueError("priority: must be Critical, High, Medium, or Low")
+    return mapping[key]
+
+
+def validate_transfer_create(payload: dict) -> TransferCreateData:
+    validator = Validator(TRANSFER_CREATE_SCHEMA, allow_unknown=True)
+    if not validator.validate(payload or {}):
+        messages = []
+        for field, errors in validator.errors.items():
+            for err in errors:
+                messages.append(f"{field}: {err}")
+        raise ValueError("; ".join(messages))
+    data = validator.normalized(payload or {})
+    to_hospital_id = data.get("toHospitalId") or data.get("to_hospital_id")
+    if not to_hospital_id:
+        raise ValueError("toHospitalId: is required")
+
+    units = data.get("units") or data.get("unitsRequired")
+    if not units:
+        raise ValueError("units: is required")
+
+    return TransferCreateData(
+        to_hospital_id=int(to_hospital_id),
+        blood_group=blood_group_from_api(data["bloodGroup"]),
+        units=int(units),
+        priority=_normalize_priority(data.get("priority", "High")),
+        message=data.get("message"),
+    )
+
+
+def validate_transfer_status(payload: dict) -> TransferStatusData:
+    data = _validate(TRANSFER_STATUS_SCHEMA, payload)
+    status = data["status"].capitalize()
+    if status not in ("Approved", "Rejected"):
+        raise ValueError("status: must be Approved or Rejected")
+    return TransferStatusData(status=status)

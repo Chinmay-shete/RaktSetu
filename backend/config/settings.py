@@ -25,6 +25,9 @@ class Settings:
     jwt_refresh_expires_days: int
     otp_expires_minutes: int
     otp_length: int
+    ai_service_url: str
+    ai_service_timeout: int
+    redis_url: str
 
 
 @lru_cache
@@ -46,4 +49,7 @@ def get_settings() -> Settings:
         jwt_refresh_expires_days=int(os.getenv("JWT_REFRESH_EXPIRES_DAYS", "7")),
         otp_expires_minutes=int(os.getenv("OTP_EXPIRES_MINUTES", "5")),
         otp_length=int(os.getenv("OTP_LENGTH", "6")),
+        ai_service_url=os.getenv("AI_SERVICE_URL", "http://127.0.0.1:5001"),
+        ai_service_timeout=int(os.getenv("AI_SERVICE_TIMEOUT", "10")),
+        redis_url=os.getenv("REDIS_URL", ""),
     )

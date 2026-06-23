@@ -3,7 +3,9 @@
 from flask import Flask
 
 from config.settings import get_settings
+from middleware.audit import register_audit_middleware
 from middleware.errors import register_error_handlers
+from routes.admin_routes import admin_bp
 from routes.auth_routes import auth_bp
 from routes.donor_routes import donor_bp, landing_bp
 from routes.hospital_routes import emergency_bp, hospital_bp
@@ -19,12 +21,14 @@ def create_app() -> Flask:
     app.config["JSON_SORT_KEYS"] = False
 
     register_error_handlers(app)
+    register_audit_middleware(app)
     app.register_blueprint(health_bp, url_prefix="/v1")
     app.register_blueprint(auth_bp, url_prefix="/v1/auth")
     app.register_blueprint(donor_bp, url_prefix="/v1/donor")
     app.register_blueprint(landing_bp, url_prefix="/v1/landing")
     app.register_blueprint(hospital_bp, url_prefix="/v1/hospital")
     app.register_blueprint(emergency_bp, url_prefix="/v1/emergency")
+    app.register_blueprint(admin_bp, url_prefix="/v1/admin")
 
     try:
         init_pool(settings)

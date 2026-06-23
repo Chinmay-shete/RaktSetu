@@ -2,21 +2,53 @@ from flask import Blueprint, jsonify, request
 
 from controllers import hospital_controller
 from middleware.auth import require_role
+from middleware.errors import ApiError
 from middleware.validation import validate_request
+
 from schemas.hospital_schemas import (
     EmergencyStatusData,
     InventoryCreateData,
     InventoryUpdateData,
+    TransferCreateData,
+    TransferStatusData,
     validate_emergency_search_query,
     validate_emergency_status,
     validate_inventory_create,
     validate_inventory_update,
+    validate_transfer_create,
+    validate_transfer_status,
 )
 
 hospital_bp = Blueprint("hospital", __name__)
 emergency_bp = Blueprint("emergency", __name__)
 
 _hospital_roles = require_role("staff", "admin")
+
+
+@hospital_bp.get("/transfers")
+@_hospital_roles
+def list_transfers_route():
+    body, status = hospital_controller.list_transfers()
+    return jsonify(body), status
+
+
+@hospital_bp.post("/transfers")
+@_hospital_roles
+@validate_request(validate_transfer_create)
+def create_transfer_route(data: TransferCreateData):
+    idempotency_key = request.headers.get("Idempotency-Key", "").strip()
+    if not idempotency_key:
+        raise ApiError("Idempotency-Key header is required", status_code=400, code="MISSING_IDEMPOTENCY_KEY")
+    body, status = hospital_controller.create_transfer(data, idempotency_key)
+    return jsonify(body), status
+
+
+@hospital_bp.patch("/transfers/<int:transfer_id>/status")
+@_hospital_roles
+@validate_request(validate_transfer_status)
+def update_transfer_status_route(data: TransferStatusData, transfer_id: int):
+    body, status = hospital_controller.update_transfer_status(transfer_id, data)
+    return jsonify(body), status
 
 
 @hospital_bp.get("/inventory")
