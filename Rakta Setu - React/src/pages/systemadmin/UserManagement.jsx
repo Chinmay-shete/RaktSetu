@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { Search, Shield, Ban, CheckCircle, UserCheck } from 'lucide-react';
 

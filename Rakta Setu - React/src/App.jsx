@@ -14,6 +14,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import NotFound from './components/NotFound';
 import Unauthorized from './components/Unauthorized';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // -- Staff/Hospital Imports --
 import { AuthProvider } from './context/AuthContext';
@@ -119,7 +120,11 @@ function App() {
                 <Route path="/staff/token/:token" element={<InviteToken />} />
                 <Route path="/staff/set-password/:token" element={<SetPassword />} />
 
-                <Route path="/staff" element={<HospitalLayout />}>
+                <Route path="/staff" element={
+                  <ProtectedRoute storageKey="raktsetu_hospital_authenticated" redirectPath="/staff/login">
+                    <HospitalLayout />
+                  </ProtectedRoute>
+                }>
                   <Route index element={<Navigate to="/staff/dashboard" replace />} />
                   <Route path="dashboard" element={<HospitalDashboard />} />
                   <Route path="inventory" element={<BloodInventory />} />
@@ -141,48 +146,48 @@ function App() {
                 <Route path="/admin/approved" element={<ApprovalEmail />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
 
-                <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-                <Route path="/admin/invite-staff" element={<AdminLayout><InviteStaffAdmin /></AdminLayout>} />
-                <Route path="/admin/forecast" element={<AdminLayout><AIDemandForecast /></AdminLayout>} />
-                <Route path="/admin/waste" element={<AdminLayout><WasteAnalytics /></AdminLayout>} />
-                <Route path="/admin/thresholds" element={<AdminLayout><AlertThresholds /></AdminLayout>} />
-                <Route path="/admin/camp-creation" element={<AdminLayout><CampCreation /></AdminLayout>} />
-                <Route path="/admin/profile" element={<AdminLayout><HospitalProfile /></AdminLayout>} />
+                <Route path="/admin/dashboard" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/invite-staff" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><InviteStaffAdmin /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/forecast" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><AIDemandForecast /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/waste" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><WasteAnalytics /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/thresholds" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><AlertThresholds /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/camp-creation" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><CampCreation /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/profile" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><HospitalProfile /></AdminLayout></ProtectedRoute>} />
 
                 {/* --------------------------------- */}
                 {/* 4. DISTRICT OFFICER ROUTES        */}
                 {/* --------------------------------- */}
                 <Route path="/district" element={<Navigate to="/district/login" replace />} />
                 <Route path="/district/login" element={<DistrictLogin />} />
-                <Route path="/district/dashboard" element={<DistrictLayout><DistrictDashboard /></DistrictLayout>} />
-                <Route path="/district/map" element={<DistrictLayout><DistrictMap /></DistrictLayout>} />
-                <Route path="/district/alerts" element={<DistrictLayout><DistrictAlerts /></DistrictLayout>} />
-                <Route path="/district/camps" element={<DistrictLayout><CampApprovals /></DistrictLayout>} />
-                <Route path="/district/reports" element={<DistrictLayout><DistrictReports /></DistrictLayout>} />
-                <Route path="/district/hospitals" element={<DistrictLayout><HospitalRegistry /></DistrictLayout>} />
+                <Route path="/district/dashboard" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictDashboard /></DistrictLayout></ProtectedRoute>} />
+                <Route path="/district/map" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictMap /></DistrictLayout></ProtectedRoute>} />
+                <Route path="/district/alerts" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictAlerts /></DistrictLayout></ProtectedRoute>} />
+                <Route path="/district/camps" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><CampApprovals /></DistrictLayout></ProtectedRoute>} />
+                <Route path="/district/reports" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictReports /></DistrictLayout></ProtectedRoute>} />
+                <Route path="/district/hospitals" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><HospitalRegistry /></DistrictLayout></ProtectedRoute>} />
 
                 {/* --------------------------------- */}
                 {/* 5. STATE ADMIN ROUTES             */}
                 {/* --------------------------------- */}
                 <Route path="/state" element={<Navigate to="/state/login" replace />} />
                 <Route path="/state/login" element={<StateAdminLogin />} />
-                <Route path="/state/dashboard" element={<StateAdminLayout><StateAdminDashboard /></StateAdminLayout>} />
-                <Route path="/state/transfers" element={<StateAdminLayout><CrossDistrictTransfers /></StateAdminLayout>} />
-                <Route path="/state/waste" element={<StateAdminLayout><WasteKPIs /></StateAdminLayout>} />
-                <Route path="/state/alerts" element={<StateAdminLayout><PolicyAlerts /></StateAdminLayout>} />
-                <Route path="/state/reports" element={<StateAdminLayout><DistrictOfficerReports /></StateAdminLayout>} />
-                <Route path="/state/funding" element={<StateAdminLayout><FundingRecommendations /></StateAdminLayout>} />
+                <Route path="/state/dashboard" element={<ProtectedRoute storageKey="raktsetu_state_admin" redirectPath="/state/login"><StateAdminLayout><StateAdminDashboard /></StateAdminLayout></ProtectedRoute>} />
+                <Route path="/state/transfers" element={<ProtectedRoute storageKey="raktsetu_state_admin" redirectPath="/state/login"><StateAdminLayout><CrossDistrictTransfers /></StateAdminLayout></ProtectedRoute>} />
+                <Route path="/state/waste" element={<ProtectedRoute storageKey="raktsetu_state_admin" redirectPath="/state/login"><StateAdminLayout><WasteKPIs /></StateAdminLayout></ProtectedRoute>} />
+                <Route path="/state/alerts" element={<ProtectedRoute storageKey="raktsetu_state_admin" redirectPath="/state/login"><StateAdminLayout><PolicyAlerts /></StateAdminLayout></ProtectedRoute>} />
+                <Route path="/state/reports" element={<ProtectedRoute storageKey="raktsetu_state_admin" redirectPath="/state/login"><StateAdminLayout><DistrictOfficerReports /></StateAdminLayout></ProtectedRoute>} />
+                <Route path="/state/funding" element={<ProtectedRoute storageKey="raktsetu_state_admin" redirectPath="/state/login"><StateAdminLayout><FundingRecommendations /></StateAdminLayout></ProtectedRoute>} />
 
                 {/* --------------------------------- */}
                 {/* 6. SYSTEM ADMIN ROUTES            */}
                 {/* --------------------------------- */}
                 <Route path="/systemadmin" element={<Navigate to="/systemadmin/login" replace />} />
                 <Route path="/systemadmin/login" element={<SystemAdminLogin />} />
-                <Route path="/systemadmin/dashboard" element={<SystemAdminLayout><SystemAdminDashboard /></SystemAdminLayout>} />
-                <Route path="/systemadmin/approvals" element={<SystemAdminLayout><PendingApprovals /></SystemAdminLayout>} />
-                <Route path="/systemadmin/users" element={<SystemAdminLayout><UserManagement /></SystemAdminLayout>} />
-                <Route path="/systemadmin/audit-logs" element={<SystemAdminLayout><AuditLogs /></SystemAdminLayout>} />
-                <Route path="/systemadmin/settings" element={<SystemAdminLayout><SystemSettings /></SystemAdminLayout>} />
+                <Route path="/systemadmin/dashboard" element={<ProtectedRoute storageKey="raktsetu_sysadmin_state" redirectPath="/systemadmin/login"><SystemAdminLayout><SystemAdminDashboard /></SystemAdminLayout></ProtectedRoute>} />
+                <Route path="/systemadmin/approvals" element={<ProtectedRoute storageKey="raktsetu_sysadmin_state" redirectPath="/systemadmin/login"><SystemAdminLayout><PendingApprovals /></SystemAdminLayout></ProtectedRoute>} />
+                <Route path="/systemadmin/users" element={<ProtectedRoute storageKey="raktsetu_sysadmin_state" redirectPath="/systemadmin/login"><SystemAdminLayout><UserManagement /></SystemAdminLayout></ProtectedRoute>} />
+                <Route path="/systemadmin/audit-logs" element={<ProtectedRoute storageKey="raktsetu_sysadmin_state" redirectPath="/systemadmin/login"><SystemAdminLayout><AuditLogs /></SystemAdminLayout></ProtectedRoute>} />
+                <Route path="/systemadmin/settings" element={<ProtectedRoute storageKey="raktsetu_sysadmin_state" redirectPath="/systemadmin/login"><SystemAdminLayout><SystemSettings /></SystemAdminLayout></ProtectedRoute>} />
 
                 {/* --------------------------------- */}
                 {/* 7. FALLBACK ROUTES                */}

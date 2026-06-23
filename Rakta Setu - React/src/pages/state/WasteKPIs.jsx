@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStateAdmin } from '../../context/StateAdminContext';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine,

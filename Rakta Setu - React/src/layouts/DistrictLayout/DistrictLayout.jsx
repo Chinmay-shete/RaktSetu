@@ -22,9 +22,7 @@ const DistrictLayout = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  if (appState.status !== 'logged_in') {
-    return <Navigate to="/district/login" replace />;
-  }
+
 
   const navigation = [
     { name: 'Dashboard', path: '/district/dashboard', icon: LayoutDashboard },

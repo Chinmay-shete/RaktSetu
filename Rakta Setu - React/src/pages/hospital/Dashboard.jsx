@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -16,7 +16,6 @@ import {
   Clock,
   ChevronRight,
   UserPlus,
-  Flame,
   CheckCircle,
   XCircle,
   Timer
@@ -28,6 +27,12 @@ export const Dashboard = () => {
 
   const toast = useToast();
   const queryClient = useQueryClient();
+
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: inventory = [], isLoading: invLoading, isError: invError, refetch: refetchInv } = useQuery({
     queryKey: ['inventory'],
@@ -204,7 +209,7 @@ export const Dashboard = () => {
             <div className="flex flex-col gap-4">
               {emergencies.filter(e => e.status === 'Pending').length > 0 ? (
                 emergencies.filter(e => e.status === 'Pending').map(req => {
-                  const timeLeftMs = Math.max(0, req.targetTimestamp - Date.now());
+                  const timeLeftMs = Math.max(0, req.targetTimestamp - now);
                   const mins = Math.floor(timeLeftMs / 60000);
                   const secs = Math.floor((timeLeftMs % 60000) / 1000);
                   const timeString = `${mins}:${secs.toString().padStart(2, '0')}`;

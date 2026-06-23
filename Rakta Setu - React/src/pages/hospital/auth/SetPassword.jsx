@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../hooks/useToast';
 import { 
   Building2, 
-  Lock, 
   ShieldCheck, 
   Loader2, 
   CheckCircle2, 
@@ -34,7 +33,7 @@ export const SetPassword = () => {
           setHospitalInfo(data);
           setIsValidating(false);
         }
-      } catch (error) {
+      } catch {
         if (isMounted) {
           toast.error("Invalid token session. Please verify link again.");
           navigate('/staff/login', { replace: true });
@@ -46,8 +45,8 @@ export const SetPassword = () => {
     return () => { isMounted = false; };
   }, [token, validateInviteToken, navigate, toast]);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  const password = watch("password");
+  const { register, handleSubmit, control, formState: { errors } } = useForm();
+  const password = useWatch({ control, name: "password" });
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -57,7 +56,7 @@ export const SetPassword = () => {
       setTimeout(() => {
         navigate('/staff/login', { replace: true });
       }, 3000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to setup credentials. Please try again.");
       setIsSubmitting(false);
     }

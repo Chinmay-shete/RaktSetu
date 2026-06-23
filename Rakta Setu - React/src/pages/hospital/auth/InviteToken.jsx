@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
@@ -30,7 +30,7 @@ export const InviteToken = () => {
           setIsValidating(false);
           toast.success("Secure invitation link verified successfully.");
         }
-      } catch (error) {
+      } catch {
         if (isMounted) {
           toast.error("Invalid or expired invitation link.");
           navigate('/staff/login', { replace: true });

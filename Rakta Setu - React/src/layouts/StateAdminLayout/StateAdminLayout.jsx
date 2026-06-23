@@ -21,10 +21,6 @@ const StateAdminLayout = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  if (appState.status !== 'logged_in') {
-    return <Navigate to="/state/login" replace />;
-  }
-
   const navigation = [
     { name: 'State Overview', path: '/state/dashboard', icon: LayoutDashboard },
     { name: 'Cross-District Transfers', path: '/state/transfers', icon: ArrowLeftRight },

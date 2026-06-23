@@ -18,15 +18,20 @@ export const HospitalLayout = () => {
     enabled: !!isAuthenticated
   });
 
-  if (!isAuthenticated) {
-    return <Navigate to="/staff/login" replace />;
-  }
+  const { data: emergencies = [] } = useQuery({
+    queryKey: ['emergencies'],
+    queryFn: mockApi.getEmergencyRequests,
+    refetchInterval: 10000,
+    enabled: !!isAuthenticated
+  });
 
   const expiryCount = inventory.filter(item => item.status === 'Expiring Soon' || item.status === 'Expired').length;
 
+  const emergencyCount = emergencies.filter(req => req.status === 'Pending').length;
+
   const badges = {
     expiry: expiryCount,
-    emergency: 0
+    emergency: emergencyCount
   };
 
   return (

@@ -10,7 +10,6 @@ import { EmptyState } from '../../../components/ui/EmptyState';
 import { Modal } from '../../../components/ui/Modal';
 import {
   Search,
-  Filter,
   Download,
   Eye,
   Trash2,

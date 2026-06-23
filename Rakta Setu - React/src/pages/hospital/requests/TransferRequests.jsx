@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { mockApi } from '../../../services/mockApi';
@@ -63,7 +63,8 @@ export const TransferRequests = () => {
       const req = {
         ...newReq,
         id: "tr-" + Date.now(),
-        distance: parseFloat((Math.random() * 8 + 2).toFixed(1)),
+        // TODO: Replace with PostGIS calculations using real hospital GPS coordinates
+        distance: 5.0,
         status: 'Pending',
         date: new Date().toISOString().split('T')[0],
         type: 'Outgoing'

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { mockApi } from '../../../services/mockApi';
@@ -23,21 +23,32 @@ export const UpdateStock = () => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
     reset
   } = useForm({
     defaultValues: {
       bloodGroup: 'O-',
       units: 10,
-      collectionDate: new Date().toISOString().split('T')[0],
-      expiryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      collectionDate: '',
+      expiryDate: '',
       source: 'Voluntary Donation',
       remarks: ''
     }
   });
 
-  const watchCollectionDate = watch('collectionDate');
+  useEffect(() => {
+    reset({
+      bloodGroup: 'O-',
+      units: 10,
+      collectionDate: new Date().toISOString().split('T')[0],
+      expiryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      source: 'Voluntary Donation',
+      remarks: ''
+    });
+  }, [reset]);
+
+  const watchCollectionDate = useWatch({ control, name: 'collectionDate' });
 
   const addStockMutation = useMutation({
     mutationFn: mockApi.addInventory,

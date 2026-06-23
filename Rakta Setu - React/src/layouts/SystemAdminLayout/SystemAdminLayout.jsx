@@ -21,9 +21,7 @@ const SystemAdminLayout = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  if (adminState.status !== 'logged_in') {
-    return <Navigate to="/systemadmin/login" replace />;
-  }
+
 
   const navigation = [
     { name: 'Dashboard', path: '/systemadmin/dashboard', icon: LayoutDashboard },
