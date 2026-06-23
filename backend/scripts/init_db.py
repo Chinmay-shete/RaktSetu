@@ -71,6 +71,7 @@ def run_migrations(files: list[str] | None = None) -> None:
         "003_auth.sql",
         "004_donor.sql",
         "005_hospital.sql",
+        "006_phase5.sql",
     ]
 
     conn = mysql.connector.connect(

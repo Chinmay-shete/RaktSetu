@@ -9,6 +9,7 @@ from flask import g
 
 from middleware.errors import ApiError
 from schemas.hospital_schemas import InventoryCreateData, InventoryUpdateData
+from services.audit_service import queue_audit
 from services.db import get_connection
 from services.donor_formatters import blood_group_to_api
 from services.hospital_helpers import compute_inventory_status
@@ -209,7 +210,17 @@ def update_inventory(batch_id: int, data: InventoryUpdateData) -> dict[str, Any]
         row = cursor.fetchone()
         cursor.close()
 
-    return _serialize_batch(row)
+    old_snapshot = _serialize_batch(existing)
+    new_snapshot = _serialize_batch(row)
+    queue_audit(
+        table_name="blood_batches",
+        record_id=batch_id,
+        action="update",
+        old_value=old_snapshot,
+        new_value=new_snapshot,
+    )
+
+    return new_snapshot
 
 
 def delete_inventory(batch_id: int) -> dict[str, str]:
@@ -218,12 +229,14 @@ def delete_inventory(batch_id: int) -> dict[str, str]:
     with get_connection() as conn:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT blood_group FROM blood_batches WHERE id = %s AND hospital_id = %s",
+            "SELECT * FROM blood_batches WHERE id = %s AND hospital_id = %s",
             (batch_id, hospital_id),
         )
-        row = cursor.fetchone()
-        if not row:
+        existing = cursor.fetchone()
+        if not existing:
             raise ApiError("Inventory batch not found", status_code=404, code="NOT_FOUND")
+
+        old_snapshot = _serialize_batch(existing)
 
         cursor.execute(
             "DELETE FROM blood_batches WHERE id = %s AND hospital_id = %s",
@@ -232,10 +245,18 @@ def delete_inventory(batch_id: int) -> dict[str, str]:
         conn.commit()
         cursor.close()
 
+    queue_audit(
+        table_name="blood_batches",
+        record_id=batch_id,
+        action="delete",
+        old_value=old_snapshot,
+        severity="warning",
+    )
+
     _create_hospital_notification(
         hospital_id,
         "Stock Batch Removed",
-        f"Batch containing {blood_group_to_api(row['blood_group'])} was manually removed.",
+        f"Batch containing {blood_group_to_api(existing['blood_group'])} was manually removed.",
         "warning",
     )
 
