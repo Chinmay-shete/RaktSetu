@@ -266,6 +266,10 @@ async function login(req, res, next) {
       throw new ApiError('Email or Phone is required to log in', 400, 'CREDENTIALS_REQUIRED');
     }
 
+    if (user.status === 'Suspended') {
+      throw new ApiError('Your account has been suspended. Please contact support.', 403, 'SUSPENDED_USER');
+    }
+
     // Check if hospital is pending
     if (user.role === 'admin' && user.hospital_id) {
       const [hospRows] = await pool.query('SELECT verification_status FROM hospitals WHERE id = ?', [user.hospital_id]);

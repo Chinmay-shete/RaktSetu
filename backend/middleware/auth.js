@@ -43,8 +43,13 @@ async function requireAuth(req, res, next) {
       throw new ApiError('User not found', 401, 'UNAUTHORIZED');
     }
 
+    const user = rows[0];
+    if (user.status === 'Suspended') {
+      throw new ApiError('User account has been suspended. Please contact support.', 403, 'SUSPENDED_USER');
+    }
+
     // Attach user information to request object
-    req.user = rows[0];
+    req.user = user;
     req.token = payload;
     next();
   } catch (error) {

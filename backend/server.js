@@ -9,11 +9,53 @@ const { errorHandler } = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configure CORS (default to allow React frontend local ports)
+// Configure CORS (allow React frontend local ports and support env overrides)
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8080'];
+
 app.use(cors({
-  origin: true, // Allow all origins for development, can restrict to specific origins in prod
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
+  },
   credentials: true
 }));
+
+// Custom Rate Limiting Middleware (100 req/min)
+const rateLimitWindowMs = 60 * 1000;
+const rateLimitMaxRequests = 100;
+const ipRequestMap = new Map();
+
+function rateLimiter(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const now = Date.now();
+
+  if (!ipRequestMap.has(ip)) {
+    ipRequestMap.set(ip, []);
+  }
+
+  const timestamps = ipRequestMap.get(ip);
+  const activeTimestamps = timestamps.filter(timestamp => now - timestamp < rateLimitWindowMs);
+
+  if (activeTimestamps.length >= rateLimitMaxRequests) {
+    return res.status(429).json({
+      error: true,
+      message: 'Too many requests, please try again later.',
+      code: 'TOO_MANY_REQUESTS'
+    });
+  }
+
+  activeTimestamps.push(now);
+  ipRequestMap.set(ip, activeTimestamps);
+  next();
+}
+
+app.use(rateLimiter);
 
 // Request parsers
 app.use(express.json());
@@ -67,6 +109,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app; // For testing purposes

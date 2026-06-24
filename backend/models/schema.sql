@@ -51,7 +51,8 @@ CREATE TABLE hospitals (
   state VARCHAR(100) NOT NULL,
   pincode VARCHAR(6) NOT NULL,
   contact VARCHAR(100) NOT NULL,
-  verification_status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending'
+  verification_status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. Users Table
@@ -64,8 +65,12 @@ CREATE TABLE users (
   hospital_id INT DEFAULT NULL,
   district_id INT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  last_login TIMESTAMP NULL DEFAULT NULL
+  last_login TIMESTAMP NULL DEFAULT NULL,
+  status ENUM('Active', 'Suspended', 'Pending') NOT NULL DEFAULT 'Active',
+  full_name VARCHAR(255) DEFAULT NULL,
+  designation VARCHAR(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- 4. Blood Batches Table
 CREATE TABLE blood_batches (

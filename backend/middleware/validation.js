@@ -222,6 +222,21 @@ const updateThresholdsSchema = z.object({
   })
 });
 
+const createCampSchema = z.object({
+  name: z.string().min(2, 'Camp name must be at least 2 characters'),
+  campDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'campDate must be in YYYY-MM-DD format'),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
+  lat: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= -90 && val <= 90),
+  lng: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= -180 && val <= 180),
+  organizer: z.string().min(2, 'Organizer must be at least 2 characters'),
+  capacity: z.union([z.number(), z.string().transform(Number)]).refine(val => val > 0).optional(),
+  expectedDonors: z.union([z.number(), z.string().transform(Number)]).refine(val => val > 0).optional()
+});
+
+const updateCampStatusSchema = z.object({
+  status: z.enum(['upcoming', 'active', 'completed', 'cancelled'])
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -242,7 +257,10 @@ module.exports = {
   updateEmergencyStatusSchema,
   createTransferSchema,
   updateTransferStatusSchema,
-  updateThresholdsSchema
+  updateThresholdsSchema,
+  createCampSchema,
+  updateCampStatusSchema
 };
+
 
 

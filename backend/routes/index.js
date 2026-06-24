@@ -4,6 +4,8 @@ const authRoutes = require('./authRoutes');
 const donorRoutes = require('./donorRoutes');
 const landingRoutes = require('./landingRoutes');
 const hospitalRoutes = require('./hospitalRoutes');
+const adminRoutes = require('./adminRoutes');
+const systemAdminRoutes = require('./systemAdminRoutes');
 
 const router = express.Router();
 
@@ -22,5 +24,13 @@ router.use('/landing', landingRoutes);
 // Hospital Staff & Emergency Routing Routes
 router.use('/', hospitalRoutes);
 
+// District and State Admin Routes
+router.use('/', adminRoutes);
+
+// System Admin Routes
+router.use('/', systemAdminRoutes);
+
 module.exports = router;
+
+
 

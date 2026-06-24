@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { ApiError } = require('../middleware/errorHandler');
+const crypto = require('crypto');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_raktsetu_key_2026';
 
@@ -64,7 +65,8 @@ function createRefreshToken(userId) {
     sub: String(userId),
     type: TOKEN_TYPE_REFRESH,
     exp: Math.floor(expiresAt.getTime() / 1000),
-    iat: Math.floor(Date.now() / 1000)
+    iat: Math.floor(Date.now() / 1000),
+    jti: crypto.randomBytes(8).toString('hex')
   };
   
   return {
