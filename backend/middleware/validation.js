@@ -193,6 +193,35 @@ const updateEmergencyStatusSchema = z.object({
   status: z.enum(['pending', 'fulfilled', 'cancelled'])
 });
 
+const createTransferSchema = z.object({
+  fromHospitalId: z.union([z.number(), z.string().transform(Number)]),
+  bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+  units: z.union([z.number(), z.string().transform(Number)]).refine(val => val > 0, {
+    message: 'Units must be a positive number'
+  }),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  message: z.string().optional()
+});
+
+const updateTransferStatusSchema = z.object({
+  status: z.enum(['pending', 'accepted', 'rejected', 'completed', 'cancelled'])
+});
+
+const updateThresholdsSchema = z.object({
+  minStock: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 0, {
+    message: 'minStock must be non-negative'
+  }),
+  maxStock: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 0, {
+    message: 'maxStock must be non-negative'
+  }),
+  criticalUnits: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 0, {
+    message: 'criticalUnits must be non-negative'
+  }),
+  expiryDays: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 0, {
+    message: 'expiryDays must be non-negative'
+  })
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -210,6 +239,10 @@ module.exports = {
   addBatchSchema,
   updateBatchSchema,
   surgicalScheduleSchema,
-  updateEmergencyStatusSchema
+  updateEmergencyStatusSchema,
+  createTransferSchema,
+  updateTransferStatusSchema,
+  updateThresholdsSchema
 };
+
 

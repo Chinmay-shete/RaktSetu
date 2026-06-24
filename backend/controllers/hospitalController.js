@@ -1,6 +1,13 @@
 const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
 
+// Memory caches for idempotency and forecasts
+const idempotencyKeys = new Map();
+const forecastCache = {
+  forecast: null,
+  forecastExpiry: null
+};
+
 /**
  * Helper to calculate days remaining from expiry date to today.
  */
@@ -640,6 +647,387 @@ async function markAllNotificationsRead(req, res, next) {
   }
 }
 
+/**
+ * GET /hospital/transfers
+ */
+async function listTransfers(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const [rows] = await pool.query(
+      `SELECT tr.id, tr.from_hospital, tr.to_hospital, tr.blood_group, tr.units, tr.priority, tr.status, tr.message, tr.created_at,
+              h_from.name AS from_hospital_name,
+              h_to.name AS to_hospital_name,
+              ST_Distance_Sphere(h_from.location, h_to.location) AS distance_m
+       FROM transfer_requests tr
+       INNER JOIN hospitals h_from ON h_from.id = tr.from_hospital
+       INNER JOIN hospitals h_to ON h_to.id = tr.to_hospital
+       WHERE tr.from_hospital = ? OR tr.to_hospital = ?
+       ORDER BY tr.created_at DESC`,
+      [hospitalId, hospitalId]
+    );
+
+    const serialized = rows.map(row => {
+      const isIncoming = row.to_hospital === hospitalId;
+      const hospitalName = isIncoming ? row.from_hospital_name : row.to_hospital_name;
+      const type = isIncoming ? 'incoming' : 'outgoing';
+
+      return {
+        id: row.id,
+        hospitalName,
+        bloodGroup: row.blood_group,
+        unitsRequired: row.units,
+        distance: parseFloat((row.distance_m / 1000).toFixed(2)),
+        priority: row.priority,
+        status: row.status,
+        message: row.message,
+        date: row.created_at ? new Date(row.created_at).toISOString().split('T')[0] : null,
+        type
+      };
+    });
+
+    return res.status(200).json(serialized);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /hospital/transfers
+ */
+async function createTransfer(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const idempotencyKey = req.headers['idempotency-key'];
+    if (!idempotencyKey) {
+      throw new ApiError('Idempotency-Key header is required', 400, 'IDEMPOTENCY_KEY_REQUIRED');
+    }
+
+    // Check cached idempotency response
+    if (idempotencyKeys.has(idempotencyKey)) {
+      const cached = idempotencyKeys.get(idempotencyKey);
+      return res.status(cached.status).json(cached.body);
+    }
+
+    const { fromHospitalId, bloodGroup, units, priority, message } = req.body;
+
+    if (String(fromHospitalId) === String(hospitalId)) {
+      throw new ApiError('Cannot request transfer from your own hospital', 400, 'INVALID_TRANSFER');
+    }
+
+    // Verify supplying hospital exists
+    const [supplierRows] = await pool.query('SELECT id FROM hospitals WHERE id = ?', [fromHospitalId]);
+    if (supplierRows.length === 0) {
+      throw new ApiError('Supplier hospital not found', 404, 'HOSPITAL_NOT_FOUND');
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO transfer_requests (from_hospital, to_hospital, blood_group, units, priority, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+      [fromHospitalId, hospitalId, bloodGroup, units, priority, message || null]
+    );
+
+    // Fetch created record
+    const [newRows] = await pool.query(
+      `SELECT tr.*, 
+              h_from.name AS from_hospital_name,
+              h_to.name AS to_hospital_name,
+              ST_Distance_Sphere(h_from.location, h_to.location) AS distance_m
+       FROM transfer_requests tr
+       INNER JOIN hospitals h_from ON h_from.id = tr.from_hospital
+       INNER JOIN hospitals h_to ON h_to.id = tr.to_hospital
+       WHERE tr.id = ?`,
+      [result.insertId]
+    );
+
+    const created = newRows[0];
+    const serialized = {
+      id: created.id,
+      hospitalName: created.from_hospital_name,
+      bloodGroup: created.blood_group,
+      unitsRequired: created.units,
+      distance: parseFloat((created.distance_m / 1000).toFixed(2)),
+      priority: created.priority,
+      status: created.status,
+      message: created.message,
+      date: created.created_at ? new Date(created.created_at).toISOString().split('T')[0] : null,
+      type: 'incoming'
+    };
+
+    // Cache the response
+    idempotencyKeys.set(idempotencyKey, {
+      status: 201,
+      body: serialized,
+      timestamp: Date.now()
+    });
+
+    return res.status(201).json(serialized);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /hospital/transfers/:id/status
+ */
+async function updateTransferStatus(req, res, next) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const transferId = req.params.id;
+    const { status } = req.body;
+
+    const [transferRows] = await connection.query(
+      'SELECT * FROM transfer_requests WHERE id = ? FOR UPDATE',
+      [transferId]
+    );
+
+    if (transferRows.length === 0) {
+      throw new ApiError('Transfer request not found', 404, 'TRANSFER_NOT_FOUND');
+    }
+
+    const transfer = transferRows[0];
+
+    // Access check: only supplying hospital can approve/reject
+    if (String(transfer.from_hospital) !== String(hospitalId)) {
+      throw new ApiError('Only the supplying hospital can update status', 403, 'FORBIDDEN');
+    }
+
+    if (transfer.status !== 'pending') {
+      throw new ApiError(`Transfer request is already ${transfer.status}`, 400, 'INVALID_STATUS_TRANSITION');
+    }
+
+    if (status === 'accepted') {
+      // Find matching inventory batch of supplying hospital (FEFO: First Expired First Out)
+      const [batches] = await connection.query(
+        `SELECT * FROM blood_batches 
+         WHERE hospital_id = ? AND blood_group = ? AND (units - reserved_units) >= ? AND expiry_date >= CURDATE()
+         ORDER BY expiry_date ASC LIMIT 1
+         FOR UPDATE`,
+        [hospitalId, transfer.blood_group, transfer.units]
+      );
+
+      if (batches.length === 0) {
+        throw new ApiError(
+          `Insufficient unreserved units of blood group ${transfer.blood_group} to approve transfer of ${transfer.units} units`,
+          400,
+          'INSUFFICIENT_INVENTORY'
+        );
+      }
+
+      const batch = batches[0];
+
+      // Atomically increment reserved_units
+      await connection.query(
+        'UPDATE blood_batches SET reserved_units = reserved_units + ? WHERE id = ?',
+        [transfer.units, batch.id]
+      );
+    }
+
+    await connection.query(
+      'UPDATE transfer_requests SET status = ? WHERE id = ?',
+      [status, transferId]
+    );
+
+    await connection.commit();
+
+    return res.status(200).json({
+      message: `Transfer request status updated to ${status} successfully`,
+      id: parseInt(transferId, 10),
+      status
+    });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * GET /admin/forecast
+ */
+async function getForecastGateway(req, res, next) {
+  try {
+    const now = Date.now();
+    if (forecastCache.forecast && forecastCache.forecastExpiry && now < forecastCache.forecastExpiry) {
+      return res.status(200).json(forecastCache.forecast);
+    }
+
+    const aiPort = process.env.AI_PORT || 5001;
+    const response = await fetch(`http://localhost:${aiPort}/api/v1/forecast`);
+    if (!response.ok) {
+      throw new ApiError('Failed to fetch forecast from AI service', 502, 'AI_SERVICE_ERROR');
+    }
+
+    const data = await response.json();
+
+    forecastCache.forecast = data;
+    forecastCache.forecastExpiry = now + (24 * 60 * 60 * 1000); // Cache for 24h
+
+    return res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /admin/waste-analytics
+ */
+async function getWasteAnalyticsGateway(req, res, next) {
+  try {
+    const aiPort = process.env.AI_PORT || 5001;
+    const response = await fetch(`http://localhost:${aiPort}/api/v1/waste-analytics`);
+    if (!response.ok) {
+      throw new ApiError('Failed to fetch waste analytics from AI service', 502, 'AI_SERVICE_ERROR');
+    }
+
+    const data = await response.json();
+    return res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /admin/thresholds
+ */
+async function getThresholds(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const [rows] = await pool.query(
+      'SELECT * FROM alert_thresholds WHERE hospital_id = ?',
+      [hospitalId]
+    );
+
+    if (rows.length === 0) {
+      // Create defaults
+      await pool.query(
+        'INSERT INTO alert_thresholds (hospital_id, min_stock, max_stock, critical_units, expiry_days) VALUES (?, 10, 100, 5, 7)',
+        [hospitalId]
+      );
+      return res.status(200).json({
+        hospitalId,
+        minStock: 10,
+        maxStock: 100,
+        criticalUnits: 5,
+        expiryDays: 7
+      });
+    }
+
+    const thresh = rows[0];
+    return res.status(200).json({
+      hospitalId: thresh.hospital_id,
+      minStock: thresh.min_stock,
+      maxStock: thresh.max_stock,
+      criticalUnits: thresh.critical_units,
+      expiryDays: thresh.expiry_days
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PUT /admin/thresholds
+ */
+async function updateThresholds(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const { minStock, maxStock, criticalUnits, expiryDays } = req.body;
+
+    await pool.query(
+      `INSERT INTO alert_thresholds (hospital_id, min_stock, max_stock, critical_units, expiry_days)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         min_stock = VALUES(min_stock),
+         max_stock = VALUES(max_stock),
+         critical_units = VALUES(critical_units),
+         expiry_days = VALUES(expiry_days)`,
+      [hospitalId, minStock, maxStock, criticalUnits, expiryDays]
+    );
+
+    // Check stock level
+    const [stockRows] = await pool.query(
+      'SELECT COALESCE(SUM(units - reserved_units), 0) AS total_stock FROM blood_batches WHERE hospital_id = ?',
+      [hospitalId]
+    );
+
+    const totalStock = parseFloat(stockRows[0].total_stock);
+    let alertTriggered = false;
+    let notifiedCount = 0;
+
+    if (totalStock < minStock) {
+      alertTriggered = true;
+
+      const [hospRows] = await pool.query('SELECT name, lat, lng, location FROM hospitals WHERE id = ?', [hospitalId]);
+      if (hospRows.length > 0) {
+        const hospital = hospRows[0];
+        const pointStr = `POINT(${hospital.lng} ${hospital.lat})`;
+
+        // Eligible donors within 10km (90-day cooldown)
+        const [eligibleDonors] = await pool.query(
+          `SELECT user_id, full_name 
+           FROM donors
+           WHERE available_for_donation = 1
+             AND (last_donated_date IS NULL OR DATEDIFF(CURDATE(), last_donated_date) >= 90)
+             AND ST_Distance_Sphere(ST_GeomFromText(?, 4326), location) <= 10000`,
+          [pointStr]
+        );
+
+        for (const donor of eligibleDonors) {
+          await pool.query(
+            `INSERT INTO notifications (user_id, hospital_id, title, message, type, is_read)
+             VALUES (?, ?, 'Urgent Blood Donation Request', ?, 'alert', 0)`,
+            [
+              donor.user_id,
+              hospitalId,
+              `Dear ${donor.full_name}, ${hospital.name} is running critically low on blood stock. Please consider visiting us to donate!`
+            ]
+          );
+          notifiedCount++;
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Thresholds updated successfully',
+      thresholds: {
+        hospitalId,
+        minStock,
+        maxStock,
+        criticalUnits,
+        expiryDays
+      },
+      alertTriggered,
+      notifiedCount
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getInventory,
   addInventory,
@@ -654,5 +1042,13 @@ module.exports = {
   searchEmergencyBlood,
   listNotifications,
   markNotificationRead,
-  markAllNotificationsRead
+  markAllNotificationsRead,
+  listTransfers,
+  createTransfer,
+  updateTransferStatus,
+  getForecastGateway,
+  getWasteAnalyticsGateway,
+  getThresholds,
+  updateThresholds
 };
+
