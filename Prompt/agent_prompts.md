@@ -9,7 +9,10 @@ Here are the step-by-step prompts you can copy and paste to your AI agent one by
 ```text
 We are building the backend for RaktSetu — an AI layer on top of India's eRaktKosh system to reduce blood wastage. The tech stack is Node.js + Express, REST architecture, and MySQL with geospatial indexing.
 
-Phase 1: Project Setup & Database
+CRITICAL REQUIREMENT:
+All backend initialization, directories, and code files MUST be created inside the `backend/` folder at the root of the workspace. Do not initialize the project or create any files in the root directory.
+
+Phase 1: Project Setup & Database (Ensure all operations and files are inside the `backend/` directory)
 1. Initialize a modular folder structure (routes/, controllers/, middleware/, models/, services/, config/).
 2. Set up environment-based config (.env) for DB credentials.
 3. Implement the MySQL connection pool.
@@ -39,7 +42,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 2: Authentication & RBAC (Strict Guards, No Google OAuth)
 **Copy the text below:**
 ```text
-Phase 2: Authentication & RBAC
+Phase 2: Authentication & RBAC (Ensure all files and modifications are inside the `backend/` directory)
 
 Implement standard JWT email/password authentication. We are explicitly skipping Google OAuth.
 
@@ -69,7 +72,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 3: Donor Portal & Public Endpoints
 **Copy the text below:**
 ```text
-Phase 3: Donor Portal APIs
+Phase 3: Donor Portal APIs (Ensure all files and modifications are inside the `backend/` directory)
 
 The frontend has a dedicated donor portal. Implement the following endpoints specifically for the `donor` role (using the RBAC middleware) and public access:
 
@@ -96,7 +99,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 4: Hospital Staff Inventory & Emergency API
 **Copy the text below:**
 ```text
-Phase 4: Hospital Inventory & Live Emergency Endpoints
+Phase 4: Hospital Inventory & Live Emergency Endpoints (Ensure all files and modifications are inside the `backend/` directory)
 
 Implement the endpoints for the Hospital Staff portal. The frontend strictly expects specific data shapes.
 
@@ -125,7 +128,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 5: Transfers, Audit Logging, & AI Gateway
 **Copy the text below:**
 ```text
-Phase 5: Hospital Transfers & AI Forecast Gateway
+Phase 5: Hospital Transfers & AI Forecast Gateway (Ensure all files and modifications are inside the `backend/` directory)
 
 Implement hospital-to-hospital transfers and the gateway for the Python AI microservice.
 
@@ -150,7 +153,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 6: District & State Admin Dashboards
 **Copy the text below:**
 ```text
-Phase 6: District & State Admin APIs
+Phase 6: District & State Admin APIs (Ensure all files and modifications are inside the `backend/` directory)
 
 Implement the higher-level management APIs. Do not expose individual donor or staff details here, only aggregated metrics.
 
@@ -179,7 +182,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 7: System Admin, Rate Limiting & Polish
 **Copy the text below:**
 ```text
-Phase 7: System Admin & Final Polish
+Phase 7: System Admin & Final Polish (Ensure all files and modifications are inside the `backend/` directory)
 
 Wrap up the backend by adding system admin controls and security hardening.
 

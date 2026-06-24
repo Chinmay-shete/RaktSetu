@@ -119,8 +119,11 @@ PROJECT_UNDERSTANDING.md from Phase 1 to ensure field names and data types
 match exactly what the frontend expects. Flag any mismatch instead of 
 silently guessing.
 
+CRITICAL REQUIREMENT:
+All backend initialization, directories, and code files MUST be created inside the `backend/` folder at the root of the workspace. Do not initialize the project or create any files in the root directory.
+
 Build this in a clean, modular folder structure (routes/, controllers/, 
-middleware/, models/, services/, config/). Start with Auth + Inventory + 
+middleware/, models/, services/, config/) inside the `backend/` directory. Start with Auth + Inventory + 
 Emergency Search first since those unblock frontend testing fastest, then 
 proceed module by module. After each module, tell me what you built and 
 wait for my confirmation before moving to the next.
