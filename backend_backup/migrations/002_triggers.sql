@@ -1,0 +1,5 @@
+-- RaktSetu Database Triggers
+-- Note: Trigger blocks must be separated by '-- @block' lines to be correctly parsed by the init_db.py script.
+-- Example of triggers block separator:
+-- -- @block
+-- CREATE TRIGGER example_trigger ...

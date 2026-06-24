@@ -1,22 +1,31 @@
-# RaktSetu Backend Agent Prompts (Enriched Context)
+# RaktSetu Backend Agent Prompts (Hybrid JS + Python)
 
-Here are the step-by-step prompts you can copy and paste to your AI agent one by one. These prompts are deeply enriched with the exact frontend data shapes, routing paths, and database schema requirements extracted from your project documentation (PRD and UI understanding). Google OAuth 2.0 has been excluded as requested.
+Here are the step-by-step prompts you can copy and paste to your AI agent one by one. These prompts are deeply enriched with the exact frontend data shapes, routing paths, and database schema requirements, now structured for a **Hybrid Node.js + Python Flask** backend architecture.
 
 ***
 
-### Prompt 1: Project Setup, Architecture & Extended Database Schema
+### Prompt 1: Project Setup, Hybrid Architecture & Database Schema
 **Copy the text below:**
 ```text
-We are building the backend for RaktSetu — an AI layer on top of India's eRaktKosh system to reduce blood wastage. The tech stack is Node.js + Express, REST architecture, and MySQL with geospatial indexing.
+We are building the backend for RaktSetu — an AI layer on top of India's eRaktKosh system to reduce blood wastage. The backend follows a Hybrid architecture:
+1. Main API Server: Node.js + Express, REST architecture, handling I/O operations, user authentication, inventory CRUD, transfer logs, and notifications. (Port 5000)
+2. AI Microservice: Python + Flask, handling time-series forecasting (Facebook Prophet) and complex waste analytics. (Port 5001)
+3. Database: MySQL with geospatial indexing.
 
 CRITICAL REQUIREMENT:
-All backend initialization, directories, and code files MUST be created inside the `backend/` folder at the root of the workspace. Do not initialize the project or create any files in the root directory.
+All backend initialization, directories, and code files MUST be created inside the `backend/` folder at the root of the workspace.
+- The Node.js application will live directly inside `backend/` (routes/, controllers/, middleware/, models/, services/, config/).
+- The Python AI microservice will live inside `backend/ai/` (routes/, services/, config/, app.py, requirements.txt).
 
 Phase 1: Project Setup & Database (Ensure all operations and files are inside the `backend/` directory)
-1. Initialize a modular folder structure (routes/, controllers/, middleware/, models/, services/, config/).
-2. Set up environment-based config (.env) for DB credentials.
-3. Implement the MySQL connection pool.
-4. Create the complete database schema. Ensure proper foreign keys, indexes, and constraints.
+1. Initialize the modular folder structures:
+   - For Node.js (in `backend/`): routes/, controllers/, middleware/, models/, services/, config/
+   - For Python Flask (in `backend/ai/`): routes/, services/, config/
+2. Set up environment-based config:
+   - Node.js: `backend/.env` and `backend/.env.example` with DB credentials and the internal AI Service URL (`AI_SERVICE_URL=http://localhost:5001`).
+   - Python Flask: `backend/ai/.env` or direct configuration reading for MySQL connection.
+3. Implement the MySQL connection pool in Node.js (using `mysql2/promise`).
+4. Create the complete database schema file in `backend/models/schema.sql`. Ensure proper foreign keys, indexes, and constraints.
 - `districts` (id, name, state, officer_id FK, zone)
 - `hospitals` (id, name, district_id FK, type, lat, lng, license_no, address, contact, verification_status)
 - `users` (id, email, phone, password_hash, role ENUM['donor','staff','admin','district','state','sysadmin'], hospital_id FK, district_id FK, created_at, last_login)
@@ -32,7 +41,8 @@ Phase 1: Project Setup & Database (Ensure all operations and files are inside th
 - `audit_logs` (id, actor_id, action, severity, ip_address, timestamp)
 
 5. Add indexes on: hospital_id+blood_group, expiry_date, lat/lng spatial indexing on `hospitals`, `emergency_requests`, and `donors`.
-6. Standardize error responses: { error, message, code } with HTTP status codes. Prefix all routes with `/v1`.
+6. Standardize Express error responses: { error, message, code } with HTTP status codes. Prefix all Node.js routes with `/v1`.
+7. Initialize a skeleton Flask app in `backend/ai/app.py` running on Port 5001, with a simple health check route `/v1/health` verifying connectivity, and `backend/ai/requirements.txt` containing Flask, Prophet, Pandas, and MySQL connector.
 
 Once completed, show the code and wait for confirmation.
 ```
@@ -42,14 +52,14 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 2: Authentication & RBAC (Strict Guards, No Google OAuth)
 **Copy the text below:**
 ```text
-Phase 2: Authentication & RBAC (Ensure all files and modifications are inside the `backend/` directory)
+Phase 2: Authentication & RBAC (Ensure all Node.js files and modifications are inside the `backend/` directory)
 
-Implement standard JWT email/password authentication. We are explicitly skipping Google OAuth.
+Implement standard JWT email/password authentication in Node.js. We are explicitly skipping Google OAuth.
 
 Roles: `donor`, `staff`, `admin` (hospital), `district`, `state`, `sysadmin`.
 
 Requirements:
-1. Create the Auth endpoints:
+1. Create the Auth endpoints in Node.js:
    - POST /auth/send-otp (for donor mobile)
    - POST /auth/verify-otp
    - POST /auth/register (donors & hospitals)
@@ -58,11 +68,11 @@ Requirements:
    - GET /auth/validate-invite-token/:token
    - POST /auth/set-password (for invited staff)
    - POST /auth/refresh
-2. Build the RBAC middleware. 
+2. Build the Node.js RBAC middleware. 
    - `requireAuth`: validates JWT.
    - `requireRole(roles)`: restricts endpoint to specific roles.
    - `requireOwnership`: ensures `staff`/`admin` can only access their own `hospital_id`, and `district` officer only their `district_id`.
-3. Add input validation using zod/express-validator for all Auth endpoints.
+3. Add input validation using zod/express-validator for all Auth endpoints in Node.js.
 
 Once completed, show the code and wait for confirmation.
 ```
@@ -72,9 +82,9 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 3: Donor Portal & Public Endpoints
 **Copy the text below:**
 ```text
-Phase 3: Donor Portal APIs (Ensure all files and modifications are inside the `backend/` directory)
+Phase 3: Donor Portal APIs (Ensure all Node.js files and modifications are inside the `backend/` directory)
 
-The frontend has a dedicated donor portal. Implement the following endpoints specifically for the `donor` role (using the RBAC middleware) and public access:
+The frontend has a dedicated donor portal. Implement the following endpoints in Node.js specifically for the `donor` role (using the RBAC middleware) and public access:
 
 Endpoints:
 1. **Profile Management**:
@@ -85,7 +95,7 @@ Endpoints:
    - GET /donor/donations (List of past donations)
    - GET /donor/stats (totalDonations, livesImpacted, nextEligibleDate logic: 90 days from last donation)
 3. **Engagement**:
-   - GET /donor/urgent-requests (Geospatial search of `emergency_requests` within 10km radius)
+   - GET /donor/urgent-requests (Geospatial search of `emergency_requests` within 10km radius using Haversine formula or MySQL spatial query)
    - POST /donor/pledge (Body: emergency_id)
    - GET /donor/camps (List approved `donation_camps` nearby)
 4. **Landing Page**:
@@ -99,9 +109,9 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 4: Hospital Staff Inventory & Emergency API
 **Copy the text below:**
 ```text
-Phase 4: Hospital Inventory & Live Emergency Endpoints (Ensure all files and modifications are inside the `backend/` directory)
+Phase 4: Hospital Inventory & Live Emergency Endpoints (Ensure all Node.js files and modifications are inside the `backend/` directory)
 
-Implement the endpoints for the Hospital Staff portal. The frontend strictly expects specific data shapes.
+Implement the endpoints in Node.js for the Hospital Staff portal. The frontend strictly expects specific data shapes.
 
 Endpoints (Protected by `staff` or `admin` role):
 1. **Inventory (`/hospital/inventory`)**:
@@ -114,7 +124,7 @@ Endpoints (Protected by `staff` or `admin` role):
 2. **Emergency Routing (`/hospital/emergencies`)**:
    - GET /hospital/emergencies (List active SOS requests for this hospital)
    - PATCH /hospital/emergencies/:id/status (Accept/Decline)
-   - GET /emergency/search?bloodGroup=&lat=&lng=&radius= (Geospatial search for nearest hospital with `units - reservedUnits > 0`. DO NOT cache this.)
+   - GET /emergency/search?bloodGroup=&lat=&lng=&radius= (Geospatial search for nearest hospital with `units - reservedUnits > 0` using spatial indexing. DO NOT cache this.)
 3. **Notifications (`/hospital/notifications`)**:
    - GET /hospital/notifications
    - PATCH /hospital/notifications/:id/read
@@ -125,24 +135,27 @@ Once completed, show the code and wait for confirmation.
 
 ***
 
-### Prompt 5: Transfers, Audit Logging, & AI Gateway
+### Prompt 5: Transfers, Audit Logging, & AI Gateway Integration
 **Copy the text below:**
 ```text
-Phase 5: Hospital Transfers & AI Forecast Gateway (Ensure all files and modifications are inside the `backend/` directory)
+Phase 5: Hospital Transfers & AI Forecast Gateway (Hybrid Integration - Node.js API + Python Flask AI service)
 
-Implement hospital-to-hospital transfers and the gateway for the Python AI microservice.
+Implement hospital-to-hospital transfers in Node.js, and integrate the Node.js core API with the Python AI microservice for demand forecasting.
 
-Endpoints:
-1. **Transfers (`/hospital/transfers`)**:
+Requirements:
+1. **Node.js - Transfers (`/hospital/transfers`)**:
    - GET /hospital/transfers
-   - POST /hospital/transfers (Create a transfer. Require `Idempotency-Key` header to prevent dupes)
+   - POST /hospital/transfers (Create a transfer. Require `Idempotency-Key` header to prevent duplicates)
    - PATCH /hospital/transfers/:id/status (Approve/Reject. *CRITICAL*: Approving increments `reserved_units` in the source batch).
-2. **AI Forecast Gateway (`/admin/forecast`)**:
-   - GET /admin/forecast (Calls internal Flask service for 7-day prediction. Cache via memory/Redis for 24h).
-   - GET /admin/waste-analytics (Calculates expiry vs usage).
-3. **Thresholds (`/admin/thresholds`)**:
+2. **Node.js - AI Forecast Gateway (`/admin/forecast` & `/admin/waste-analytics`)**:
+   - GET /admin/forecast (Calls internal Flask service running on http://localhost:5001/v1/forecast. Cache response in Node.js via memory or Redis for 24h).
+   - GET /admin/waste-analytics (Calls internal Flask service running on http://localhost:5001/v1/waste-analytics).
+3. **Python Flask AI Microservice (inside `backend/ai/`)**:
+   - Create route `/v1/forecast` in Flask that reads historical blood inventory records from the MySQL database, processes it with `pandas` and `numpy`, fits Meta's Facebook `Prophet` time-series forecasting model, and returns a 7-day predicted demand forecast.
+   - Create route `/v1/waste-analytics` in Flask that calculates blood wastage, usage rates, and expiry metrics.
+4. **Node.js - Thresholds (`/admin/thresholds`)**:
    - GET & PUT /admin/thresholds
-4. **Audit Middleware**:
+5. **Node.js - Audit Middleware**:
    - Write middleware that logs to `audit_logs` automatically whenever `blood_batches` or `transfer_requests` are updated or deleted.
 
 Once completed, show the code and wait for confirmation.
@@ -153,9 +166,9 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 6: District & State Admin Dashboards
 **Copy the text below:**
 ```text
-Phase 6: District & State Admin APIs (Ensure all files and modifications are inside the `backend/` directory)
+Phase 6: District & State Admin Dashboards (Ensure all Node.js files and modifications are inside the `backend/` directory)
 
-Implement the higher-level management APIs. Do not expose individual donor or staff details here, only aggregated metrics.
+Implement the higher-level management APIs in Node.js. Do not expose individual donor or staff details here, only aggregated metrics.
 
 Endpoints (Protected by `district` role):
 1. **District Level (`/district/*`)**:
@@ -182,7 +195,7 @@ Once completed, show the code and wait for confirmation.
 ### Prompt 7: System Admin, Rate Limiting & Polish
 **Copy the text below:**
 ```text
-Phase 7: System Admin & Final Polish (Ensure all files and modifications are inside the `backend/` directory)
+Phase 7: System Admin & Final Polish (Ensure all Node.js files and modifications are inside the `backend/` directory)
 
 Wrap up the backend by adding system admin controls and security hardening.
 
@@ -196,10 +209,10 @@ Endpoints (Protected by `sysadmin` role):
    - POST /systemadmin/backup (Trigger DB backup script)
 
 Security & Polish:
-2. **Rate Limiting**: Apply global 100 req/min rate limit (returns 429).
-3. **CORS**: Configure CORS for frontend origin.
-4. **Testing**: Write Jest unit tests for Auth, Emergency Search, and Transfer logic (minimum 15 tests).
-5. **Seeder**: Write a `seed.js` script to populate 3 hospitals, inventory bags, an admin, staff, and donor account.
+2. **Rate Limiting**: Apply global 100 req/min rate limit in Node.js (returns 429).
+3. **CORS**: Configure Node.js CORS for frontend origin.
+4. **Testing**: Write Jest unit tests in Node.js for Auth, Emergency Search, and Transfer logic (minimum 15 tests).
+5. **Seeder**: Write a Node.js `seed.js` script to populate 3 hospitals, inventory bags, an admin, staff, and donor account.
 
 Once completed, the backend is fully functional and ready for frontend integration!
 ```
