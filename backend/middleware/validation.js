@@ -155,6 +155,44 @@ const demoRequestSchema = z.object({
   email: z.string().email('Invalid email address')
 });
 
+const addBatchSchema = z.object({
+  bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+  units: z.union([z.number(), z.string().transform(Number)]).refine(val => val > 0, {
+    message: 'Units must be a positive number'
+  }),
+  collectionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'collectionDate must be in YYYY-MM-DD format'),
+  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expiryDate must be in YYYY-MM-DD format'),
+  source: z.string().optional(),
+  remarks: z.string().optional()
+});
+
+const updateBatchSchema = z.object({
+  bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']).optional(),
+  units: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 0, {
+    message: 'Units must be non-negative'
+  }).optional(),
+  reservedUnits: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 0, {
+    message: 'Reserved units must be non-negative'
+  }).optional(),
+  collectionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'collectionDate must be in YYYY-MM-DD format').optional(),
+  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expiryDate must be in YYYY-MM-DD format').optional(),
+  source: z.string().optional(),
+  remarks: z.string().optional()
+});
+
+const surgicalScheduleSchema = z.object({
+  surgeryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'surgeryDate must be in YYYY-MM-DD format'),
+  surgeryType: z.string().min(2, 'Surgery type must be at least 2 characters'),
+  bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+  units: z.union([z.number(), z.string().transform(Number)]).refine(val => val > 0, {
+    message: 'Units must be a positive number'
+  })
+});
+
+const updateEmergencyStatusSchema = z.object({
+  status: z.enum(['pending', 'fulfilled', 'cancelled'])
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -168,5 +206,10 @@ module.exports = {
   updateProfileSchema,
   saveLocationSchema,
   pledgeSchema,
-  demoRequestSchema
+  demoRequestSchema,
+  addBatchSchema,
+  updateBatchSchema,
+  surgicalScheduleSchema,
+  updateEmergencyStatusSchema
 };
+

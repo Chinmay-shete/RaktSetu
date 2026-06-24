@@ -3,6 +3,7 @@ const { getHealth } = require('../controllers/healthController');
 const authRoutes = require('./authRoutes');
 const donorRoutes = require('./donorRoutes');
 const landingRoutes = require('./landingRoutes');
+const hospitalRoutes = require('./hospitalRoutes');
 
 const router = express.Router();
 
@@ -18,4 +19,8 @@ router.use('/donor', donorRoutes);
 // Public Landing Page Routes
 router.use('/landing', landingRoutes);
 
+// Hospital Staff & Emergency Routing Routes
+router.use('/', hospitalRoutes);
+
 module.exports = router;
+
