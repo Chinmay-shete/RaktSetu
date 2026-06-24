@@ -21,7 +21,7 @@ function validateRequest(schema) {
 }
 
 // -----------------------------------------------------------------------------
-// Authentication Schemas
+// Authentication Schemas (Phase 2)
 // -----------------------------------------------------------------------------
 
 const sendOtpSchema = z.object({
@@ -75,7 +75,6 @@ const loginSchema = z.object({
   verificationToken: z.string().optional(),
   verification_token: z.string().optional()
 }).refine(data => {
-  // Must have email + password OR phone + (otp or verificationToken)
   if (data.email) {
     return !!data.password;
   }
@@ -109,6 +108,53 @@ const refreshSchema = z.object({
   path: ['refreshToken']
 });
 
+// -----------------------------------------------------------------------------
+// Donor Portal & Public Schemas (Phase 3)
+// -----------------------------------------------------------------------------
+
+const createProfileSchema = z.object({
+  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+  age: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 18 && val <= 65, {
+    message: 'Age must be between 18 and 65'
+  }),
+  gender: z.enum(['Male', 'Female', 'Other']),
+  bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+  weight: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 45, {
+    message: 'Weight must be at least 45 kg'
+  }),
+  chronicIllness: z.boolean(),
+  lastDonatedDate: z.string().nullable().optional().or(z.literal(''))
+});
+
+const updateProfileSchema = z.object({
+  fullName: z.string().min(2).optional(),
+  age: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 18 && val <= 65).optional(),
+  gender: z.enum(['Male', 'Female', 'Other']).optional(),
+  weight: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 45).optional(),
+  chronicIllness: z.boolean().optional(),
+  availableForDonation: z.boolean().optional(),
+  lastDonatedDate: z.string().nullable().optional().or(z.literal(''))
+});
+
+const saveLocationSchema = z.object({
+  lat: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= -90 && val <= 90, {
+    message: 'Latitude must be between -90 and 90'
+  }),
+  lng: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= -180 && val <= 180, {
+    message: 'Longitude must be between -180 and 180'
+  }),
+  city: z.enum(['Mumbai', 'Pune', 'Nagpur', 'Satara', 'Kolhapur']),
+  pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers')
+});
+
+const pledgeSchema = z.object({
+  emergencyId: z.union([z.number(), z.string().transform(Number)])
+});
+
+const demoRequestSchema = z.object({
+  email: z.string().email('Invalid email address')
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -117,5 +163,10 @@ module.exports = {
   loginSchema,
   logoutSchema,
   setPasswordSchema,
-  refreshSchema
+  refreshSchema,
+  createProfileSchema,
+  updateProfileSchema,
+  saveLocationSchema,
+  pledgeSchema,
+  demoRequestSchema
 };

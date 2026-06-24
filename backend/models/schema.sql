@@ -10,6 +10,9 @@ DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS alert_thresholds;
 DROP TABLE IF EXISTS surgical_schedules;
 DROP TABLE IF EXISTS forecasts;
+DROP TABLE IF EXISTS donations;
+DROP TABLE IF EXISTS emergency_pledges;
+DROP TABLE IF EXISTS demo_requests;
 DROP TABLE IF EXISTS donation_camps;
 DROP TABLE IF EXISTS donors;
 DROP TABLE IF EXISTS notifications;
@@ -120,6 +123,7 @@ CREATE TABLE notifications (
 CREATE TABLE donors (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL UNIQUE,
+  donor_code VARCHAR(20) UNIQUE DEFAULT NULL,
   full_name VARCHAR(100) NOT NULL,
   age INT NOT NULL,
   gender ENUM('Male', 'Female', 'Other') NOT NULL,
@@ -129,8 +133,9 @@ CREATE TABLE donors (
   weight DECIMAL(5, 2) NOT NULL,
   chronic_illness BOOLEAN DEFAULT FALSE,
   last_donated_date DATE DEFAULT NULL,
-  lat DECIMAL(10, 8) NOT NULL,
-  lng DECIMAL(11, 8) NOT NULL,
+  available_for_donation TINYINT(1) NOT NULL DEFAULT 1,
+  lat DECIMAL(10, 8) NOT NULL DEFAULT 0.0,
+  lng DECIMAL(11, 8) NOT NULL DEFAULT 0.0,
   location POINT NOT NULL SRID 4326
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -227,6 +232,41 @@ CREATE TABLE refresh_tokens (
   INDEX idx_refresh_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 17. Donations Table (Donor Portal Support)
+CREATE TABLE donations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  donor_id INT NOT NULL,
+  hospital_id INT DEFAULT NULL,
+  camp_id INT DEFAULT NULL,
+  donation_date DATE NOT NULL,
+  location_name VARCHAR(255) NOT NULL,
+  donation_type ENUM('whole_blood', 'platelets', 'plasma') NOT NULL DEFAULT 'whole_blood',
+  units INT NOT NULL DEFAULT 1,
+  status ENUM('completed', 'cancelled', 'pending') NOT NULL DEFAULT 'completed',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_donations_donor (donor_id, donation_date),
+  INDEX idx_donations_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 18. Emergency Pledges Table (Donor Portal Support)
+CREATE TABLE emergency_pledges (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  donor_id INT NOT NULL,
+  emergency_id INT NOT NULL,
+  status ENUM('pledged', 'completed', 'cancelled') NOT NULL DEFAULT 'pledged',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_pledge_donor_emergency (donor_id, emergency_id),
+  INDEX idx_pledges_emergency (emergency_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 19. Demo Requests Table (Public Landing Page Support)
+CREATE TABLE demo_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_demo_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- =========================================================================
 -- INDEXES DEFINITION
 -- =========================================================================
@@ -285,6 +325,7 @@ ALTER TABLE donors
 ALTER TABLE donation_camps 
   ADD CONSTRAINT fk_donation_camps_district FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE;
 
+-- Forecasts constraint
 ALTER TABLE forecasts 
   ADD CONSTRAINT fk_forecasts_hospital FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE;
 
@@ -303,3 +344,12 @@ ALTER TABLE staff_invites
 
 ALTER TABLE refresh_tokens 
   ADD CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE donations 
+  ADD CONSTRAINT fk_donations_donor FOREIGN KEY (donor_id) REFERENCES donors(id) ON DELETE CASCADE,
+  ADD CONSTRAINT fk_donations_hospital FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE SET NULL,
+  ADD CONSTRAINT fk_donations_camp FOREIGN KEY (camp_id) REFERENCES donation_camps(id) ON DELETE SET NULL;
+
+ALTER TABLE emergency_pledges 
+  ADD CONSTRAINT fk_pledges_donor FOREIGN KEY (donor_id) REFERENCES donors(id) ON DELETE CASCADE,
+  ADD CONSTRAINT fk_pledges_emergency FOREIGN KEY (emergency_id) REFERENCES emergency_requests(id) ON DELETE CASCADE;
