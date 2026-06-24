@@ -1,0 +1,121 @@
+const { z } = require('zod');
+const { ApiError } = require('./errorHandler');
+
+/**
+ * Express middleware to validate request body using a Zod schema.
+ */
+function validateRequest(schema) {
+  return (req, res, next) => {
+    try {
+      schema.parse(req.body);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Collect error messages
+        const messages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        return next(new ApiError(`Validation failed: ${messages}`, 400, 'VALIDATION_ERROR'));
+      }
+      next(error);
+    }
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Authentication Schemas
+// -----------------------------------------------------------------------------
+
+const sendOtpSchema = z.object({
+  phone: z.string().min(10, 'Phone number must be at least 10 characters').max(15, 'Phone number cannot exceed 15 characters').regex(/^\+?[0-9]+$/, 'Invalid phone number format'),
+  purpose: z.enum(['registration', 'login']).optional()
+});
+
+const verifyOtpSchema = z.object({
+  phone: z.string().min(10).max(15),
+  otp: z.string().length(6, 'OTP must be exactly 6 digits').regex(/^[0-9]+$/, 'OTP must contain only numbers'),
+  purpose: z.enum(['registration', 'login']).optional()
+});
+
+const registerSchema = z.union([
+  // Donor Registration
+  z.object({
+    role: z.literal('donor'),
+    phone: z.string().min(10).max(15),
+    email: z.string().email('Invalid email address').optional().or(z.literal('')),
+    password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
+    verificationToken: z.string().optional(),
+    verification_token: z.string().optional()
+  }).refine(data => data.verificationToken || data.verification_token, {
+    message: 'verificationToken is required',
+    path: ['verificationToken']
+  }),
+  
+  // Hospital Admin Registration
+  z.object({
+    role: z.literal('admin'),
+    email: z.string().email('Invalid email address'),
+    phone: z.string().min(10).max(15),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    hospitalName: z.string().min(2, 'Hospital name must be at least 2 characters'),
+    hospitalType: z.enum(['Government', 'Private', 'Trust', 'Semi-Govt']),
+    license_no: z.string().min(1, 'License number is required'),
+    address: z.string().min(5, 'Address must be at least 5 characters'),
+    city: z.enum(['Mumbai', 'Pune', 'Nagpur', 'Satara', 'Kolhapur']),
+    state: z.string().min(2, 'State must be at least 2 characters'),
+    pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers'),
+    lat: z.union([z.number(), z.string().transform(Number)]),
+    lng: z.union([z.number(), z.string().transform(Number)])
+  })
+]);
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address').optional(),
+  password: z.string().optional(),
+  phone: z.string().optional(),
+  otp: z.string().length(6).optional(),
+  verificationToken: z.string().optional(),
+  verification_token: z.string().optional()
+}).refine(data => {
+  // Must have email + password OR phone + (otp or verificationToken)
+  if (data.email) {
+    return !!data.password;
+  }
+  if (data.phone) {
+    return !!data.otp || !!data.verificationToken || !!data.verification_token;
+  }
+  return false;
+}, {
+  message: 'Must provide either email/password or phone/OTP/verification_token',
+  path: ['email']
+});
+
+const logoutSchema = z.object({
+  refreshToken: z.string().optional(),
+  refresh_token: z.string().optional()
+}).refine(data => data.refreshToken || data.refresh_token, {
+  message: 'refreshToken is required',
+  path: ['refreshToken']
+});
+
+const setPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+});
+
+const refreshSchema = z.object({
+  refreshToken: z.string().optional(),
+  refresh_token: z.string().optional()
+}).refine(data => data.refreshToken || data.refresh_token, {
+  message: 'refreshToken is required',
+  path: ['refreshToken']
+});
+
+module.exports = {
+  validateRequest,
+  sendOtpSchema,
+  verifyOtpSchema,
+  registerSchema,
+  loginSchema,
+  logoutSchema,
+  setPasswordSchema,
+  refreshSchema
+};

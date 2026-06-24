@@ -16,6 +16,9 @@ DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS emergency_requests;
 DROP TABLE IF EXISTS transfer_requests;
 DROP TABLE IF EXISTS blood_batches;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS staff_invites;
+DROP TABLE IF EXISTS otp_codes;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS hospitals;
 DROP TABLE IF EXISTS districts;
@@ -184,6 +187,46 @@ CREATE TABLE audit_logs (
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 14. OTP Codes Table (Auth Support)
+CREATE TABLE otp_codes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  phone VARCHAR(20) NOT NULL,
+  code CHAR(6) NOT NULL,
+  purpose ENUM('registration', 'login') NOT NULL DEFAULT 'registration',
+  expires_at TIMESTAMP NOT NULL,
+  verified TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_otp_phone_purpose (phone, purpose, verified),
+  INDEX idx_otp_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 15. Staff Invites Table (Auth Support)
+CREATE TABLE staff_invites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  token VARCHAR(64) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  hospital_id INT NOT NULL,
+  invited_by INT DEFAULT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_staff_invites_token (token),
+  INDEX idx_staff_invites_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 16. Refresh Tokens Table (Auth Support)
+CREATE TABLE refresh_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  revoked_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_refresh_token_hash (token_hash),
+  INDEX idx_refresh_user (user_id),
+  INDEX idx_refresh_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- =========================================================================
 -- INDEXES DEFINITION
 -- =========================================================================
@@ -253,3 +296,10 @@ ALTER TABLE alert_thresholds
 
 ALTER TABLE audit_logs 
   ADD CONSTRAINT fk_audit_actor FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL;
+
+ALTER TABLE staff_invites 
+  ADD CONSTRAINT fk_staff_invites_hospital FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE,
+  ADD CONSTRAINT fk_staff_invites_invited_by FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE SET NULL;
+
+ALTER TABLE refresh_tokens 
+  ADD CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
