@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { mockApi } from '../../../services/mockApi';
+import { mockApi } from '../../../services/api';
 import { exportToCSV } from '../../../utils/csvExport';
 import { useToast } from '../../../hooks/useToast';
 import { Loader } from '../../../components/ui/Loader';

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
 
 const DistrictContext = createContext();
 
@@ -81,9 +82,43 @@ export const DistrictProvider = ({ children }) => {
     };
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     localStorage.setItem('raktsetu_district_state', JSON.stringify(appState));
   }, [appState]);
+
+  const fetchDistrictData = useCallback(async () => {
+    if (appState.status !== 'logged_in') return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [hospRes, alertsRes, campsRes] = await Promise.all([
+        api.get('/district/hospitals'),
+        api.get('/district/alerts'),
+        api.get('/district/camps')
+      ]);
+
+      setAppState(prev => ({
+        ...prev,
+        hospitals: hospRes.data || [],
+        alerts: alertsRes.data || [],
+        camps: campsRes.data || [],
+      }));
+    } catch (err) {
+      console.error("Failed to fetch district data from API", err);
+      setError("Failed to load district data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [appState.status]);
+
+  useEffect(() => {
+    if (appState.status === 'logged_in') {
+      fetchDistrictData();
+    }
+  }, [appState.status, fetchDistrictData]);
 
   const loginOfficer = (details) => {
     setAppState(prev => ({
@@ -100,6 +135,11 @@ export const DistrictProvider = ({ children }) => {
 
   const logoutOfficer = () => {
     setAppState(prev => ({ ...prev, status: 'idle', officerDetails: null }));
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_')) {
+        localStorage.removeItem(key);
+      }
+    });
   };
 
   const approveCamp = (campId) => {
@@ -139,6 +179,9 @@ export const DistrictProvider = ({ children }) => {
       rejectCamp,
       addCamp,
       resolveAlert,
+      isLoading,
+      error,
+      refetchData: fetchDistrictData,
     }}>
       {children}
     </DistrictContext.Provider>

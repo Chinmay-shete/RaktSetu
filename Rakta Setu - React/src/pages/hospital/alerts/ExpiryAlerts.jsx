@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { mockApi } from '../../../services/mockApi';
+import { mockApi } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import { Loader } from '../../../components/ui/Loader';
 import { ErrorState } from '../../../components/ui/ErrorState';

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
+import api from '../../services/api';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const AdminLogin = () => {
     return () => clearTimeout(timeout);
   }, [error]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -35,19 +36,27 @@ const AdminLogin = () => {
 
     setIsLoading(true);
 
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      const expectedEmail = import.meta.env.VITE_ADMIN_EMAIL || "admin@raktsetu.org";
-      const expectedPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password
+      });
 
-      if (formData.email === expectedEmail && formData.password === expectedPassword) {
-        loginAdmin();
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid email or password.');
+      const { token, user } = response.data;
+      if (user.role !== 'admin') {
+        throw new Error('Access denied: You are not authorized as a hospital admin.');
       }
-    }, 1200);
+
+      localStorage.setItem('raktsetu_auth_token', token);
+      localStorage.setItem('raktsetu_admin_app_state', JSON.stringify({ status: 'logged_in', user }));
+
+      loginAdmin();
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Invalid email or password.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

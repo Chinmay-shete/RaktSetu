@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { mockApi } from '../../../services/mockApi';
+import api, { mockApi } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import { Loader } from '../../../components/ui/Loader';
 import { ErrorState } from '../../../components/ui/ErrorState';
@@ -49,9 +49,9 @@ export const TransferRequests = () => {
 
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
-      hospitalName: 'Red Cross Blood Bank, East',
+      fromHospitalId: '2',
       bloodGroup: 'O-',
-      unitsRequired: 5,
+      units: 5,
       priority: 'High',
       message: ''
     }
@@ -59,25 +59,20 @@ export const TransferRequests = () => {
 
   const createRequestMutation = useMutation({
     mutationFn: async (newReq) => {
-      const list = JSON.parse(localStorage.getItem('raktsetu_db_transfers') || '[]');
-      const req = {
-        ...newReq,
-        id: "tr-" + Date.now(),
-        // TODO: Replace with PostGIS calculations using real hospital GPS coordinates
-        distance: 5.0,
-        status: 'Pending',
-        date: new Date().toISOString().split('T')[0],
-        type: 'Outgoing'
-      };
-      list.unshift(req);
-      localStorage.setItem('raktsetu_db_transfers', JSON.stringify(list));
-      return req;
+      const key = `idemp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const response = await api.post('/hospital/transfers', newReq, {
+        headers: { 'Idempotency-Key': key }
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transfers'] });
       toast.success("Blood transfer request broadcasted to peer network.");
       setIsRequestModalOpen(false);
       reset();
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to submit transfer request.");
     }
   });
 
@@ -87,7 +82,7 @@ export const TransferRequests = () => {
   const filteredTransfers = transfers.filter(t => t.type === activeTab);
 
   const handleApprove = (id) => {
-    updateStatusMutation.mutate({ id, status: 'Approved' });
+    updateStatusMutation.mutate({ id, status: 'accepted' });
   };
 
   const handleRejectSubmit = () => {
@@ -95,11 +90,17 @@ export const TransferRequests = () => {
       toast.warning("Please specify remarks for rejection");
       return;
     }
-    updateStatusMutation.mutate({ id: rejectId, status: 'Rejected' });
+    updateStatusMutation.mutate({ id: rejectId, status: 'rejected' });
   };
 
   const onReqSubmit = (data) => {
-    createRequestMutation.mutate(data);
+    createRequestMutation.mutate({
+      fromHospitalId: parseInt(data.fromHospitalId, 10),
+      bloodGroup: data.bloodGroup,
+      units: parseInt(data.units, 10),
+      priority: data.priority.toLowerCase(),
+      message: data.message
+    });
   };
 
   const getPriorityStyle = (priority) => {
@@ -323,13 +324,13 @@ export const TransferRequests = () => {
           <div className="flex flex-col gap-1.5">
             <label className={fieldLabel}>Target Bank</label>
             <select
-              {...register("hospitalName", { required: true })}
+              {...register("fromHospitalId", { required: true })}
               className="input-field custom-select"
             >
-              <option value="Red Cross Blood Bank, East">Red Cross Blood Bank, East</option>
-              <option value="Max Healthcare, South Delhi">Max Healthcare, South Delhi</option>
-              <option value="St. Stephens Hospital">St. Stephens Hospital</option>
-              <option value="Fortis Escorts Blood Bank">Fortis Escorts Blood Bank</option>
+              <option value="2">Pune Life Care Hospital</option>
+              <option value="3">Mumbai General Hospital</option>
+              <option value="4">Surat Municipal Hospital</option>
+              <option value="1">Koregaon Park City Life Hospital</option>
             </select>
           </div>
 
@@ -350,7 +351,7 @@ export const TransferRequests = () => {
               <label className={fieldLabel}>Units Required</label>
               <input
                 type="number"
-                {...register("unitsRequired", { required: true, min: 1 })}
+                {...register("units", { required: true, min: 1 })}
                 className="input-field"
               />
             </div>

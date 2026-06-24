@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { 
   LineChart, 
@@ -18,6 +19,8 @@ import {
   AlertOctagon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Loader } from '../../components/ui/Loader';
+import { ErrorState } from '../../components/ui/ErrorState';
 
 const MOCK_LATENCY_DATA = [
   { time: '00:00', latency: 80 },
@@ -35,7 +38,15 @@ const MOCK_LATENCY_DATA = [
 ];
 
 export const SystemAdminDashboard = () => {
-  const { adminState, testIntegration, triggerBackup } = useSystemAdmin();
+  const { adminState, testIntegration, triggerBackup, isLoading, error, refetchData } = useSystemAdmin();
+
+  if (isLoading) {
+    return <Loader message="Loading system dashboard statistics..." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={refetchData} />;
+  }
 
   const totalUsers = adminState.users.length;
   const pendingHospitalsCount = adminState.pendingHospitals.length;

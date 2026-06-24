@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
+import api from '../../services/api';
 
 const SystemAdminLogin = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const SystemAdminLogin = () => {
     return () => clearTimeout(timeout);
   }, [error]);
 
-  const handleSubmitCredentials = (e) => {
+  const handleSubmitCredentials = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -28,14 +29,26 @@ const SystemAdminLogin = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      if (formData.email === 'admin@raktsetu.com' && formData.password === 'system123') {
-        setStep('mfa');
-      } else {
-        setError('Invalid email or password. Use admin@raktsetu.com / system123');
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password
+      });
+
+      const { token, user } = response.data;
+      if (user.role !== 'sysadmin') {
+        throw new Error('Access denied: You are not authorized as a system admin.');
       }
-    }, 1200);
+
+      localStorage.setItem('raktsetu_auth_token', token);
+      localStorage.setItem('raktsetu_sysadmin_state_temp', JSON.stringify({ status: 'logged_in', user }));
+
+      setStep('mfa');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Invalid email or password.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerifyMFA = (e) => {
@@ -52,11 +65,17 @@ const SystemAdminLogin = () => {
     setTimeout(() => {
       setIsLoading(false);
       if (formData.mfaCode === '123456') { // Mock MFA validation
-        loginAdmin({
-          name: 'Vikram Malhotra',
-          designation: 'Lead Systems Architect',
-          email: formData.email,
-        });
+        const temp = localStorage.getItem('raktsetu_sysadmin_state_temp');
+        if (temp) {
+          localStorage.setItem('raktsetu_sysadmin_state', temp);
+          localStorage.removeItem('raktsetu_sysadmin_state_temp');
+          const parsed = JSON.parse(temp);
+          loginAdmin({
+            name: parsed.user.full_name,
+            designation: 'Lead Systems Architect',
+            email: parsed.user.email,
+          });
+        }
         navigate('/systemadmin/dashboard');
       } else {
         setError('Invalid MFA code. Use 123456 for testing.');

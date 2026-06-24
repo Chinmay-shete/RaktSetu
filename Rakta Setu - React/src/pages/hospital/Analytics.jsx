@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { mockApi } from '../../services/mockApi';
+import { mockApi } from '../../services/api';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useQuery } from '@tanstack/react-query';

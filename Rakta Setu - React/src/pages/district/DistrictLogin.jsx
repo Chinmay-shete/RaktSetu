@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDistrict } from '../../context/DistrictContext';
+import api from '../../services/api';
 
 const DistrictLogin = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const DistrictLogin = () => {
     return () => clearTimeout(timeout);
   }, [error]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -27,20 +28,32 @@ const DistrictLogin = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      if (formData.email === 'officer@pune.gov.in' && formData.password === 'district123') {
-        loginOfficer({
-          name: 'Rajesh Patil',
-          designation: 'District Health Officer',
-          district: 'Pune',
-          email: formData.email,
-        });
-        navigate('/district/dashboard');
-      } else {
-        setError('Invalid email or password. Use officer@pune.gov.in / district123');
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password
+      });
+
+      const { token, user } = response.data;
+      if (user.role !== 'district') {
+        throw new Error('Access denied: You are not authorized as a district officer.');
       }
-    }, 1200);
+
+      localStorage.setItem('raktsetu_auth_token', token);
+      localStorage.setItem('raktsetu_district_state', JSON.stringify({ status: 'logged_in', user }));
+
+      loginOfficer({
+        name: user.full_name,
+        designation: 'District Health Officer',
+        district: 'Pune',
+        email: user.email,
+      });
+      navigate('/district/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Invalid email or password.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

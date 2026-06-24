@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
 
 const SystemAdminContext = createContext();
 
@@ -58,9 +59,56 @@ export const SystemAdminProvider = ({ children }) => {
     };
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify(adminState));
   }, [adminState]);
+
+  const fetchAdminData = useCallback(async () => {
+    if (adminState.status !== 'logged_in') return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [dashRes, approvalsRes, usersRes, logsRes] = await Promise.all([
+        api.get('/systemadmin/dashboard'),
+        api.get('/systemadmin/pending-approvals'),
+        api.get('/systemadmin/users'),
+        api.get('/systemadmin/audit-logs')
+      ]);
+
+      setAdminState(prev => ({
+        ...prev,
+        pendingHospitals: approvalsRes.data.pendingHospitals || [],
+        pendingOfficers: approvalsRes.data.pendingOfficers || [],
+        users: usersRes.data || [],
+        auditLogs: logsRes.data || [],
+        systemHealth: {
+          uptime: dashRes.data.uptime || '99.98%',
+          dbStatus: dashRes.data.dbStatus || 'Connected',
+          latency: dashRes.data.latency || '84ms',
+          sentryErrors: 2,
+          integrations: {
+            firebase: 'Connected',
+            twilio: 'Connected',
+            maps: 'Connected',
+          }
+        }
+      }));
+    } catch (err) {
+      console.error("Failed to fetch system admin data", err);
+      setError("Failed to load system administration data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [adminState.status]);
+
+  useEffect(() => {
+    if (adminState.status === 'logged_in') {
+      fetchAdminData();
+    }
+  }, [adminState.status, fetchAdminData]);
 
   const loginAdmin = (details) => {
     setAdminState(prev => ({
@@ -102,159 +150,68 @@ export const SystemAdminProvider = ({ children }) => {
         ...prev.auditLogs
       ]
     }));
-  };
-
-  const approveHospital = (id) => {
-    const hospital = adminState.pendingHospitals.find(h => h.id === id);
-    if (!hospital) return;
-
-    setAdminState(prev => ({
-      ...prev,
-      pendingHospitals: prev.pendingHospitals.filter(h => h.id !== id),
-      users: [
-        ...prev.users,
-        {
-          id: Date.now(),
-          name: `${hospital.name} Admin`,
-          email: `${hospital.name.toLowerCase().replace(/\s+/g, '')}@raktsetu.com`,
-          role: 'admin',
-          status: 'Active',
-          designation: 'Hospital Admin',
-          lastActive: 'Never'
-        }
-      ],
-      auditLogs: [
-        {
-          id: Date.now(),
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          actor: 'System Admin (admin@raktsetu.com)',
-          action: `Approved Hospital registration: ${hospital.name} (License: ${hospital.licenseNo})`,
-          severity: 'Info',
-          ipAddress: '192.168.1.102'
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  const rejectHospital = (id) => {
-    const hospital = adminState.pendingHospitals.find(h => h.id === id);
-    if (!hospital) return;
-
-    setAdminState(prev => ({
-      ...prev,
-      pendingHospitals: prev.pendingHospitals.filter(h => h.id !== id),
-      auditLogs: [
-        {
-          id: Date.now(),
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          actor: 'System Admin (admin@raktsetu.com)',
-          action: `Rejected Hospital registration: ${hospital.name} (License: ${hospital.licenseNo})`,
-          severity: 'Warning',
-          ipAddress: '192.168.1.102'
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  const approveOfficer = (id) => {
-    const officer = adminState.pendingOfficers.find(o => o.id === id);
-    if (!officer) return;
-
-    setAdminState(prev => ({
-      ...prev,
-      pendingOfficers: prev.pendingOfficers.filter(o => o.id !== id),
-      users: [
-        ...prev.users,
-        {
-          id: Date.now(),
-          name: officer.name,
-          email: officer.email,
-          role: 'district',
-          status: 'Active',
-          designation: `${officer.designation} (${officer.district})`,
-          lastActive: 'Never'
-        }
-      ],
-      auditLogs: [
-        {
-          id: Date.now(),
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          actor: 'System Admin (admin@raktsetu.com)',
-          action: `Approved District Officer: ${officer.name} for ${officer.district}`,
-          severity: 'Info',
-          ipAddress: '192.168.1.102'
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  const rejectOfficer = (id) => {
-    const officer = adminState.pendingOfficers.find(o => o.id === id);
-    if (!officer) return;
-
-    setAdminState(prev => ({
-      ...prev,
-      pendingOfficers: prev.pendingOfficers.filter(o => o.id !== id),
-      auditLogs: [
-        {
-          id: Date.now(),
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          actor: 'System Admin (admin@raktsetu.com)',
-          action: `Rejected District Officer application: ${officer.name} (${officer.district})`,
-          severity: 'Warning',
-          ipAddress: '192.168.1.102'
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  const toggleUserStatus = (id) => {
-    setAdminState(prev => {
-      const user = prev.users.find(u => u.id === id);
-      if (!user) return prev;
-      const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
-      return {
-        ...prev,
-        users: prev.users.map(u => u.id === id ? { ...u, status: newStatus } : u),
-        auditLogs: [
-          {
-            id: Date.now(),
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            actor: 'System Admin (admin@raktsetu.com)',
-            action: `${newStatus === 'Suspended' ? 'Suspended' : 'Re-activated'} user account: ${user.email}`,
-            severity: newStatus === 'Suspended' ? 'Warning' : 'Info',
-            ipAddress: '192.168.1.102'
-          },
-          ...prev.auditLogs
-        ]
-      };
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_')) {
+        localStorage.removeItem(key);
+      }
     });
   };
 
-  const changeUserRole = (id, newRole) => {
-    setAdminState(prev => {
-      const user = prev.users.find(u => u.id === id);
-      if (!user) return prev;
-      return {
-        ...prev,
-        users: prev.users.map(u => u.id === id ? { ...u, role: newRole } : u),
-        auditLogs: [
-          {
-            id: Date.now(),
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            actor: 'System Admin (admin@raktsetu.com)',
-            action: `Changed role of user ${user.email} from ${user.role} to ${newRole}`,
-            severity: 'Info',
-            ipAddress: '192.168.1.102'
-          },
-          ...prev.auditLogs
-        ]
-      };
-    });
+  const approveHospital = async (id) => {
+    try {
+      await api.patch(`/systemadmin/hospitals/${id}/approve`, { status: 'verified' });
+      fetchAdminData();
+    } catch (err) {
+      console.error("Failed to approve hospital", err);
+    }
+  };
+
+  const rejectHospital = async (id) => {
+    try {
+      await api.patch(`/systemadmin/hospitals/${id}/approve`, { status: 'rejected' });
+      fetchAdminData();
+    } catch (err) {
+      console.error("Failed to reject hospital", err);
+    }
+  };
+
+  const approveOfficer = async (id) => {
+    try {
+      await api.patch(`/systemadmin/users/${id}`, { status: 'Active' });
+      fetchAdminData();
+    } catch (err) {
+      console.error("Failed to approve officer", err);
+    }
+  };
+
+  const rejectOfficer = async (id) => {
+    try {
+      await api.patch(`/systemadmin/users/${id}`, { status: 'Suspended' });
+      fetchAdminData();
+    } catch (err) {
+      console.error("Failed to reject officer", err);
+    }
+  };
+
+  const toggleUserStatus = async (id) => {
+    const user = adminState.users.find(u => u.id === id);
+    if (!user) return;
+    const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+    try {
+      await api.patch(`/systemadmin/users/${id}`, { status: newStatus });
+      fetchAdminData();
+    } catch (err) {
+      console.error("Failed to toggle user status", err);
+    }
+  };
+
+  const changeUserRole = async (id, newRole) => {
+    try {
+      await api.patch(`/systemadmin/users/${id}`, { role: newRole });
+      fetchAdminData();
+    } catch (err) {
+      console.error("Failed to change user role", err);
+    }
   };
 
   const toggleFeatureFlag = (flagName) => {
@@ -359,7 +316,10 @@ export const SystemAdminProvider = ({ children }) => {
       changeUserRole,
       toggleFeatureFlag,
       triggerBackup,
-      testIntegration
+      testIntegration,
+      isLoading,
+      error,
+      refetchData: fetchAdminData
     }}>
       {children}
     </SystemAdminContext.Provider>

@@ -30,7 +30,7 @@ export const Login = () => {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    const success = login(data.email, data.password, data.rememberMe);
+    const success = await login(data.email, data.password, data.rememberMe);
     
     if (success) {
       toast.success("Successfully authenticated. Welcome to RaktSetu.");

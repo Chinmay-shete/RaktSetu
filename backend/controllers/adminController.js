@@ -158,7 +158,7 @@ async function getDistrictHospitals(req, res, next) {
     }
 
     const [rows] = await pool.query(
-      `SELECT h.id, h.name, h.type, h.address, h.city, h.pincode, h.contact,
+      `SELECT h.id, h.name, h.type, h.address, h.city, h.pincode, h.contact, h.license_no,
               COALESCE(SUM(bb.units - bb.reserved_units), 0) AS aggregate_stock
        FROM hospitals h
        LEFT JOIN blood_batches bb ON bb.hospital_id = h.id
@@ -168,6 +168,25 @@ async function getDistrictHospitals(req, res, next) {
       [districtId]
     );
 
+    // Fetch detailed blood group stock counts
+    const [stockDetails] = await pool.query(
+      `SELECT bb.hospital_id, bb.blood_group, SUM(bb.units - bb.reserved_units) AS units
+       FROM blood_batches bb
+       INNER JOIN hospitals h ON h.id = bb.hospital_id
+       WHERE h.district_id = ? AND bb.expiry_date >= CURDATE()
+       GROUP BY bb.hospital_id, bb.blood_group`,
+      [districtId]
+    );
+
+    // Map detailed stock to a lookup dictionary
+    const stockMap = {};
+    stockDetails.forEach(s => {
+      if (!stockMap[s.hospital_id]) {
+        stockMap[s.hospital_id] = {};
+      }
+      stockMap[s.hospital_id][s.blood_group] = parseInt(s.units, 10);
+    });
+
     const serialized = rows.map(row => ({
       id: row.id,
       name: row.name,
@@ -176,7 +195,13 @@ async function getDistrictHospitals(req, res, next) {
       city: row.city,
       pincode: row.pincode,
       contact: row.contact,
-      aggregateStock: parseInt(row.aggregate_stock, 10)
+      licenseNo: row.license_no,
+      lastUpdated: 'Just now',
+      aggregateStock: parseInt(row.aggregate_stock, 10),
+      stock: {
+        'O+': 0, 'O-': 0, 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0,
+        ...(stockMap[row.id] || {})
+      }
     }));
 
     return res.status(200).json(serialized);
@@ -501,7 +526,7 @@ async function getStateDashboard(req, res, next) {
 
     // 6. District breakdown list
     const [breakdownRows] = await pool.query(
-      `SELECT d.id, d.name,
+      `SELECT d.id, d.name, d.zone,
               (SELECT COUNT(*) FROM hospitals WHERE district_id = d.id) AS hospital_count,
               (SELECT COALESCE(SUM(bb.units - bb.reserved_units), 0) FROM blood_batches bb INNER JOIN hospitals h ON h.id = bb.hospital_id WHERE h.district_id = d.id) AS total_stock,
               (SELECT COUNT(*) FROM emergency_requests er INNER JOIN hospitals h ON h.id = er.hospital_id WHERE h.district_id = d.id AND er.status = 'pending') AS active_emergencies
@@ -511,12 +536,37 @@ async function getStateDashboard(req, res, next) {
       [stateName]
     );
 
+    // Fetch detailed blood group stock counts per district
+    const [districtStockDetails] = await pool.query(
+      `SELECT d.id AS district_id, bb.blood_group, SUM(bb.units - bb.reserved_units) AS units
+       FROM blood_batches bb
+       INNER JOIN hospitals h ON h.id = bb.hospital_id
+       INNER JOIN districts d ON d.id = h.district_id
+       WHERE d.state = ? AND bb.expiry_date >= CURDATE()
+       GROUP BY d.id, bb.blood_group`,
+      [stateName]
+    );
+
+    // Map detailed stock to a lookup dictionary: districtStockMap[district_id][blood_group] = units
+    const districtStockMap = {};
+    districtStockDetails.forEach(s => {
+      if (!districtStockMap[s.district_id]) {
+        districtStockMap[s.district_id] = {};
+      }
+      districtStockMap[s.district_id][s.blood_group] = parseInt(s.units, 10);
+    });
+
     const districtBreakdown = breakdownRows.map(row => ({
       id: row.id,
       name: row.name,
+      zone: row.zone || 'Western',
       hospitalsCount: row.hospital_count,
       totalStock: parseInt(row.total_stock, 10),
-      activeEmergenciesCount: row.active_emergencies
+      activeEmergenciesCount: row.active_emergencies,
+      stock: {
+        'O+': 0, 'O-': 0, 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0,
+        ...(districtStockMap[row.id] || {})
+      }
     }));
 
     return res.status(200).json({
@@ -637,6 +687,13 @@ async function approveStateTransfer(req, res, next) {
     await connection.query(
       "UPDATE transfer_requests SET status = 'accepted' WHERE id = ?",
       [transferId]
+    );
+
+    // Write audit log entry (B4)
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    await connection.query(
+      "INSERT INTO audit_logs (actor_id, action, severity, ip_address) VALUES (?, 'CROSS_DISTRICT_TRANSFER_APPROVED', 'warning', ?)",
+      [req.user.id, ipAddress]
     );
 
     await connection.commit();

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Navbar } from '../components/layout/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { mockApi } from '../services/mockApi';
+import { mockApi } from '../services/api';
 
 export const HospitalLayout = () => {
   const { isAuthenticated } = useAuth();

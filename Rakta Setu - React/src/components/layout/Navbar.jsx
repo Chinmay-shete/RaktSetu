@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
-import { mockApi } from '../../services/mockApi';
+import { mockApi } from '../../services/api';
 import {
   Bell,
   Search,

@@ -1,6 +1,6 @@
 const express = require('express');
 const adminController = require('../controllers/adminController');
-const { requireRole } = require('../middleware/auth');
+const { requireRole, requireOwnership } = require('../middleware/auth');
 const {
   validateRequest,
   createCampSchema,
@@ -14,14 +14,14 @@ const districtRole = requireRole('district');
 const stateRole = requireRole('state');
 
 // District Endpoints
-router.get('/district/dashboard', districtRole, adminController.getDistrictDashboard);
-router.get('/district/hospitals', districtRole, adminController.getDistrictHospitals);
-router.get('/district/alerts', districtRole, adminController.getDistrictAlerts);
-router.patch('/district/alerts/:id/resolve', districtRole, adminController.resolveDistrictAlert);
-router.get('/district/camps', districtRole, adminController.listDistrictCamps);
-router.post('/district/camps', districtRole, validateRequest(createCampSchema), adminController.createDistrictCamp);
-router.patch('/district/camps/:id/status', districtRole, validateRequest(updateCampStatusSchema), adminController.updateCampStatus);
-router.get('/district/map', districtRole, adminController.getDistrictMap);
+router.get('/district/dashboard', districtRole, requireOwnership(), adminController.getDistrictDashboard);
+router.get('/district/hospitals', districtRole, requireOwnership(), adminController.getDistrictHospitals);
+router.get('/district/alerts', districtRole, requireOwnership(), adminController.getDistrictAlerts);
+router.patch('/district/alerts/:id/resolve', districtRole, requireOwnership(), adminController.resolveDistrictAlert);
+router.get('/district/camps', districtRole, requireOwnership(), adminController.listDistrictCamps);
+router.post('/district/camps', districtRole, requireOwnership(), validateRequest(createCampSchema), adminController.createDistrictCamp);
+router.patch('/district/camps/:id/status', districtRole, requireOwnership({ resourceType: 'donation_camps' }), validateRequest(updateCampStatusSchema), adminController.updateCampStatus);
+router.get('/district/map', districtRole, requireOwnership(), adminController.getDistrictMap);
 
 // State Endpoints
 router.get('/state/dashboard', stateRole, adminController.getStateDashboard);

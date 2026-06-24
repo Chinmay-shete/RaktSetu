@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -115,73 +116,51 @@ const Login = () => {
   };
 
   // Perform Email Login
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setEmailError('');
     setButtonState('sending');
 
-    setTimeout(() => {
+    try {
+      const response = await api.post('/auth/login', {
+        email: email.toLowerCase().trim(),
+        password: password
+      });
+
       setButtonState('default');
-      const normalizedEmail = email.toLowerCase().trim();
-      const userKey = 'raktsetu_user_' + normalizedEmail;
-      const savedUser = localStorage.getItem(userKey);
-      
-      let authenticated = false;
-      let userRole = getRoleFromEmail(email);
+      const { token, user } = response.data;
+      const userRole = user.role;
 
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        if (parsed.password === password) {
-          authenticated = true;
-          userRole = parsed.role;
-        } else {
-          setEmailError('Invalid password. Please try again.');
-          return;
-        }
+      // Save token
+      localStorage.setItem('raktsetu_auth_token', token);
+
+      // Route users based on role and set appropriate authentication keys
+      if (userRole === 'staff') {
+        localStorage.setItem('raktsetu_hospital_authenticated', 'true');
+        localStorage.setItem('raktsetu_hospital_profile', JSON.stringify(user));
+        window.location.href = '/staff/dashboard';
+      } else if (userRole === 'admin') {
+        localStorage.setItem('raktsetu_admin_app_state', JSON.stringify({ status: 'logged_in', user }));
+        window.location.href = '/admin/dashboard';
+      } else if (userRole === 'district') {
+        localStorage.setItem('raktsetu_district_state', JSON.stringify({ status: 'logged_in', user }));
+        window.location.href = '/district/dashboard';
+      } else if (userRole === 'state') {
+        localStorage.setItem('raktsetu_state_admin', JSON.stringify({ status: 'logged_in', user }));
+        window.location.href = '/state/dashboard';
+      } else if (userRole === 'sysadmin') {
+        localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify({ status: 'logged_in', user }));
+        window.location.href = '/systemadmin/dashboard';
       } else {
-        // Fallback demo logins to make testing easy without prior registration
-        authenticated = true; 
+        localStorage.setItem('raktsetu_donor_authenticated', 'true');
+        localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
+        navigate('/dashboard');
       }
-
-      if (authenticated) {
-        // Route users based on role
-        if (userRole === 'staff') {
-          localStorage.setItem('raktsetu_hospital_authenticated', 'true');
-          window.location.href = '/staff/dashboard';
-        } else if (userRole === 'admin') {
-          const adminState = {
-            status: 'logged_in',
-            hospitalDetails: { hospitalName: 'Apex City Hospital' },
-            invitedStaff: [
-              { id: 1, name: 'Dr. Ramesh Kumar', email: 'ramesh.kumar@hospital.com', role: 'Medical Officer', status: 'Accepted', date: '2026-06-10' }
-            ]
-          };
-          localStorage.setItem('raktsetu_admin_app_state', JSON.stringify(adminState));
-          window.location.href = '/admin/dashboard';
-        } else if (userRole === 'district') {
-          const districtState = {
-            status: 'logged_in',
-            officerDetails: { name: 'Rajesh Patil', district: 'Pune' }
-          };
-          localStorage.setItem('raktsetu_district_state', JSON.stringify(districtState));
-          window.location.href = '/district/dashboard';
-        } else if (userRole === 'state') {
-          const stateState = {
-            status: 'logged_in',
-            officerDetails: { name: 'Arvind Sawant', state: 'Maharashtra' }
-          };
-          localStorage.setItem('raktsetu_state_admin', JSON.stringify(stateState));
-          window.location.href = '/state/dashboard';
-        } else if (userRole === 'systemadmin') {
-          const sysAdminState = { status: 'logged_in' };
-          localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify(sysAdminState));
-          window.location.href = '/systemadmin/dashboard';
-        } else {
-          localStorage.setItem('raktsetu_donor_authenticated', 'true');
-          navigate('/dashboard');
-        }
-      }
-    }, 1000);
+    } catch (err) {
+      setButtonState('default');
+      const msg = err.response?.data?.message || 'Invalid credentials. Please try again.';
+      setEmailError(msg);
+    }
   };
 
   // Perform Mobile OTP Login

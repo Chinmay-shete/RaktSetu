@@ -1,6 +1,6 @@
 const express = require('express');
 const hospitalController = require('../controllers/hospitalController');
-const { requireRole } = require('../middleware/auth');
+const { requireRole, requireOwnership } = require('../middleware/auth');
 const { auditLog } = require('../middleware/audit');
 const {
   validateRequest,
@@ -10,7 +10,8 @@ const {
   updateEmergencyStatusSchema,
   createTransferSchema,
   updateTransferStatusSchema,
-  updateThresholdsSchema
+  updateThresholdsSchema,
+  createStaffSchema
 } = require('../middleware/validation');
 
 const router = express.Router();
@@ -18,11 +19,14 @@ const router = express.Router();
 // Role requirements for hospital staff (staff or admin)
 const hospitalStaffRoles = requireRole(['staff', 'admin']);
 
+// Staff creation (B1)
+router.post('/hospital/staff', requireRole('admin'), validateRequest(createStaffSchema), hospitalController.createStaff);
+
 // Inventory
 router.get('/hospital/inventory', hospitalStaffRoles, hospitalController.getInventory);
 router.post('/hospital/inventory', hospitalStaffRoles, validateRequest(addBatchSchema), hospitalController.addInventory);
-router.put('/hospital/inventory/:id', hospitalStaffRoles, auditLog('inventory_update'), validateRequest(updateBatchSchema), hospitalController.updateInventory);
-router.delete('/hospital/inventory/:id', hospitalStaffRoles, auditLog('inventory_delete'), hospitalController.deleteInventory);
+router.put('/hospital/inventory/:id', hospitalStaffRoles, requireOwnership({ resourceType: 'blood_batches' }), auditLog('inventory_update'), validateRequest(updateBatchSchema), hospitalController.updateInventory);
+router.delete('/hospital/inventory/:id', hospitalStaffRoles, requireOwnership({ resourceType: 'blood_batches' }), auditLog('inventory_delete'), hospitalController.deleteInventory);
 router.get('/hospital/expiry-alerts', hospitalStaffRoles, hospitalController.getExpiryAlerts);
 
 // Surgical Schedules
@@ -34,7 +38,7 @@ router.get('/hospital/donors/search', hospitalStaffRoles, hospitalController.sea
 
 // Emergency Routing
 router.get('/hospital/emergencies', hospitalStaffRoles, hospitalController.listEmergencies);
-router.patch('/hospital/emergencies/:id/status', hospitalStaffRoles, validateRequest(updateEmergencyStatusSchema), hospitalController.updateEmergencyStatus);
+router.patch('/hospital/emergencies/:id/status', hospitalStaffRoles, requireOwnership({ resourceType: 'emergency_requests' }), validateRequest(updateEmergencyStatusSchema), hospitalController.updateEmergencyStatus);
 router.get('/emergency/search', hospitalStaffRoles, hospitalController.searchEmergencyBlood);
 
 // Notifications
@@ -45,7 +49,7 @@ router.patch('/hospital/notifications/read-all', hospitalStaffRoles, hospitalCon
 // Transfers
 router.get('/hospital/transfers', hospitalStaffRoles, hospitalController.listTransfers);
 router.post('/hospital/transfers', hospitalStaffRoles, validateRequest(createTransferSchema), hospitalController.createTransfer);
-router.patch('/hospital/transfers/:id/status', hospitalStaffRoles, auditLog('transfer_update'), validateRequest(updateTransferStatusSchema), hospitalController.updateTransferStatus);
+router.patch('/hospital/transfers/:id/status', hospitalStaffRoles, requireOwnership({ resourceType: 'transfer_requests' }), auditLog('transfer_update'), validateRequest(updateTransferStatusSchema), hospitalController.updateTransferStatus);
 
 // AI Gateways & Thresholds
 router.get('/admin/forecast', hospitalStaffRoles, hospitalController.getForecastGateway);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -56,17 +57,31 @@ const EditProfile = () => {
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem('raktsetu_donor_profile');
-    if (stored) {
-      const data = JSON.parse(stored);
-      setProfile(prev => {
-        const merged = { ...prev, ...data };
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/donor/profile');
+        const data = response.data;
+        const merged = {
+          fullName: data.fullName || '',
+          age: data.age?.toString() || '',
+          gender: data.gender || 'Male',
+          city: data.city || '',
+          pincode: data.pincode || '',
+          bloodGroup: data.bloodGroup || 'O+',
+          weight: data.weight?.toString() || '',
+          chronicIllness: !!data.chronicIllness,
+          donorCode: data.donorCode || 'Not Set',
+          notifySMS: true,
+          notifyWhatsApp: false,
+          notifyEmail: true
+        };
+        setProfile(merged);
         setInitialProfile(merged);
-        return merged;
-      });
-    } else {
-      navigate('/');
-    }
+      } catch (err) {
+        console.error("Failed to fetch donor profile", err);
+      }
+    };
+    fetchProfile();
   }, [navigate]);
 
   useEffect(() => {
@@ -84,7 +99,7 @@ const EditProfile = () => {
     }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     if (e) e.preventDefault();
     const errs = {};
     const trimmedName = profile.fullName.trim();
@@ -104,19 +119,44 @@ const EditProfile = () => {
       return;
     }
     setSaveLoading(true);
-    setTimeout(() => {
-      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(profile));
-      setInitialProfile(profile);
+
+    try {
+      const response = await api.put('/donor/profile', {
+        fullName: profile.fullName,
+        age: parseInt(profile.age, 10),
+        gender: profile.gender,
+        weight: parseFloat(profile.weight),
+        chronicIllness: profile.chronicIllness,
+        availableForDonation: true
+      });
+      
+      const data = response.data;
+      const updated = {
+        ...profile,
+        fullName: data.fullName,
+        age: data.age?.toString(),
+        gender: data.gender,
+        weight: data.weight?.toString(),
+        chronicIllness: data.chronicIllness
+      };
+      
+      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(updated));
+      setInitialProfile(updated);
       setIsDirty(false);
       setSaveLoading(false);
       navigate('/dashboard');
-    }, 1000);
+    } catch (err) {
+      setErrors({ api: err.response?.data?.message || 'Failed to update profile.' });
+      setSaveLoading(false);
+    }
   };
 
   const handleCopyId = () => {
-    navigator.clipboard.writeText('RS-2024-8892');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (profile.donorCode) {
+      navigator.clipboard.writeText(profile.donorCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -205,7 +245,7 @@ const EditProfile = () => {
               <div>
                 <h2 className="font-serif italic leading-[48px] text-[#1A0A0A]" style={{ fontSize: 'clamp(28px, 4vw, 48px)' }}>Donor Credentials</h2>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  <p className="text-[#737373] text-[14px] font-[500] uppercase tracking-[0.02em]">Patient ID: RS-2024-8892</p>
+                  <p className="text-[#737373] text-[14px] font-[500] uppercase tracking-[0.02em]">Patient ID: {profile.donorCode}</p>
                   <button
                     type="button"
                     onClick={handleCopyId}

@@ -237,6 +237,12 @@ const updateCampStatusSchema = z.object({
   status: z.enum(['upcoming', 'active', 'completed', 'cancelled'])
 });
 
+const createStaffSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['staff', 'admin'])
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -259,7 +265,8 @@ module.exports = {
   updateTransferStatusSchema,
   updateThresholdsSchema,
   createCampSchema,
-  updateCampStatusSchema
+  updateCampStatusSchema,
+  createStaffSchema
 };
 
 

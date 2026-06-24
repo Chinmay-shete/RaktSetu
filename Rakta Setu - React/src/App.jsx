@@ -107,8 +107,16 @@ function App() {
                 <Route path="/register-donor" element={<DonorRegistration />} />
                 <Route path="/profile-setup" element={<ProfileSetup />} />
                 <Route path="/location" element={<LocationPage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/edit-profile" element={<EditProfile />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute storageKey="raktsetu_donor_authenticated" redirectPath="/login">
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/edit-profile" element={
+                  <ProtectedRoute storageKey="raktsetu_donor_authenticated" redirectPath="/login">
+                    <EditProfile />
+                  </ProtectedRoute>
+                } />
                 <Route path="/find-camps" element={<FindCamps />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
@@ -117,8 +125,6 @@ function App() {
                 {/* 2. STAFF / HOSPITAL ROUTES  */}
                 {/* --------------------------- */}
                 <Route path="/staff/login" element={<Login />} />
-                <Route path="/staff/token/:token" element={<InviteToken />} />
-                <Route path="/staff/set-password/:token" element={<SetPassword />} />
 
                 <Route path="/staff" element={
                   <ProtectedRoute storageKey="raktsetu_hospital_authenticated" redirectPath="/staff/login">

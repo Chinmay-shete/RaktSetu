@@ -1,7 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDistrict } from '../../context/DistrictContext';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import api from '../../services/api';
+
+// Reset default Leaflet icon paths since bundling often breaks them
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 const BLOOD_GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+const PUNE_CENTER = [18.5204, 73.8567];
 
 const DistrictMap = () => {
   const { appState } = useDistrict();
@@ -11,6 +28,23 @@ const DistrictMap = () => {
   const [filterType, setFilterType] = useState('All');
   const [filterGroup, setFilterGroup] = useState('All');
   const [viewMode, setViewMode] = useState('hospitals'); // 'hospitals' | 'donors'
+  
+  const [mapPins, setMapPins] = useState([]);
+  const [mapLoading, setMapLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMapPins = async () => {
+      try {
+        const response = await api.get('/district/map');
+        setMapPins(response.data);
+      } catch (err) {
+        console.error("Failed to fetch district map data", err);
+      } finally {
+        setMapLoading(false);
+      }
+    };
+    fetchMapPins();
+  }, []);
 
   const filtered = hospitals.filter(h => {
     const matchSearch = h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,34 +74,92 @@ const DistrictMap = () => {
         </div>
 
         {/* View Toggle */}
-        <div className="flex bg-[#E0DAD4] p-1 rounded-xl shrink-0">
+        <div className="flex bg-[#E0DAD4] p-1 rounded-xl shrink-0 z-10">
           <button 
             onClick={() => setViewMode('hospitals')}
-            className={`px-6 py-2.5 rounded-lg text-[13px] font-[600] transition-colors ${viewMode === 'hospitals' ? 'bg-white text-[#1A1210] shadow-sm' : 'text-[#5A5A5A] hover:text-[#1A1210]'}`}
+            className={`px-6 py-2.5 rounded-lg text-[13px] font-[600] transition-colors cursor-pointer ${viewMode === 'hospitals' ? 'bg-white text-[#1A1210] shadow-sm' : 'text-[#5A5A5A] hover:text-[#1A1210]'}`}
           >
             Hospital View
           </button>
           <button 
             onClick={() => setViewMode('donors')}
-            className={`px-6 py-2.5 rounded-lg text-[13px] font-[600] transition-colors ${viewMode === 'donors' ? 'bg-white text-[#1A1210] shadow-sm' : 'text-[#5A5A5A] hover:text-[#1A1210]'}`}
+            className={`px-6 py-2.5 rounded-lg text-[13px] font-[600] transition-colors cursor-pointer ${viewMode === 'donors' ? 'bg-white text-[#1A1210] shadow-sm' : 'text-[#5A5A5A] hover:text-[#1A1210]'}`}
           >
             Donor Density View
           </button>
         </div>
       </section>
 
-      {viewMode === 'hospitals' ? (
+      {/* Map Section */}
+      <div className="bg-white rounded-2xl border border-[#EDE7E1] p-4 shadow-sm h-[600px] w-full relative z-10">
+        {mapLoading ? (
+          <div className="h-full flex items-center justify-center text-sm font-semibold text-[#737373]">Loading map data...</div>
+        ) : (
+          <MapContainer center={PUNE_CENTER} zoom={12} style={{ height: '100%', width: '100%', borderRadius: '12px' }}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {viewMode === 'hospitals' ? (
+              mapPins.map(pin => {
+                const color = pin.status === 'red' ? '#BE1F2E' : pin.status === 'yellow' ? '#E07B00' : '#22A06B';
+                return (
+                  <React.Fragment key={pin.id}>
+                    <Marker position={[pin.lat, pin.lng]}>
+                      <Popup>
+                        <div className="p-1 font-sans text-xs">
+                          <h4 className="font-bold text-sm text-[#1A1210] mb-1">{pin.name}</h4>
+                          <p className="text-[#5A5A5A]">Stock: <span className="font-bold">{pin.aggregateStock} units</span></p>
+                          <p className="text-[#5A5A5A] mt-1 capitalize font-semibold">Status: <span style={{ color }}>{pin.status}</span></p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                    <Circle 
+                      center={[pin.lat, pin.lng]} 
+                      radius={1500} 
+                      pathOptions={{ fillColor: color, color: color, fillOpacity: 0.15 }} 
+                    />
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              // Donor Density View: Draw mock donor clusters/heat areas in the district
+              [
+                { lat: 18.5204, lng: 73.8567, count: 120, label: 'Central Pune' },
+                { lat: 18.5362, lng: 73.8940, count: 85, label: 'Koregaon Park' },
+                { lat: 18.5089, lng: 73.8077, count: 65, label: 'Kothrud' },
+                { lat: 18.5018, lng: 73.8636, count: 95, label: 'Hadapsar' }
+              ].map((donorCluster, idx) => (
+                <Circle 
+                  key={idx}
+                  center={[donorCluster.lat, donorCluster.lng]} 
+                  radius={2000} 
+                  pathOptions={{ fillColor: '#BE1F2E', color: '#BE1F2E', fillOpacity: 0.25, weight: 1 }} 
+                >
+                  <Popup>
+                    <div className="p-1 font-sans text-xs">
+                      <h4 className="font-bold text-sm text-[#1A1210] mb-1">{donorCluster.label} Cluster</h4>
+                      <p className="text-[#5A5A5A]">Registered Donors: <span className="font-bold">{donorCluster.count} donors</span></p>
+                    </div>
+                  </Popup>
+                </Circle>
+              ))
+            )}
+          </MapContainer>
+        )}
+      </div>
+
+      {viewMode === 'hospitals' && (
         <>
           {/* Filter Bar */}
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex-1 min-w-[220px] relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9A9A] text-[18px]">search</span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search hospital or area…"
-                className="input-field !pl-10 text-[14px]"
+                className="input-field text-[14px]"
               />
             </div>
             <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">
@@ -121,7 +213,6 @@ const DistrictMap = () => {
                       <p className="text-[13px] text-[#737373]">{hospital.area}</p>
                     </div>
                     <p className="text-[11px] text-[#9A9A9A] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
                       {hospital.lastUpdated}
                     </p>
                   </div>
@@ -153,7 +244,6 @@ const DistrictMap = () => {
                       href={`tel:${hospital.contact}`}
                       className="bg-[#1a1210] text-white px-4 py-2 rounded-full text-[12px] font-[500] hover:scale-105 transition-transform flex items-center gap-1.5"
                     >
-                      <span className="material-symbols-outlined text-[14px]">call</span>
                       Contact
                     </a>
                   </div>
@@ -169,23 +259,6 @@ const DistrictMap = () => {
             </div>
           )}
         </>
-      ) : (
-        <div className="bg-white rounded-2xl border border-[#EDE7E1] p-8 shadow-sm h-[600px] flex items-center justify-center flex-col relative overflow-hidden">
-          {/* Map Placeholder */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#1A1210 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-[#BE1F2E]/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-[#BE1F2E]/30 rounded-full blur-3xl"></div>
-          
-          <div className="relative z-10 text-center flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-[#FAF8F5] border border-[#EDE7E1] flex items-center justify-center mb-4 text-[#BE1F2E]">
-              <span className="material-symbols-outlined text-3xl">map</span>
-            </div>
-            <h3 className="font-serif italic text-2xl text-[#1A1210] mb-2">Interactive Heatmap Disabled</h3>
-            <p className="text-[#5A5A5A] max-w-md text-sm">
-              The Google Maps integration for donor density visualization is currently in sandbox mode. Once API keys are configured, this will display a live heatmap of O-negative and AB-negative donor concentrations.
-            </p>
-          </div>
-        </div>
       )}
     </div>
   );

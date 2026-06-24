@@ -1,5 +1,7 @@
 const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
+const crypto = require('crypto');
+const { hashPassword } = require('../services/passwordService');
 
 // Memory caches for idempotency and forecasts
 const idempotencyKeys = new Map();
@@ -525,7 +527,7 @@ async function searchEmergencyBlood(req, res, next) {
 
     const pointStr = `POINT(${longitude} ${latitude})`;
 
-    // MySQL Spatial index query using ST_Distance_Sphere
+    // MySQL Spatial index query using ST_Distance_Sphere and pre-filtering with ST_Within/ST_Buffer to utilize spatial index
     const [rows] = await pool.query(
       `SELECT h.id, h.name, h.address, h.city, h.pincode, h.contact, h.lat, h.lng,
               SUM(bb.units - bb.reserved_units) AS available_units,
@@ -534,10 +536,11 @@ async function searchEmergencyBlood(req, res, next) {
        INNER JOIN blood_batches bb ON bb.hospital_id = h.id
        WHERE bb.blood_group = ?
          AND (bb.units - bb.reserved_units) > 0
+         AND ST_Within(h.location, ST_Buffer(ST_GeomFromText(?, 4326), ?))
          AND ST_Distance_Sphere(ST_GeomFromText(?, 4326), h.location) <= ?
        GROUP BY h.id
        ORDER BY distance_m ASC`,
-      [pointStr, bloodGroup, pointStr, searchRadiusMeters]
+      [pointStr, bloodGroup, pointStr, searchRadiusMeters, pointStr, searchRadiusMeters]
     );
 
     const serialized = rows.map(row => ({
@@ -1028,6 +1031,45 @@ async function updateThresholds(req, res, next) {
   }
 }
 
+/**
+ * POST /hospital/staff
+ */
+async function createStaff(req, res, next) {
+  try {
+    const adminHospitalId = req.user.hospital_id;
+    if (!adminHospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const { name, email, role } = req.body;
+    const finalEmail = email.toLowerCase().trim();
+
+    // Check if email already registered
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [finalEmail]);
+    if (existing.length > 0) {
+      throw new ApiError('Email already registered', 409, 'EMAIL_EXISTS');
+    }
+
+    // Generate random 8-char temp password
+    const tempPassword = crypto.randomBytes(4).toString('hex');
+    const passwordHash = await hashPassword(tempPassword);
+
+    await pool.query(
+      'INSERT INTO users (email, password_hash, role, hospital_id, full_name, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [finalEmail, passwordHash, role, adminHospitalId, name, 'Active']
+    );
+
+    return res.status(201).json({
+      tempPassword,
+      email: finalEmail,
+      role,
+      name
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getInventory,
   addInventory,
@@ -1049,6 +1091,7 @@ module.exports = {
   getForecastGateway,
   getWasteAnalyticsGateway,
   getThresholds,
-  updateThresholds
+  updateThresholds,
+  createStaff
 };
 

@@ -122,4 +122,31 @@ describe('Auth API (Phase 2 & Phase 7 Hardening)', () => {
     expect(res.statusCode).toBe(409);
     expect(res.body.code).toBe('EMAIL_EXISTS');
   });
+
+  test('POST /hospital/staff - Should allow hospital admin to create staff directly', async () => {
+    // 1. Log in as hospital admin
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'hospital_admin@example.com',
+        password: 'password123'
+      });
+    const adminToken = loginRes.body.token;
+
+    // 2. Create new staff member
+    const newStaffEmail = `staff-${Date.now()}@example.com`;
+    const res = await request(app)
+      .post('/api/v1/hospital/staff')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: 'New Staff Member',
+        email: newStaffEmail,
+        role: 'staff'
+      });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toHaveProperty('tempPassword');
+    expect(res.body.email).toBe(newStaffEmail);
+    expect(res.body.role).toBe('staff');
+  });
 });

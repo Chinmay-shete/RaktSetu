@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStateAdmin } from '../../context/StateAdminContext';
 import {
@@ -6,6 +6,8 @@ import {
   LineChart, Line,
 } from 'recharts';
 import { AlertTriangle } from 'lucide-react';
+import { Loader } from '../../components/ui/Loader';
+import { ErrorState } from '../../components/ui/ErrorState';
 
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(0);
@@ -27,7 +29,8 @@ const BLOOD_GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
 const StateAdminDashboard = () => {
   const navigate = useNavigate();
-  const { appState } = useStateAdmin();
+  const { appState, isLoading, error, refetchData } = useStateAdmin();
+
   const districts = appState.districts || [];
   const policyAlerts = appState.policyAlerts || [];
   const escalations = appState.escalationReports || [];
@@ -42,6 +45,14 @@ const StateAdminDashboard = () => {
   const criticalCount = useCountUp(criticalDistricts);
   const watchCount = useCountUp(watchDistricts);
   const transferCount = useCountUp(appState.transfers?.length || 0);
+
+  if (isLoading) {
+    return <Loader message="Loading state health statistics..." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={refetchData} />;
+  }
 
   const stateStock = BLOOD_GROUPS.map(g => ({
     group: g,

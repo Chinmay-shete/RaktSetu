@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import { useToast } from '../hooks/useToast';
+import { Loader } from './ui/Loader';
+import { ErrorState } from './ui/ErrorState';
 
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(0);
   useEffect(() => {
+    if (!target) {
+      setValue(0);
+      return;
+    }
     let start = null;
     const step = (ts) => {
       if (!start) start = ts;
@@ -19,11 +27,24 @@ function useCountUp(target, duration = 1200) {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [donorName, setDonorName] = useState('Aarav');
+  const toast = useToast();
+  
+  const [donorName, setDonorName] = useState('Donor');
   const [navScrolled, setNavScrolled] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
-  const totalDonations = useCountUp(12);
-  const livesImpacted = useCountUp(36);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const [stats, setStats] = useState({
+    totalDonations: 0,
+    livesImpacted: 0,
+    nextEligibleDate: 'Eligible Now'
+  });
+  const [donations, setDonations] = useState([]);
+  const [urgentRequests, setUrgentRequests] = useState([]);
+
+  const totalDonations = useCountUp(stats.totalDonations);
+  const livesImpacted = useCountUp(stats.livesImpacted);
 
   useEffect(() => {
     const handleScroll = () => setNavScrolled(window.scrollY > 50);
@@ -31,15 +52,82 @@ const Dashboard = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [statsRes, donationsRes, urgentRes] = await Promise.all([
+        api.get('/donor/stats'),
+        api.get('/donor/donations'),
+        api.get('/donor/urgent-requests')
+      ]);
+      
+      setStats({
+        totalDonations: statsRes.data.totalDonations,
+        livesImpacted: statsRes.data.livesImpacted,
+        nextEligibleDate: statsRes.data.nextEligibleDate 
+          ? new Date(statsRes.data.nextEligibleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
+          : 'Eligible Now'
+      });
+      setDonations(donationsRes.data.donations || []);
+      setUrgentRequests(urgentRes.data || []);
+    } catch (err) {
+      console.error("Error loading donor dashboard data", err);
+      setError("An error occurred while loading donor statistics and logs.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const stored = localStorage.getItem('raktsetu_donor_profile');
-    if (stored) {
-      const data = JSON.parse(stored);
-      if (data.fullName) setDonorName(data.fullName.split(' ')[0]);
-    } else {
+    if (!stored) {
       navigate('/');
+      return;
     }
-  }, [navigate]);
+    
+    const data = JSON.parse(stored);
+    if (data.fullName) setDonorName(data.fullName.split(' ')[0]);
+
+    fetchDashboardData();
+  }, [navigate, fetchDashboardData]);
+
+  const handlePledge = async (emergencyId) => {
+    try {
+      await api.post('/donor/pledge', {
+        emergencyId: parseInt(emergencyId, 10),
+        units: 1
+      });
+      toast.success("Thank you! Your pledge to donate has been registered.");
+      
+      // Refresh dashboard data
+      const [statsRes, donationsRes, urgentRes] = await Promise.all([
+        api.get('/donor/stats'),
+        api.get('/donor/donations'),
+        api.get('/donor/urgent-requests')
+      ]);
+      setStats({
+        totalDonations: statsRes.data.totalDonations,
+        livesImpacted: statsRes.data.livesImpacted,
+        nextEligibleDate: statsRes.data.nextEligibleDate 
+          ? new Date(statsRes.data.nextEligibleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
+          : 'Eligible Now'
+      });
+      setDonations(donationsRes.data.donations || []);
+      setUrgentRequests(urgentRes.data || []);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit pledge. Please check eligibility.");
+    }
+  };
+
+  const handleLogout = () => {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    navigate('/');
+  };
 
   return (
     <div className="bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#c8102e] selection:text-white" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -70,25 +158,34 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center gap-6 shrink-0">
-            <button className="px-5 py-2 text-[14px] font-[600] text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.06)] rounded-full transition-all whitespace-nowrap hidden sm:block">
-              Emergency Request
+            <button 
+              onClick={handleLogout}
+              className="px-5 py-2 text-[14px] font-[600] text-[#5A5A5A] hover:bg-[rgba(26,18,16,0.06)] rounded-full transition-all whitespace-nowrap"
+            >
+              Sign Out
             </button>
             <div className="w-10 h-10 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0" onClick={() => navigate('/edit-profile')}>
-              <img className="w-full h-full object-cover" alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4LePSzF9UlW9h3IVZNZA-jV2c_WlVBNOPY2YRf99m4LW6pnZCOJow0bRw6skvc_LwP1Sjs85QaT6fzeIhBQQwGz1cr7qSI-8pe5tYU7UGinXprHgh-PK3cqnJI4GSnh0oPXhDHqPSKEOnfTxKJG5Rq2yoBTo7yub1N3Vml9LsMa5dsvmQIi2q31bqbhLaYDbmBFE5idwcqyYnZUlrzUizutMwPtY0Wobo9nsUpDKigPRPnhBg27638USNnXdaUSlGAlX-APGnWJw" />
+              <img className="w-full h-full object-cover" alt="Profile" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=faces" />
             </div>
           </div>
         </div>
       </nav>
 
       <main className="pt-32 pb-32 w-full px-6 md:px-10 lg:px-16">
-        {/* Editorial Greeting */}
+        {isLoading ? (
+          <Loader message="Loading donor profile and stats..." />
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchDashboardData} />
+        ) : (
+          <>
+            {/* Editorial Greeting */}
         <section className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <h1 className="font-serif text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em]">
               Welcome back, <span className="text-[#c8102e]">{donorName}.</span>
             </h1>
             <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
-              Your commitment to the clinical supply chain has directly supported three local trauma centers this month. Your precision saves lives.
+              Your commitment to the clinical supply chain directly supports local trauma centers. Your precision saves lives.
             </p>
           </div>
           
@@ -138,10 +235,9 @@ const Dashboard = () => {
               {/* Next Eligibility */}
               <div className="bg-[#1a1210] p-8 rounded-lg relative overflow-hidden group">
                 <p className="text-[12px] font-[600] tracking-[0.05em] text-white/60 uppercase mb-4">Next Eligible Date</p>
-                <h2 className="text-[24px] font-[500] leading-[32px] text-white">Oct 24, 2024</h2>
+                <h2 className="text-[24px] font-[500] leading-[32px] text-white">{stats.nextEligibleDate}</h2>
                 <div className="mt-4 inline-flex items-center gap-2 text-[#ffb3b1]">
-                  <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                  <span className="text-[14px] font-[500]">Mark Calendar</span>
+                  <span className="text-[14px] font-[500]">Keep tracking your logs</span>
                 </div>
               </div>
             </div>
@@ -150,7 +246,6 @@ const Dashboard = () => {
             <div className="bg-white rounded-lg border border-[rgba(26,18,16,0.09)] overflow-hidden">
               <div className="p-6 border-b border-[rgba(26,18,16,0.09)] flex justify-between items-center">
                 <h3 className="text-[24px] font-[500] italic">Recent Donations</h3>
-                <button className="text-[14px] font-[500] text-[#c8102e] hover:underline">Download Reports</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -163,46 +258,26 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[rgba(26,18,16,0.09)]">
-                    <tr className="hover:bg-[#faf8f5] transition-colors">
-                      <td className="px-6 py-4 text-[14px] font-[500]">Aug 12, 2024</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Apollo Medical Center</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Whole Blood</td>
-                      <td className="px-6 py-4">
-                        <span className="badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-[#faf8f5] transition-colors">
-                      <td className="px-6 py-4 text-[14px] font-[500]">May 05, 2024</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Red Cross - City Plaza</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Plasma</td>
-                      <td className="px-6 py-4">
-                        <span className="badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-[#faf8f5] transition-colors">
-                      <td className="px-6 py-4 text-[14px] font-[500]">Feb 20, 2024</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Fortis Logistics Hub</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">Whole Blood</td>
-                      <td className="px-6 py-4">
-                        <span className="badge-success">Completed</span>
-                      </td>
-                    </tr>
+                    {donations.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-8 text-center text-sm text-[#737373]">No recent donations recorded.</td>
+                      </tr>
+                    ) : (
+                      donations.map((d, idx) => (
+                        <tr key={d.id || idx} className="hover:bg-[#faf8f5] transition-colors">
+                          <td className="px-6 py-4 text-[14px] font-[500]">{d.date}</td>
+                          <td className="px-6 py-4 text-[16px] text-[#685c59]">{d.location}</td>
+                          <td className="px-6 py-4 text-[16px] text-[#685c59]">{d.type}</td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[rgba(34,160,107,0.1)] text-[#22A06B]">
+                              {d.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            {/* Eligibility CTA */}
-            <div className="relative rounded-lg overflow-hidden h-64 flex items-center bg-[#c8102e] group">
-              <img className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 transition-transform duration-700 group-hover:scale-110" alt="CTA Background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPibRz0Po3cADqWVeJotqwI5fjq6J_LGtmvf97Pejz_dB8BC95-AYRDHtr68mR1jSCGNyrNHad216bN9r8ZhfCzM6rMBVRpJaOPeTLR4LLYeuwgM631WjmL6mQq6TjXgaNgswV-M_rMRC-HGyfZKVcbfV5xztNZInaEPUjsO6E3CucCbAOR1GnD3CEVbeEFvaZotTR3Z9HKRE9CnyH30i9UXdVMJk2zfx-MeQaE8o0lDXZbgCfsFl7E_HVMJo_QrxKg2gVJoco21Q" />
-              <div className="relative z-10 p-12 w-full flex flex-col md:flex-row justify-between items-center gap-8">
-                <div>
-                  <h3 className="font-serif text-[48px] text-white italic leading-tight">Ready for your next impact?</h3>
-                  <p className="text-white/80 text-[16px] mt-2">Our 2-minute eligibility check ensures you're medically ready.</p>
-                </div>
-                <button className="bg-white text-[#c8102e] px-10 py-4 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400 whitespace-nowrap">
-                  Check Eligibility
-                </button>
               </div>
             </div>
 
@@ -213,93 +288,65 @@ const Dashboard = () => {
             {/* Urgent Requests Sidebar */}
             <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-lg p-8 shadow-sm">
               <div className="flex items-center gap-3 text-[#c8102e] mb-6">
-                <span className="material-symbols-outlined text-[24px]">priority_high</span>
                 <h3 className="text-[24px] font-[500] italic">Urgent Requests</h3>
               </div>
 
               <div className="space-y-8">
-                {/* Request Card 1 */}
-                <div className="p-6 bg-[#f5f3f0] rounded-lg border border-[rgba(26,18,16,0.09)]">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <span className="badge-danger">Critical Shortage</span>
-                      <h4 className="text-[20px] font-[500] mt-2">City General Hospital</h4>
-                    </div>
-                    <div className="bg-[#c8102e] text-white w-12 h-12 flex items-center justify-center rounded font-bold text-xl">O+</div>
-                  </div>
-                  <div className="space-y-2 mb-6">
-                    <div className="flex justify-between text-[12px] font-[600] text-[#737373]">
-                      <span>Fulfillment Progress</span>
-                      <span className="font-bold">85%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-[#eae8e5] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#c8102e]" style={{ width: '85%' }}></div>
-                    </div>
-                  </div>
-                  <button className="w-full bg-[#BE1F2E] text-white py-3 rounded-full text-[14px] font-[600] hover:bg-[#a31825] hover:scale-105 active:scale-95 transition-all duration-300">
-                    Pledge to Donate
-                  </button>
-                </div>
+                {urgentRequests.length === 0 ? (
+                  <p className="text-xs text-[#737373] text-center py-8">No active urgent requests within your radius.</p>
+                ) : (
+                  urgentRequests.map((req) => (
+                    <div key={req.id} className="p-6 bg-[#f5f3f0] rounded-lg border border-[rgba(26,18,16,0.09)]">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#BE1F2E]/10 text-[#BE1F2E]`}>
+                            {req.urgencyLabel || 'Critical Shortage'}
+                          </span>
+                          <h4 className="text-[18px] font-[500] mt-2 leading-tight">{req.hospitalName}</h4>
+                          <p className="text-xs text-[#737373] mt-0.5">{req.distanceKm} km away</p>
+                        </div>
+                        <div className="bg-[#c8102e] text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg shrink-0 ml-2">{req.bloodGroup}</div>
+                      </div>
+                      
+                      {req.message && (
+                        <p className="text-xs text-[#5A5A5A] mb-4 italic leading-relaxed">"{req.message}"</p>
+                      )}
 
-                {/* Request Card 2 */}
-                <div className="p-6 border border-[rgba(26,18,16,0.09)] rounded-lg">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <span className="badge-warning">Moderate Need</span>
-                      <h4 className="text-[20px] font-[500] mt-2">Metro Children's Wing</h4>
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between text-[12px] font-[600] text-[#737373]">
+                          <span>Fulfillment Progress</span>
+                          <span className="font-bold">{req.fulfillmentProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-[#eae8e5] rounded-full overflow-hidden">
+                          <div className="h-full bg-[#c8102e]" style={{ width: `${req.fulfillmentProgress}%` }}></div>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => handlePledge(req.id)}
+                        className="w-full bg-[#BE1F2E] text-white py-3 rounded-full text-[14px] font-[600] hover:bg-[#a31825] hover:scale-105 active:scale-95 transition-all duration-300"
+                      >
+                        Pledge to Donate
+                      </button>
                     </div>
-                    <div className="bg-[#685c59] text-white w-12 h-12 flex items-center justify-center rounded font-bold text-xl">B-</div>
-                  </div>
-                  <p className="text-[16px] text-[#737373] mb-6">Pediatric plasma units required for scheduled surgeries on Friday.</p>
-                  <button className="w-full border border-[#1a1210] text-[#1a1210] py-3 rounded-full text-[14px] font-[500] hover:bg-[#1a1210] hover:text-white transition-colors">
-                    View Details
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Logistics Insight Card */}
-            <div className="bg-[#1a1210] p-8 rounded-lg text-white relative overflow-hidden">
-              <div className="relative z-10">
-                <svg className="h-8 w-8 text-[#BE1F2E] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                <h4 className="text-[24px] font-[500] mb-4 italic">Supply Chain Insight</h4>
-                <p className="text-white/70 text-[16px] mb-6 leading-relaxed">
-                  Your donation type (O+) is currently in the highest demand globally. 1 unit can be split into components that help up to 3 separate neonatal cases.
-                </p>
-                <a className="inline-flex items-center gap-2 text-[#c8102e] text-[14px] font-[500] group" href="#">
-                  Read the 2024 Impact Report
-                  <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
-                </a>
+                  ))
+                )}
               </div>
             </div>
           </aside>
         </div>
+        </>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#1a1210] border-t border-white/10 py-32">
+      <footer className="bg-[#1a1210] border-t border-white/10 py-16">
         <div className="flex flex-col md:flex-row justify-between items-start w-full px-6 md:px-10 lg:px-16 gap-16">
           <div className="max-w-sm">
-            <div className="font-serif text-[60px] text-white italic mb-6 leading-none">RaktSetu</div>
-            <p className="text-[#737373] text-[16px] leading-relaxed">
-              © 2024 RaktSetu. Clinical Excellence in Blood Logistics. Operating at the intersection of medical science and logistical intelligence.
+            <div className="font-serif text-[40px] text-white italic mb-6 leading-none">RaktSetu</div>
+            <p className="text-[#737373] text-[14px] leading-relaxed">
+              © 2026 RaktSetu. Clinical Excellence in Blood Logistics. Operating at the intersection of medical science and logistical intelligence.
             </p>
-          </div>
-          <div className="grid grid-cols-2 gap-16">
-            <div className="space-y-4">
-              <p className="text-white font-bold uppercase tracking-widest text-xs mb-6">Resources</p>
-              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Donor Guidelines</a>
-              <Link className="block text-[#737373] hover:text-white transition-colors" to="/privacy">Privacy Policy</Link>
-              <Link className="block text-[#737373] hover:text-white transition-colors" to="/terms">Terms of Service</Link>
-            </div>
-            <div className="space-y-4">
-              <p className="text-white font-bold uppercase tracking-widest text-xs mb-6">Support</p>
-              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Contact Medical Team</a>
-              <a className="block text-[#737373] hover:text-white transition-colors" href="#">Emergency Access</a>
-              <a className="block text-[#737373] hover:text-white transition-colors" href="#">FAQ</a>
-            </div>
           </div>
         </div>
       </footer>

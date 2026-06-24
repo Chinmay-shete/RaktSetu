@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { mockApi } from '../../../services/mockApi';
+import { mockApi } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import { Modal } from '../../../components/ui/Modal';
 import {
@@ -59,8 +59,8 @@ export const UpdateStock = () => {
       reset();
       navigate('/staff/inventory');
     },
-    onError: () => {
-      toast.error("An error occurred. Failed to register stock.");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "An error occurred. Failed to register stock.");
     }
   });
 

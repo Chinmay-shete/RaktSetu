@@ -346,9 +346,10 @@ async function listUrgentRequests(req, res, next) {
        FROM emergency_requests er
        INNER JOIN hospitals h ON h.id = er.hospital_id
        WHERE er.status IN ('pending', 'open', 'matched')
+         AND ST_Within(er.location, ST_Buffer(ST_GeomFromText(?, 4326), ?))
          AND ST_Distance_Sphere(ST_GeomFromText(?, 4326), er.location) <= ?
        ORDER BY distance_m ASC, er.target_timestamp ASC`,
-      [pointStr, pointStr, radiusMeters]
+      [pointStr, pointStr, radiusMeters, pointStr, radiusMeters]
     );
 
     const requests = [];

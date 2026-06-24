@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDistrict } from '../../context/DistrictContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
+import { Loader } from '../../components/ui/Loader';
+import { ErrorState } from '../../components/ui/ErrorState';
 
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(0);
@@ -24,16 +26,27 @@ const BLOOD_GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
 const DistrictDashboard = () => {
   const navigate = useNavigate();
-  const { appState, approveCamp, rejectCamp, addCamp } = useDistrict();
-  const hospitals = appState.hospitals || [];
-  const alerts = appState.alerts || [];
-  const camps = appState.camps || [];
+  const { appState, approveCamp, rejectCamp, addCamp, isLoading, error, refetchData } = useDistrict();
 
   const [campTab, setCampTab] = useState('list');
   const [campForm, setCampForm] = useState({
     name: '', location: '', date: '', organizer: '', capacity: '', expectedDonors: '', bloodGroups: []
   });
   const [campSubmitted, setCampSubmitted] = useState(false);
+
+  const hospitals = appState.hospitals || [];
+  const alerts = appState.alerts || [];
+  const camps = appState.camps || [];
+
+  const district = appState.officerDetails?.district || 'Pune';
+
+  const totalBags = hospitals.reduce((sum, h) => sum + Object.values(h.stock).reduce((a, b) => a + b, 0), 0);
+  const criticalHospitals = hospitals.filter(h => Object.values(h.stock).some(v => v <= 5)).length;
+  const activeAlerts = alerts.filter(a => a.status === 'Active').length;
+
+  const totalBagsCount = useCountUp(totalBags);
+  const criticalCount = useCountUp(criticalHospitals);
+  const alertCount = useCountUp(activeAlerts);
 
   const handlePlanSubmit = (e) => {
     e.preventDefault();
@@ -53,15 +66,13 @@ const DistrictDashboard = () => {
     }, 2000);
   };
 
-  const district = appState.officerDetails?.district || 'Pune';
+  if (isLoading) {
+    return <Loader message="Loading district statistics..." />;
+  }
 
-  const totalBags = hospitals.reduce((sum, h) => sum + Object.values(h.stock).reduce((a, b) => a + b, 0), 0);
-  const criticalHospitals = hospitals.filter(h => Object.values(h.stock).some(v => v <= 5)).length;
-  const activeAlerts = alerts.filter(a => a.status === 'Active').length;
-
-  const totalBagsCount = useCountUp(totalBags);
-  const criticalCount = useCountUp(criticalHospitals);
-  const alertCount = useCountUp(activeAlerts);
+  if (error) {
+    return <ErrorState message={error} onRetry={refetchData} />;
+  }
 
   // Aggregate blood stock per group across all hospitals
   const aggregateStock = BLOOD_GROUPS.map(group => ({

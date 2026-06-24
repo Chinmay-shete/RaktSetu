@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -23,27 +24,39 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('raktsetu_hospital_authenticated') === 'true';
   });
 
-  const login = (email, password, rememberMe) => {
-    // Mock login logic
-    const savedPassword = localStorage.getItem('raktsetu_hospital_password');
-    
-    // Allow login if password matches saved password, OR if they use 'admin123' as a master fallback
-    if ((savedPassword && password === savedPassword) || password === 'admin123') {
-      setIsAuthenticated(true);
+  const login = async (email, password, rememberMe) => {
+    try {
+      const response = await api.post('/auth/login', {
+        email: email.toLowerCase().trim(),
+        password: password
+      });
+      const { token, user } = response.data;
+      
+      localStorage.setItem('raktsetu_auth_token', token);
       localStorage.setItem('raktsetu_hospital_authenticated', 'true');
+      localStorage.setItem('raktsetu_hospital_profile', JSON.stringify(user));
+      setUser(user);
+      setIsAuthenticated(true);
+
       if (rememberMe) {
           localStorage.setItem('raktsetu_hospital_email', email);
       } else {
           localStorage.removeItem('raktsetu_hospital_email');
       }
       return true;
+    } catch (err) {
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('raktsetu_hospital_authenticated');
+    setUser(null);
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_')) {
+        localStorage.removeItem(key);
+      }
+    });
   };
 
   const updateProfile = (profileData) => {

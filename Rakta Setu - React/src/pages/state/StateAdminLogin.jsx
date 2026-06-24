@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStateAdmin } from '../../context/StateAdminContext';
-
-const MOCK_EMAIL = 'admin@health.maharashtra.gov.in';
-const MOCK_PASSWORD = 'state2026';
+import api from '../../services/api';
 
 const StateAdminLogin = () => {
   const navigate = useNavigate();
@@ -19,7 +17,7 @@ const StateAdminLogin = () => {
     return () => clearTimeout(timeout);
   }, [error]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -30,20 +28,32 @@ const StateAdminLogin = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      if (formData.email === MOCK_EMAIL && formData.password === MOCK_PASSWORD) {
-        loginStateAdmin({
-          name: 'Dr. Anita Deshmukh',
-          designation: 'Principal Secretary, Health',
-          state: 'Maharashtra',
-          email: formData.email,
-        });
-        navigate('/state/dashboard');
-      } else {
-        setError(`Invalid credentials. Use ${MOCK_EMAIL} / ${MOCK_PASSWORD}`);
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password
+      });
+
+      const { token, user } = response.data;
+      if (user.role !== 'state') {
+        throw new Error('Access denied: You are not authorized as a state admin.');
       }
-    }, 1200);
+
+      localStorage.setItem('raktsetu_auth_token', token);
+      localStorage.setItem('raktsetu_state_admin', JSON.stringify({ status: 'logged_in', user }));
+
+      loginStateAdmin({
+        name: user.full_name,
+        designation: 'Principal Secretary, Health',
+        state: 'Maharashtra',
+        email: user.email,
+      });
+      navigate('/state/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Invalid email or password.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -142,7 +152,7 @@ const StateAdminLogin = () => {
 
             <div className="mt-8 text-center text-xs text-[#5A5A5A]">
               Demo credentials:{' '}
-              <span className="font-semibold text-[#1a1a1a]">{MOCK_EMAIL} / {MOCK_PASSWORD}</span>
+              <span className="font-semibold text-[#1a1a1a]">state_admin@example.com / password123</span>
             </div>
           </div>
 

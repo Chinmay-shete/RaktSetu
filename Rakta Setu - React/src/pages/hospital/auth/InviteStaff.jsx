@@ -1,57 +1,62 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, UserPlus, Link as LinkIcon, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, UserPlus, ShieldAlert, CheckCircle2, Loader2, AlertCircle, Copy } from 'lucide-react';
 import { useToast } from '../../../hooks/useToast';
+import api from '../../../services/api';
 
 export const InviteStaff = () => {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [inviteLink, setInviteLink] = useState(null);
+  const [tempPassword, setTempPassword] = useState(null);
+  const [invitedUser, setInvitedUser] = useState(null);
   
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    defaultValues: {
+      role: 'staff'
+    }
+  });
 
   const onSubmit = async (data) => {
+    setTempPassword(null);
+    setInvitedUser(null);
     setIsGenerating(true);
-    setInviteLink(null);
 
-    // Simulate API call to generate link
-    setTimeout(() => {
+    try {
+      const response = await api.post('/hospital/staff', {
+        name: data.name,
+        email: data.email,
+        role: data.role
+      });
+      
+      setTempPassword(response.data.tempPassword);
+      setInvitedUser(response.data);
+      toast.success(`Staff user created successfully!`);
+      reset();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create staff member.');
+    } finally {
       setIsGenerating(false);
-      // Mock generated token link
-      const token = Math.random().toString(36).substring(2, 10);
-      const link = `${window.location.origin}/token/${token}`;
-      setInviteLink(link);
-      toast.success(`Secure invite successfully generated for ${data.email}`);
-    }, 1500);
-  };
-
-  const copyToClipboard = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink);
-      toast.success("Invite link copied to clipboard");
     }
   };
 
-  const handleSendEmail = () => {
-    toast.success("Invitation dispatched securely via Email!");
-    setTimeout(() => {
-      reset();
-      setInviteLink(null);
-    }, 2000);
+  const copyPasswordToClipboard = () => {
+    if (tempPassword) {
+      navigator.clipboard.writeText(tempPassword);
+      toast.success("Temporary password copied to clipboard");
+    }
   };
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in max-w-4xl mx-auto w-full select-none">
       
-      {/* Editorial Header */}
       <section className="border-b border-[#EDE7E1] pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-[36px] md:text-[52px] italic leading-none mb-3 tracking-[-0.03em] text-[#1A1210]">
-            Invite Hospital Staff
+            Create Hospital Staff
           </h1>
           <p className="text-[15px] text-[#5A5A5A] max-w-xl leading-[24px]">
-            Generate secure access tokens and dispatch invitations to medical officers and inventory managers to grant them access to this hospital's dashboard.
+            Directly create staff accounts for medical officers and inventory managers, generating a secure temporary password.
           </p>
         </div>
         <div className="bg-red-50 text-[#BE1F2E] p-3 rounded-2xl border border-[#BE1F2E]/10 w-fit h-fit self-start md:self-center">
@@ -63,36 +68,64 @@ export const InviteStaff = () => {
         {/* Left Column: Form */}
         <div className="bg-white border border-[#EDE7E1] p-8 rounded-2xl shadow-sm flex flex-col gap-6">
           <div>
-            <h2 className="text-[20px] font-medium text-[#1A1210] font-serif">Generate Invitation</h2>
+            <h2 className="text-[20px] font-medium text-[#1A1210] font-serif">Staff Details</h2>
             <p className="text-xs text-[#5A5A5A] mt-1">
-              Enter the staff member's email address to create a unique enrollment link.
+              Enter details to register the new user inside your hospital unit.
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                Full Name
+              </label>
+              <input
+                type="text"
+                placeholder="Dr. Rajesh Kumar"
+                {...register("name", { required: "Full name is required" })}
+                className={`input-field ${errors.name ? 'error' : ''}`}
+              />
+              {errors.name && (
+                <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.name.message}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
                 Staff Email Address
               </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="doctor@hospital.org"
-                  {...register("email", { 
-                    required: "Email address is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Invalid email format"
-                    }
-                  })}
-                  className={`input-field ${errors.email ? 'error' : ''}`}
-                />
-              </div>
+              <input
+                type="email"
+                placeholder="doctor@hospital.org"
+                {...register("email", { 
+                  required: "Email address is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Invalid email format"
+                  }
+                })}
+                className={`input-field ${errors.email ? 'error' : ''}`}
+              />
               {errors.email && (
-                <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5">
+                <span className="text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1">
                   <AlertCircle className="h-3 w-3" /> {errors.email.message}
                 </span>
               )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                Role Assignment
+              </label>
+              <select
+                {...register("role", { required: "Role is required" })}
+                className="input-field select-field"
+              >
+                <option value="staff">Hospital Staff</option>
+                <option value="admin">Hospital Admin</option>
+              </select>
             </div>
 
             <button
@@ -104,12 +137,12 @@ export const InviteStaff = () => {
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating Secure Token...
+                  Creating Staff Account...
                 </>
               ) : (
                 <>
-                  <LinkIcon className="h-4 w-4" />
-                  Generate Link
+                  <UserPlus className="h-4 w-4" />
+                  Create Account
                 </>
               )}
             </button>
@@ -119,7 +152,7 @@ export const InviteStaff = () => {
         {/* Right Column: Result */}
         <div className="bg-[#FAF8F5] border border-[#EDE7E1] p-8 rounded-2xl flex flex-col justify-center items-center text-center min-h-[300px]">
           <AnimatePresence mode="wait">
-            {!inviteLink ? (
+            {!tempPassword ? (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0 }}
@@ -130,7 +163,7 @@ export const InviteStaff = () => {
                 <div className="p-4 rounded-full bg-white border border-[#EDE7E1]">
                   <UserPlus className="h-8 w-8 text-[#7A5F5F]" />
                 </div>
-                <p className="text-xs font-bold uppercase tracking-wider">Link will appear here once generated</p>
+                <p className="text-xs font-bold uppercase tracking-wider">Account password will appear here upon creation</p>
               </motion.div>
             ) : (
               <motion.div
@@ -144,26 +177,25 @@ export const InviteStaff = () => {
                 </div>
                 
                 <div className="w-full">
-                  <p className="text-[11px] font-bold text-[#7A5F5F] uppercase tracking-wider mb-2">Unique Access Token Link</p>
+                  <p className="text-[11px] font-bold text-[#7A5F5F] uppercase tracking-wider mb-2">Temporary Access Password</p>
                   <div 
-                    onClick={copyToClipboard}
-                    className="w-full p-4 bg-white border-2 border-[#BE1F2E]/20 rounded-xl text-xs text-[#BE1F2E] font-mono break-all cursor-pointer hover:border-[#BE1F2E] hover:bg-red-50/10 transition-all shadow-sm group relative"
+                    onClick={copyPasswordToClipboard}
+                    className="w-full p-4 bg-white border-2 border-[#BE1F2E]/20 rounded-xl text-lg text-[#BE1F2E] font-mono break-all cursor-pointer hover:border-[#BE1F2E] hover:bg-red-50/10 transition-all shadow-sm group relative flex items-center justify-between"
                   >
-                    {inviteLink}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white/95 rounded-xl transition-opacity font-bold font-sans text-[#1A1210]">
-                      Click to Copy Link
+                    <span>{tempPassword}</span>
+                    <Copy className="h-4 w-4 text-[#BE1F2E] cursor-pointer ml-2" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white/95 rounded-xl transition-opacity font-bold font-sans text-[#1A1210] text-sm">
+                      Click to Copy Password
                     </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={handleSendEmail}
-                  className="btn-primary w-full"
-                  style={{ minHeight: 52 }}
-                >
-                  <Mail className="h-4 w-4" />
-                  Dispatch Email Invitation
-                </button>
+                <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3.5 text-xs text-left">
+                  <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">CRITICAL WARNING:</span> Relayed to admin only ONCE. Please record or copy this password immediately.
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const HospitalContext = createContext();
 
@@ -54,6 +54,11 @@ export const HospitalProvider = ({ children }) => {
       ...prev,
       status: 'approved' // transition back to approved (so they can log in again)
     }));
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_')) {
+        localStorage.removeItem(key);
+      }
+    });
   };
 
   const inviteStaffMember = (staff) => {
