@@ -121,7 +121,7 @@ async function seed() {
     console.log('Inserting camps...');
     await connection.query(`
       INSERT INTO donation_camps (id, name, camp_date, address, location, district_id, organizer, capacity, expected_donors, status) VALUES
-      (1, 'Kalyani Nagar Community Center Camp', '2026-06-29', 'Kalyani Nagar, Pune', ST_GeomFromText('POINT(73.9032 18.5463)', 4326), 1, 'Rotary Club Pune', 100, 50, 'upcoming')
+      (1, 'Kalyani Nagar Community Center Camp', '2026-06-29', 'Kalyani Nagar, Pune', ST_GeomFromText('POINT(73.9032 18.5463)', 4326), 1, 'Rotary Club Pune', 100, 50, 'active')
     `);
 
     // 12. Notifications (unread alert)

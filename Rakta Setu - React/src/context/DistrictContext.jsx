@@ -100,11 +100,28 @@ export const DistrictProvider = ({ children }) => {
         api.get('/district/camps')
       ]);
 
+      const mappedCamps = (campsRes.data || []).map(camp => {
+        let mappedStatus = 'Pending';
+        if (camp.status === 'upcoming') {
+          mappedStatus = 'Approved';
+        } else if (camp.status === 'active') {
+          mappedStatus = 'Pending';
+        } else if (camp.status === 'cancelled') {
+          mappedStatus = 'Rejected';
+        } else if (camp.status === 'completed') {
+          mappedStatus = 'Completed';
+        }
+        return {
+          ...camp,
+          status: mappedStatus
+        };
+      });
+
       setAppState(prev => ({
         ...prev,
         hospitals: hospRes.data || [],
         alerts: alertsRes.data || [],
-        camps: campsRes.data || [],
+        camps: mappedCamps,
       }));
     } catch (err) {
       console.error("Failed to fetch district data from API", err);
@@ -142,25 +159,63 @@ export const DistrictProvider = ({ children }) => {
     });
   };
 
-  const approveCamp = (campId) => {
-    setAppState(prev => ({
-      ...prev,
-      camps: prev.camps.map(c => c.id === campId ? { ...c, status: 'Approved' } : c),
-    }));
+  const approveCamp = async (campId) => {
+    try {
+      await api.patch(`/district/camps/${campId}/status`, { status: 'upcoming' });
+      setAppState(prev => ({
+        ...prev,
+        camps: prev.camps.map(c => c.id === campId ? { ...c, status: 'Approved' } : c),
+      }));
+    } catch (err) {
+      console.error("Failed to approve camp", err);
+    }
   };
 
-  const rejectCamp = (campId) => {
-    setAppState(prev => ({
-      ...prev,
-      camps: prev.camps.map(c => c.id === campId ? { ...c, status: 'Rejected' } : c),
-    }));
+  const rejectCamp = async (campId) => {
+    try {
+      await api.patch(`/district/camps/${campId}/status`, { status: 'cancelled' });
+      setAppState(prev => ({
+        ...prev,
+        camps: prev.camps.map(c => c.id === campId ? { ...c, status: 'Rejected' } : c),
+      }));
+    } catch (err) {
+      console.error("Failed to reject camp", err);
+    }
   };
 
-  const addCamp = (camp) => {
-    setAppState(prev => ({
-      ...prev,
-      camps: [{ id: Date.now(), status: 'Pending', ...camp }, ...prev.camps],
-    }));
+  const addCamp = async (camp) => {
+    try {
+      const payload = {
+        name: camp.name,
+        campDate: camp.date,
+        address: camp.location,
+        lat: 18.5204,
+        lng: 73.8567,
+        organizer: camp.organizer,
+        capacity: camp.capacity,
+        expectedDonors: camp.expectedDonors
+      };
+      const response = await api.post('/district/camps', payload);
+      const created = response.data;
+      
+      let mappedStatus = 'Pending';
+      if (created.status === 'upcoming') {
+        mappedStatus = 'Approved';
+      } else if (created.status === 'active') {
+        mappedStatus = 'Pending';
+      } else if (created.status === 'cancelled') {
+        mappedStatus = 'Rejected';
+      } else if (created.status === 'completed') {
+        mappedStatus = 'Completed';
+      }
+
+      setAppState(prev => ({
+        ...prev,
+        camps: [{ ...created, status: mappedStatus }, ...prev.camps],
+      }));
+    } catch (err) {
+      console.error("Failed to add camp", err);
+    }
   };
 
   const resolveAlert = (alertId) => {

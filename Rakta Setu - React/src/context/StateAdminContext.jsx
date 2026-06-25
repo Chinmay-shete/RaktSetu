@@ -231,13 +231,18 @@ export const StateAdminProvider = ({ children }) => {
     });
   };
 
-  const approveTransfer = (transferId) => {
-    setAppState(prev => ({
-      ...prev,
-      transfers: prev.transfers.map(t =>
-        t.id === transferId ? { ...t, status: 'In Transit' } : t
-      ),
-    }));
+  const approveTransfer = async (transferId) => {
+    try {
+      await api.patch(`/state/transfers/${transferId}/approve`);
+      setAppState(prev => ({
+        ...prev,
+        transfers: prev.transfers.map(t =>
+          t.id === transferId ? { ...t, status: 'In Transit' } : t
+        ),
+      }));
+    } catch (err) {
+      console.error("Failed to approve transfer", err);
+    }
   };
 
   const resolveAlert = (alertId) => {
