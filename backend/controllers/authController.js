@@ -58,7 +58,8 @@ async function issueTokens(user) {
     user.id,
     user.role,
     user.hospital_id,
-    user.district_id
+    user.district_id,
+    user.token_version || 0
   );
   
   const { token: refreshToken, expiresAt } = jwtService.createRefreshToken(user.id);
@@ -155,7 +156,8 @@ async function register(req, res, next) {
 
     } else if (role === 'admin') {
       // Hospital registration
-      const { email, phone, password, hospitalName, hospitalType, license_no, address, city, state, pincode, lat, lng } = req.body;
+      const { email, phone, password, hospitalName, hospitalType, license_no, address, city, state, pincode, lat, lng, licenseDocument, license_document } = req.body;
+      const uploadedDoc = licenseDocument || license_document || null;
 
       const finalEmail = email.toLowerCase();
       const [existingEmail] = await connection.query('SELECT id FROM users WHERE email = ?', [finalEmail]);
@@ -173,8 +175,8 @@ async function register(req, res, next) {
 
       // Insert Hospital in pending state
       const [hospitalResult] = await connection.query(
-        `INSERT INTO hospitals (name, district_id, type, lat, lng, location, license_no, address, contact, city, state, pincode, verification_status)
-         VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, 'pending')`,
+        `INSERT INTO hospitals (name, district_id, type, lat, lng, location, license_no, address, contact, city, state, pincode, verification_status, license_document)
+         VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, 'pending', ?)`,
         [
           hospitalName,
           districtId,
@@ -187,7 +189,8 @@ async function register(req, res, next) {
           phone,
           city,
           state,
-          pincode
+          pincode,
+          uploadedDoc
         ]
       );
 
@@ -311,6 +314,13 @@ async function logout(req, res, next) {
        SET revoked_at = ? 
        WHERE token_hash = ? AND user_id = ? AND revoked_at IS NULL`,
       [new Date(), tokenHash, parseInt(payload.sub, 10)]
+    );
+
+    await pool.query(
+      `UPDATE users 
+       SET token_version = token_version + 1 
+       WHERE id = ?`,
+      [parseInt(payload.sub, 10)]
     );
 
     return res.status(200).json({ message: 'Logged out successfully' });
@@ -457,7 +467,8 @@ async function refresh(req, res, next) {
       user.id,
       user.role,
       user.hospital_id,
-      user.district_id
+      user.district_id,
+      user.token_version || 0
     );
 
     return res.status(200).json({

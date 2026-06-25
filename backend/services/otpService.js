@@ -42,15 +42,6 @@ async function sendOtp(phone, purpose) {
     connection.release();
   }
 
-  // Log to console for development verification
-  console.log(`\n==================================================`);
-  console.log(`[RaktSetu OTP Verification]`);
-  console.log(`Phone:   ${phone}`);
-  console.log(`Purpose: ${purpose}`);
-  console.log(`Code:    ${code}`);
-  console.log(`Expires: ${expiresAt.toISOString()}`);
-  console.log(`==================================================\n`);
-
   return {
     message: 'OTP sent successfully',
     expires_in: expiresMinutes * 60
@@ -64,7 +55,7 @@ async function verifyOtp(phone, otp, purpose) {
   const now = new Date();
 
   const [rows] = await pool.query(
-    `SELECT id, code, expires_at, verified 
+    `SELECT id, code, expires_at, verified, attempt_count 
      FROM otp_codes 
      WHERE phone = ? AND purpose = ? AND verified = 0
      ORDER BY created_at DESC 
@@ -82,6 +73,10 @@ async function verifyOtp(phone, otp, purpose) {
     throw new ApiError('OTP already used', 400, 'OTP_ALREADY_USED');
   }
 
+  if (row.attempt_count >= 5) {
+    throw new ApiError('Too many failed attempts. OTP is invalidated.', 400, 'OTP_INVALIDATED');
+  }
+
   if (new Date(row.expires_at) < now) {
     throw new ApiError('OTP has expired', 400, 'OTP_EXPIRED');
   }
@@ -96,7 +91,14 @@ async function verifyOtp(phone, otp, purpose) {
   }
 
   if (!isMatch) {
-    throw new ApiError('Invalid OTP code', 400, 'INVALID_OTP');
+    const newAttempts = row.attempt_count + 1;
+    if (newAttempts >= 5) {
+      await pool.query('UPDATE otp_codes SET attempt_count = ?, verified = 1 WHERE id = ?', [newAttempts, row.id]);
+      throw new ApiError('Too many failed attempts. OTP is invalidated.', 400, 'OTP_INVALIDATED');
+    } else {
+      await pool.query('UPDATE otp_codes SET attempt_count = ? WHERE id = ?', [newAttempts, row.id]);
+      throw new ApiError('Invalid OTP code', 400, 'INVALID_OTP');
+    }
   }
 
   // Mark OTP as verified/used

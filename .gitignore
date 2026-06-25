@@ -75,3 +75,9 @@ RacktSetu-React/
 .vite/
 .vscode/
 
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+backend/ai/.venv/

@@ -1,8 +1,15 @@
 const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+
+/**
+ * Helper to validate environment parameters against a strict whitelist.
+ */
+function isValidConfigParam(val) {
+  return /^[a-zA-Z0-9.\-_]+$/.test(val);
+}
 
 /**
  * Helper to format a date to YYYY-MM-DD.
@@ -290,14 +297,27 @@ async function triggerBackup(req, res, next) {
     const filepath = path.join(backupDir, filename);
 
     const dbUser = process.env.DB_USER || 'root';
-    const dbPassword = process.env.DB_PASSWORD ? `-p${process.env.DB_PASSWORD}` : '';
     const dbHost = process.env.DB_HOST || '127.0.0.1';
     const dbName = process.env.DB_NAME || 'raktsetu';
+    const dbPort = process.env.DB_PORT || '3306';
 
-    const cmd = `mysqldump -u ${dbUser} ${dbPassword} -h ${dbHost} ${dbName} > "${filepath}"`;
+    // Validate parameters
+    if (!isValidConfigParam(dbUser) || !isValidConfigParam(dbHost) || !isValidConfigParam(dbName) || !isValidConfigParam(dbPort)) {
+      throw new ApiError('Invalid database configuration parameters', 400, 'INVALID_CONFIG');
+    }
 
-    exec(cmd, async (error) => {
+    const args = ['-u', dbUser, '-h', dbHost, '-P', dbPort];
+    const env = { ...process.env };
+    if (process.env.DB_PASSWORD) {
+      env.MYSQL_PWD = process.env.DB_PASSWORD;
+    }
+    args.push(dbName);
+
+    const writeStream = fs.createWriteStream(filepath);
+    const child = execFile('mysqldump', args, { env }, async (error) => {
+      writeStream.end();
       if (error) {
+        fs.unlink(filepath, () => {});
         console.warn('mysqldump failed, executing JSON export fallback:', error.message);
         try {
           const tables = [
@@ -328,11 +348,14 @@ async function triggerBackup(req, res, next) {
       }
 
       return res.status(200).json({
-        message: 'Database backup completed successfully (SQL)',
+        message: 'Database backup completed successfully',
         filename,
-        filepath
+        filepath,
+        fallback: false
       });
     });
+
+    child.stdout.pipe(writeStream);
   } catch (error) {
     next(error);
   }

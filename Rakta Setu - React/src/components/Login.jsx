@@ -45,10 +45,15 @@ const Login = () => {
     }
   }, [loginMethod, mobileStep]);
 
-  const handleSendOTP = () => {
+  const handleSendOTP = async () => {
     if (mobile.length !== 10 || buttonState !== 'default') return;
     setButtonState('sending');
-    setTimeout(() => {
+    try {
+      const formattedPhone = mobile.startsWith('+') ? mobile : `+91${mobile}`;
+      await api.post('/auth/send-otp', {
+        phone: formattedPhone,
+        purpose: 'login'
+      });
       setButtonState('sent');
       setTimeout(() => {
         setMobileStep(2);
@@ -58,7 +63,11 @@ const Login = () => {
         setOtpSuccess(false);
         setButtonState('default');
       }, 700);
-    }, 1200);
+    } catch (err) {
+      setButtonState('default');
+      const msg = err.response?.data?.message || 'Failed to send OTP. Please try again.';
+      setOtpError(msg);
+    }
   };
 
   const handleResendOTP = () => {
@@ -164,20 +173,43 @@ const Login = () => {
   };
 
   // Perform Mobile OTP Login
-  const handleVerifyOTP = () => {
+  const handleVerifyOTP = async () => {
     const code = otp.join('');
     if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
     setButtonState('sending');
-    setTimeout(() => {
+    try {
+      const formattedPhone = mobile.startsWith('+') ? mobile : `+91${mobile}`;
+      
+      // 1. Verify OTP to get verification token
+      const verifyRes = await api.post('/auth/verify-otp', {
+        phone: formattedPhone,
+        otp: code,
+        purpose: 'login'
+      });
+      const { verification_token } = verifyRes.data;
+
+      // 2. Login using verification token
+      const loginRes = await api.post('/auth/login', {
+        phone: formattedPhone,
+        verificationToken: verification_token
+      });
+
+      const { token, user } = loginRes.data;
+      localStorage.setItem('raktsetu_auth_token', token);
+      localStorage.setItem('raktsetu_donor_authenticated', 'true');
+      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
+      
       setOtpSuccess(true);
       setOtpError('');
       setTimeout(() => {
         setButtonState('default');
-        // Mobile number visitors are always donors
-        localStorage.setItem('raktsetu_donor_authenticated', 'true');
         navigate('/dashboard');
       }, 700);
-    }, 900);
+    } catch (err) {
+      setButtonState('default');
+      const msg = err.response?.data?.message || 'Invalid OTP code. Please try again.';
+      setOtpError(msg);
+    }
   };
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

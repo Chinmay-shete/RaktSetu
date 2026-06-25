@@ -1,3 +1,4 @@
+// TODO: Remove this file once full API integration is verified in production.
 // Mock API Service for RaktSetu Hospital Portal
 // Persists state in localStorage and simulates network delays
 

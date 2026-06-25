@@ -48,6 +48,12 @@ async function requireAuth(req, res, next) {
       throw new ApiError('User account has been suspended. Please contact support.', 403, 'SUSPENDED_USER');
     }
 
+    const tokenVersion = payload.token_version || 0;
+    const dbTokenVersion = user.token_version || 0;
+    if (tokenVersion !== dbTokenVersion) {
+      throw new ApiError('Token is no longer valid (logged out)', 401, 'TOKEN_INVALIDATED');
+    }
+
     // Attach user information to request object
     req.user = user;
     req.token = payload;

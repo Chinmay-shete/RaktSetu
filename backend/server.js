@@ -1,6 +1,10 @@
+require('dotenv').config();
+const { setupGlobalLogger, logger } = require('./services/logger');
+setupGlobalLogger();
+
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const pinoHttp = require('pino-http');
 
 const { testConnection } = require('./config/db');
 const apiRouter = require('./routes');
@@ -10,15 +14,27 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Configure CORS (allow React frontend local ports and support env overrides)
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',')
+const corsOriginEnv = process.env.CORS_ORIGIN;
+
+if (process.env.NODE_ENV === 'production' && !corsOriginEnv) {
+  console.error("CRITICAL ERROR: CORS_ORIGIN environment variable must be explicitly defined in production.");
+  process.exit(1);
+}
+
+if (!process.env.AI_SERVICE_URL) {
+  console.error("CRITICAL ERROR: AI_SERVICE_URL environment variable is missing.");
+  process.exit(1);
+}
+
+const allowedOrigins = corsOriginEnv
+  ? corsOriginEnv.split(',')
   : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8080'];
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
@@ -61,8 +77,10 @@ app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log requests in development
-if (process.env.NODE_ENV !== 'production') {
+// Request logging middleware
+if (process.env.NODE_ENV === 'production') {
+  app.use(pinoHttp({ logger }));
+} else {
   app.use((req, res, next) => {
     console.log(`[HTTP] ${req.method} ${req.url}`);
     next();

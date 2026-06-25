@@ -15,6 +15,20 @@ const {
 } = require('../middleware/validation');
 
 const router = express.Router();
+const upload = require('../middleware/upload');
+const { ApiError } = require('../middleware/errorHandler');
+
+// Public endpoint for uploading hospital license documents during onboarding
+router.post('/hospital/upload-license', upload.single('license'), (req, res, next) => {
+  if (!req.file) {
+    return next(new ApiError('File is required', 400, 'FILE_REQUIRED'));
+  }
+  return res.status(200).json({
+    filename: req.file.filename,
+    originalname: req.file.originalname,
+    size: req.file.size
+  });
+});
 
 // Role requirements for hospital staff (staff or admin)
 const hospitalStaffRoles = requireRole(['staff', 'admin']);

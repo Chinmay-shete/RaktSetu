@@ -23,39 +23,43 @@ def get_db_connection():
 
 @app.route('/api/v1/health', methods=['GET'])
 def health_check():
-    db_status = 'unknown'
-    db_error = None
-    start_time = time.time()
     try:
-        conn = get_db_connection()
-        if conn.is_connected():
-            db_status = 'healthy'
-            conn.close()
-    except Exception as e:
-        db_status = 'unhealthy'
-        db_error = str(e)
-    
-    latency = time.time() - start_time
+        db_status = 'unknown'
+        db_error = None
+        start_time = time.time()
+        try:
+            conn = get_db_connection()
+            if conn.is_connected():
+                db_status = 'healthy'
+                conn.close()
+        except Exception as e:
+            db_status = 'unhealthy'
+            db_error = str(e)
+        
+        latency = time.time() - start_time
 
-    response = {
-        'status': 'OK' if db_status == 'healthy' else 'DEGRADED',
-        'timestamp': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-        'services': {
-            'database': {
-                'status': db_status,
-                'latencyMs': round(latency * 1000, 2)
-            },
-            'ai_service': {
-                'status': 'healthy'
+        response = {
+            'status': 'OK' if db_status == 'healthy' else 'DEGRADED',
+            'timestamp': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'services': {
+                'database': {
+                    'status': db_status,
+                    'latencyMs': round(latency * 1000, 2)
+                },
+                'ai_service': {
+                    'status': 'healthy'
+                }
             }
         }
-    }
-    
-    if db_error:
-        response['services']['database']['error'] = db_error
         
-    status_code = 200 if db_status == 'healthy' else 500
-    return jsonify(response), status_code
+        if db_error:
+            response['services']['database']['error'] = "Database connection issue"
+            
+        status_code = 200 if db_status == 'healthy' else 500
+        return jsonify(response), status_code
+    except Exception as e:
+        app.logger.error(f"Error in health check: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/v1/forecast', methods=['GET'])
 def get_forecast():
@@ -167,7 +171,8 @@ def get_forecast():
         }), 200
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error in forecast: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/v1/waste-analytics', methods=['GET'])
 def get_waste_analytics():
@@ -231,7 +236,8 @@ def get_waste_analytics():
         }), 200
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error in waste analytics: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     print(f"Starting RaktSetu Flask AI service on port {settings.port}...")

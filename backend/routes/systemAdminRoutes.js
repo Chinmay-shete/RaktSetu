@@ -1,6 +1,11 @@
 const express = require('express');
 const systemAdminController = require('../controllers/systemAdminController');
 const { requireRole } = require('../middleware/auth');
+const {
+  validateRequest,
+  approveHospitalSchema,
+  updateUserSchema
+} = require('../middleware/validation');
 
 const router = express.Router();
 const sysadminRole = requireRole('sysadmin');
@@ -11,11 +16,11 @@ router.use(sysadminRole);
 // System Admin Dashboard & Overview
 router.get('/systemadmin/dashboard', systemAdminController.getSystemDashboard);
 router.get('/systemadmin/pending-approvals', systemAdminController.getPendingApprovals);
-router.patch('/systemadmin/hospitals/:id/approve', systemAdminController.approveOrRejectHospital);
+router.patch('/systemadmin/hospitals/:id/approve', validateRequest(approveHospitalSchema), systemAdminController.approveOrRejectHospital);
 
 // User Accounts Management
 router.get('/systemadmin/users', systemAdminController.listUsers);
-router.patch('/systemadmin/users/:id', systemAdminController.updateUser);
+router.patch('/systemadmin/users/:id', validateRequest(updateUserSchema), systemAdminController.updateUser);
 
 // Audit Logging
 router.get('/systemadmin/audit-logs', systemAdminController.getAuditLogs);

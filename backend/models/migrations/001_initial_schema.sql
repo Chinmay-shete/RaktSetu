@@ -1,36 +1,8 @@
--- WARNING: THIS SCHEMA IS DESTRUCTIVE AND WILL WIPE DATA.
--- DO NOT RUN AGAINST A LIVE PRODUCTION DATABASE.
--- RaktSetu Database Schema
--- Compatible with MySQL 8.0+
-
 CREATE DATABASE IF NOT EXISTS raktsetu;
 USE raktsetu;
 
--- Disable foreign key checks temporarily to drop existing tables in case of resetting
-SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS audit_logs;
-DROP TABLE IF EXISTS alert_thresholds;
-DROP TABLE IF EXISTS surgical_schedules;
-DROP TABLE IF EXISTS forecasts;
-DROP TABLE IF EXISTS donations;
-DROP TABLE IF EXISTS emergency_pledges;
-DROP TABLE IF EXISTS demo_requests;
-DROP TABLE IF EXISTS donation_camps;
-DROP TABLE IF EXISTS donors;
-DROP TABLE IF EXISTS notifications;
-DROP TABLE IF EXISTS emergency_requests;
-DROP TABLE IF EXISTS transfer_requests;
-DROP TABLE IF EXISTS blood_batches;
-DROP TABLE IF EXISTS refresh_tokens;
-DROP TABLE IF EXISTS staff_invites;
-DROP TABLE IF EXISTS otp_codes;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS hospitals;
-DROP TABLE IF EXISTS districts;
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- 1. Districts Table
-CREATE TABLE districts (
+CREATE TABLE IF NOT EXISTS districts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   state VARCHAR(100) NOT NULL,
@@ -39,7 +11,7 @@ CREATE TABLE districts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Hospitals Table
-CREATE TABLE hospitals (
+CREATE TABLE IF NOT EXISTS hospitals (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   district_id INT NOT NULL,
@@ -59,7 +31,7 @@ CREATE TABLE hospitals (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. Users Table
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) UNIQUE DEFAULT NULL,
   phone VARCHAR(15) UNIQUE DEFAULT NULL,
@@ -75,9 +47,8 @@ CREATE TABLE users (
   designation VARCHAR(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
 -- 4. Blood Batches Table
-CREATE TABLE blood_batches (
+CREATE TABLE IF NOT EXISTS blood_batches (
   id INT AUTO_INCREMENT PRIMARY KEY,
   hospital_id INT NOT NULL,
   blood_group VARCHAR(5) NOT NULL,
@@ -90,7 +61,7 @@ CREATE TABLE blood_batches (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 5. Transfer Requests Table
-CREATE TABLE transfer_requests (
+CREATE TABLE IF NOT EXISTS transfer_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   from_hospital INT NOT NULL,
   to_hospital INT NOT NULL,
@@ -103,7 +74,7 @@ CREATE TABLE transfer_requests (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 6. Emergency Requests Table
-CREATE TABLE emergency_requests (
+CREATE TABLE IF NOT EXISTS emergency_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   hospital_id INT NOT NULL,
   blood_group VARCHAR(5) NOT NULL,
@@ -117,7 +88,7 @@ CREATE TABLE emergency_requests (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 7. Notifications Table
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT DEFAULT NULL,
   hospital_id INT DEFAULT NULL,
@@ -129,7 +100,7 @@ CREATE TABLE notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 8. Donors Table
-CREATE TABLE donors (
+CREATE TABLE IF NOT EXISTS donors (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL UNIQUE,
   donor_code VARCHAR(20) UNIQUE DEFAULT NULL,
@@ -149,7 +120,7 @@ CREATE TABLE donors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 9. Donation Camps Table
-CREATE TABLE donation_camps (
+CREATE TABLE IF NOT EXISTS donation_camps (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   camp_date DATE NOT NULL,
@@ -163,7 +134,7 @@ CREATE TABLE donation_camps (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 10. Forecasts Table
-CREATE TABLE forecasts (
+CREATE TABLE IF NOT EXISTS forecasts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   hospital_id INT NOT NULL,
   blood_group VARCHAR(5) NOT NULL,
@@ -172,7 +143,7 @@ CREATE TABLE forecasts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 11. Surgical Schedules Table
-CREATE TABLE surgical_schedules (
+CREATE TABLE IF NOT EXISTS surgical_schedules (
   id INT AUTO_INCREMENT PRIMARY KEY,
   hospital_id INT NOT NULL,
   surgery_date DATE NOT NULL,
@@ -183,7 +154,7 @@ CREATE TABLE surgical_schedules (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 12. Alert Thresholds Table
-CREATE TABLE alert_thresholds (
+CREATE TABLE IF NOT EXISTS alert_thresholds (
   hospital_id INT PRIMARY KEY,
   min_stock INT NOT NULL DEFAULT 10,
   max_stock INT NOT NULL DEFAULT 100,
@@ -192,7 +163,7 @@ CREATE TABLE alert_thresholds (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 13. Audit Logs Table
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
   actor_id INT DEFAULT NULL,
   action VARCHAR(255) NOT NULL,
@@ -202,7 +173,7 @@ CREATE TABLE audit_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 14. OTP Codes Table (Auth Support)
-CREATE TABLE otp_codes (
+CREATE TABLE IF NOT EXISTS otp_codes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   phone VARCHAR(20) NOT NULL,
   code CHAR(6) NOT NULL,
@@ -216,7 +187,7 @@ CREATE TABLE otp_codes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 15. Staff Invites Table (Auth Support)
-CREATE TABLE staff_invites (
+CREATE TABLE IF NOT EXISTS staff_invites (
   id INT AUTO_INCREMENT PRIMARY KEY,
   token VARCHAR(64) NOT NULL,
   email VARCHAR(255) NOT NULL,
@@ -230,7 +201,7 @@ CREATE TABLE staff_invites (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 16. Refresh Tokens Table (Auth Support)
-CREATE TABLE refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   token_hash CHAR(64) NOT NULL,
@@ -243,7 +214,7 @@ CREATE TABLE refresh_tokens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 17. Donations Table (Donor Portal Support)
-CREATE TABLE donations (
+CREATE TABLE IF NOT EXISTS donations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   donor_id INT NOT NULL,
   hospital_id INT DEFAULT NULL,
@@ -259,7 +230,7 @@ CREATE TABLE donations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 18. Emergency Pledges Table (Donor Portal Support)
-CREATE TABLE emergency_pledges (
+CREATE TABLE IF NOT EXISTS emergency_pledges (
   id INT AUTO_INCREMENT PRIMARY KEY,
   donor_id INT NOT NULL,
   emergency_id INT NOT NULL,
@@ -270,7 +241,7 @@ CREATE TABLE emergency_pledges (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 19. Demo Requests Table (Public Landing Page Support)
-CREATE TABLE demo_requests (
+CREATE TABLE IF NOT EXISTS demo_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

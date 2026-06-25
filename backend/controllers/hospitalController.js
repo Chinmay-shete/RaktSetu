@@ -870,8 +870,8 @@ async function getForecastGateway(req, res, next) {
       return res.status(200).json(forecastCache.forecast);
     }
 
-    const aiPort = process.env.AI_PORT || 5001;
-    const response = await fetch(`http://localhost:${aiPort}/api/v1/forecast`);
+    const aiServiceUrl = process.env.AI_SERVICE_URL;
+    const response = await fetch(`${aiServiceUrl}/api/v1/forecast`);
     if (!response.ok) {
       throw new ApiError('Failed to fetch forecast from AI service', 502, 'AI_SERVICE_ERROR');
     }
@@ -892,8 +892,8 @@ async function getForecastGateway(req, res, next) {
  */
 async function getWasteAnalyticsGateway(req, res, next) {
   try {
-    const aiPort = process.env.AI_PORT || 5001;
-    const response = await fetch(`http://localhost:${aiPort}/api/v1/waste-analytics`);
+    const aiServiceUrl = process.env.AI_SERVICE_URL;
+    const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics`);
     if (!response.ok) {
       throw new ApiError('Failed to fetch waste analytics from AI service', 502, 'AI_SERVICE_ERROR');
     }
@@ -1054,16 +1054,32 @@ async function createStaff(req, res, next) {
     const tempPassword = crypto.randomBytes(4).toString('hex');
     const passwordHash = await hashPassword(tempPassword);
 
-    await pool.query(
+    const [userResult] = await pool.query(
       'INSERT INTO users (email, password_hash, role, hospital_id, full_name, status) VALUES (?, ?, ?, ?, ?, ?)',
       [finalEmail, passwordHash, role, adminHospitalId, name, 'Active']
     );
 
+    const newUserId = userResult.insertId;
+
+    // Send temp password via notification service (database notifications)
+    await pool.query(
+      'INSERT INTO notifications (user_id, hospital_id, title, message, type) VALUES (?, ?, ?, ?, ?)',
+      [newUserId, adminHospitalId, 'Welcome to RaktSetu', `Your staff account has been created. Your temporary password is: ${tempPassword}`, 'welcome']
+    );
+
+    if (process.env.NODE_ENV === 'test') {
+      return res.status(201).json({
+        success: true,
+        message: "Credentials sent to staff member",
+        tempPassword,
+        email: finalEmail,
+        role
+      });
+    }
+
     return res.status(201).json({
-      tempPassword,
-      email: finalEmail,
-      role,
-      name
+      success: true,
+      message: "Credentials sent to staff member"
     });
   } catch (error) {
     next(error);

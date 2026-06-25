@@ -22,13 +22,17 @@ function errorHandler(err, req, res, next) {
 
   const statusCode = err.statusCode || 500;
   const errorCode = err.code || 'INTERNAL_SERVER_ERROR';
-  const message = err.message || 'An unexpected error occurred.';
+  let message = err.message || 'An unexpected error occurred.';
 
-  // Log error stack for debugging in development
-  if (process.env.NODE_ENV !== 'production') {
-    console.error(`[Error Handler] ${err.stack}`);
-  } else if (statusCode === 500) {
-    console.error(`[Error Handler] ${err.message}`);
+  if (process.env.NODE_ENV === 'production') {
+    if (statusCode === 500) {
+      console.error(`[Error Handler] ${err.stack || err.message}`);
+      message = 'An unexpected error occurred.';
+    } else {
+      console.error(`[Error Handler] ${err.message}`);
+    }
+  } else {
+    console.error(`[Error Handler] ${err.stack || err.message}`);
   }
 
   return res.status(statusCode).json({

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
+import api from '../../services/api';
 
 const HospitalApplication = () => {
   const navigate = useNavigate();
@@ -84,19 +85,36 @@ const HospitalApplication = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
+      setFileError('');
+      try {
+        const data = new FormData();
+        data.append('license', file);
+
+        const uploadRes = await api.post('/hospital/upload-license', data, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        const uploadedFilename = uploadRes.data.filename;
+
         submitApplication({
           ...formData,
+          licenseDocument: uploadedFilename,
           fileName: file.name
         });
+
+        setIsSubmitting(false);
         navigate('/admin/pending');
-      }, 1500);
+      } catch (err) {
+        setIsSubmitting(false);
+        const errMsg = err.response?.data?.message || 'Failed to upload license document. Please try again.';
+        setFileError(errMsg);
+      }
     }
   };
 

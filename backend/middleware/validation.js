@@ -63,7 +63,9 @@ const registerSchema = z.union([
     state: z.string().min(2, 'State must be at least 2 characters'),
     pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers'),
     lat: z.union([z.number(), z.string().transform(Number)]),
-    lng: z.union([z.number(), z.string().transform(Number)])
+    lng: z.union([z.number(), z.string().transform(Number)]),
+    licenseDocument: z.string().optional(),
+    license_document: z.string().optional()
   })
 ]);
 
@@ -243,6 +245,15 @@ const createStaffSchema = z.object({
   role: z.enum(['staff', 'admin'])
 });
 
+const approveHospitalSchema = z.object({
+  status: z.enum(['verified', 'rejected'])
+});
+
+const updateUserSchema = z.object({
+  role: z.enum(['donor', 'staff', 'admin', 'district', 'state', 'sysadmin']).optional(),
+  status: z.enum(['Active', 'Suspended', 'Pending']).optional()
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -266,7 +277,9 @@ module.exports = {
   updateThresholdsSchema,
   createCampSchema,
   updateCampStatusSchema,
-  createStaffSchema
+  createStaffSchema,
+  approveHospitalSchema,
+  updateUserSchema
 };
 
 

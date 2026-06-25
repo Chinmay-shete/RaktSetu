@@ -2,7 +2,24 @@ const jwt = require('jsonwebtoken');
 const { ApiError } = require('../middleware/errorHandler');
 const crypto = require('crypto');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_raktsetu_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const JWT_OTP_SECRET = process.env.JWT_OTP_SECRET;
+
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error('CRITICAL ERROR: JWT_SECRET environment variable is missing or shorter than 32 characters.');
+  process.exit(1);
+}
+
+if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 32) {
+  console.error('CRITICAL ERROR: JWT_REFRESH_SECRET environment variable is missing or shorter than 32 characters.');
+  process.exit(1);
+}
+
+if (!JWT_OTP_SECRET || JWT_OTP_SECRET.length < 32) {
+  console.error('CRITICAL ERROR: JWT_OTP_SECRET environment variable is missing or shorter than 32 characters.');
+  process.exit(1);
+}
 
 const TOKEN_TYPE_ACCESS = 'access';
 const TOKEN_TYPE_REFRESH = 'refresh';
@@ -11,8 +28,8 @@ const TOKEN_TYPE_OTP = 'otp_verification';
 /**
  * Encodes a payload into a JWT.
  */
-function encode(payload) {
-  return jwt.sign(payload, JWT_SECRET);
+function encode(payload, secret) {
+  return jwt.sign(payload, secret);
 }
 
 /**
@@ -20,7 +37,21 @@ function encode(payload) {
  */
 function decodeToken(token, expectedType = null) {
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const unverified = jwt.decode(token);
+    if (!unverified || !unverified.type) {
+      throw new ApiError('Invalid token structure', 401, 'INVALID_TOKEN');
+    }
+
+    let secret;
+    if (unverified.type === TOKEN_TYPE_REFRESH) {
+      secret = JWT_REFRESH_SECRET;
+    } else if (unverified.type === TOKEN_TYPE_OTP) {
+      secret = JWT_OTP_SECRET;
+    } else {
+      secret = JWT_SECRET;
+    }
+
+    const payload = jwt.verify(token, secret);
     if (expectedType && payload.type !== expectedType) {
       throw new ApiError('Invalid token type', 401, 'INVALID_TOKEN_TYPE');
     }
@@ -39,7 +70,7 @@ function decodeToken(token, expectedType = null) {
 /**
  * Creates an access token.
  */
-function createAccessToken(userId, role, hospitalId = null, districtId = null) {
+function createAccessToken(userId, role, hospitalId = null, districtId = null, tokenVersion = 0) {
   const expiresMinutes = parseInt(process.env.JWT_ACCESS_EXPIRES_MINUTES || '60', 10);
   const payload = {
     sub: String(userId),
@@ -47,10 +78,11 @@ function createAccessToken(userId, role, hospitalId = null, districtId = null) {
     hospital_id: hospitalId,
     district_id: districtId,
     type: TOKEN_TYPE_ACCESS,
+    token_version: tokenVersion,
     exp: Math.floor(Date.now() / 1000) + (expiresMinutes * 60),
     iat: Math.floor(Date.now() / 1000)
   };
-  return encode(payload);
+  return encode(payload, JWT_SECRET);
 }
 
 /**
@@ -70,7 +102,7 @@ function createRefreshToken(userId) {
   };
   
   return {
-    token: encode(payload),
+    token: encode(payload, JWT_REFRESH_SECRET),
     expiresAt
   };
 }
@@ -87,7 +119,7 @@ function createOtpVerificationToken(phone, purpose) {
     exp: Math.floor(Date.now() / 1000) + (expiresMinutes * 60),
     iat: Math.floor(Date.now() / 1000)
   };
-  return encode(payload);
+  return encode(payload, JWT_OTP_SECRET);
 }
 
 /**

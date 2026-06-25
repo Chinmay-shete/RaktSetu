@@ -21,11 +21,9 @@ async function getHealth(req, res, next) {
       }
     });
   } catch (error) {
-    // DB is offline or errored, but we still want to respond with 500 error code
+    console.error('Health check failed (Database Offline):', error);
     return res.status(500).json({
-      error: true,
-      message: `Health check failed: database connection issue: ${error.message}`,
-      code: 'DATABASE_OFFLINE'
+      status: 'unhealthy'
     });
   }
 }

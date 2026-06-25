@@ -1,6 +1,11 @@
 const express = require('express');
 const authController = require('../controllers/authController');
 const {
+  loginRateLimiter,
+  sendOtpRateLimiter,
+  verifyOtpRateLimiter
+} = require('../middleware/rateLimiter');
+const {
   validateRequest,
   sendOtpSchema,
   verifyOtpSchema,
@@ -14,16 +19,16 @@ const {
 const router = express.Router();
 
 // 1. Send OTP (Phone Verification dispatch)
-router.post('/send-otp', validateRequest(sendOtpSchema), authController.sendOtp);
+router.post('/send-otp', sendOtpRateLimiter, validateRequest(sendOtpSchema), authController.sendOtp);
 
 // 2. Verify OTP
-router.post('/verify-otp', validateRequest(verifyOtpSchema), authController.verifyOtp);
+router.post('/verify-otp', verifyOtpRateLimiter, validateRequest(verifyOtpSchema), authController.verifyOtp);
 
 // 3. Register (Donor or Hospital Admin)
 router.post('/register', validateRequest(registerSchema), authController.register);
 
 // 4. Login (Email/Password or Phone/OTP)
-router.post('/login', validateRequest(loginSchema), authController.login);
+router.post('/login', loginRateLimiter, validateRequest(loginSchema), authController.login);
 
 // 5. Logout
 router.post('/logout', validateRequest(logoutSchema), authController.logout);
