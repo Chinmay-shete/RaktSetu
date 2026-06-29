@@ -12,10 +12,9 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor
+// Request Interceptor — attach JWT to every outgoing request
 api.interceptors.request.use(
   (config) => {
-    // Add auth token if available (can be customized based on role)
     const token = localStorage.getItem('raktsetu_auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -25,14 +24,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor
+// Response Interceptor — on 401, clear all auth state and redirect to role-appropriate login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access — redirect to the role-appropriate login page
       console.warn('Unauthorized access - redirecting to login');
-      // Clear all raktsetu auth tokens
+      // Clear all raktsetu_ prefixed auth tokens
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('raktsetu_')) localStorage.removeItem(key);
       });
@@ -50,7 +48,10 @@ api.interceptors.response.use(
   }
 );
 
-export const mockApi = {
+// ─── Hospital Portal API helpers ─────────────────────────────────────────────
+// These replace the old mockApi named export. All calls go through the real backend.
+
+export const hospitalApi = {
   getInventory: () => api.get('/hospital/inventory').then(res => res.data),
   addInventory: (item) => api.post('/hospital/inventory', item).then(res => res.data),
   updateInventory: (id, fields) => api.put(`/hospital/inventory/${id}`, fields).then(res => res.data),
@@ -63,6 +64,10 @@ export const mockApi = {
   markNotificationRead: (id) => api.patch(`/hospital/notifications/${id}/read`).then(res => res.data),
   markAllNotificationsRead: () => api.patch('/hospital/notifications/read-all').then(res => res.data),
   getAnalytics: () => api.get('/admin/waste-analytics').then(res => res.data),
+  searchDonors: (params) => api.get('/hospital/donors/search', { params }).then(res => res.data),
+  getSurgicalSchedules: () => api.get('/hospital/surgical-schedule').then(res => res.data),
+  createSurgicalSchedule: (data) => api.post('/hospital/surgical-schedule', data).then(res => res.data),
+  getForecast: () => api.get('/admin/forecast').then(res => res.data),
 };
 
 export default api;

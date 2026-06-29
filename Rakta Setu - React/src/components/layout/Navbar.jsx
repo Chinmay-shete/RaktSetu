@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
-import { mockApi } from '../../services/api';
+import { hospitalApi } from '../../services/api';
 import {
   Bell,
   Search,
@@ -39,7 +39,7 @@ export const Navbar = ({ onMenuOpen }) => {
 
   const fetchNotifs = async () => {
     try {
-      const data = await mockApi.getNotifications();
+      const data = await hospitalApi.getNotifications();
       // Filter out any notification of type Emergency since it's removed
       const filtered = data.filter(n => n.type !== 'Emergency');
       setNotifications(filtered);
@@ -75,7 +75,7 @@ export const Navbar = ({ onMenuOpen }) => {
 
   const markAllRead = async () => {
     try {
-      await mockApi.markAllNotificationsRead();
+      await hospitalApi.markAllNotificationsRead();
       await fetchNotifs();
       toast.success("All notifications marked as read");
     } catch (e) {
@@ -86,7 +86,7 @@ export const Navbar = ({ onMenuOpen }) => {
   const markRead = async (id, e) => {
     e.stopPropagation();
     try {
-      await mockApi.markNotificationRead(id);
+      await hospitalApi.markNotificationRead(id);
       await fetchNotifs();
     } catch (e) {
       console.error(e);

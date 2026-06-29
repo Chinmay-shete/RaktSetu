@@ -635,10 +635,14 @@ async function approveStateTransfer(req, res, next) {
 
     // Fetch transfer detail
     const [transferRows] = await connection.query(
-      `SELECT tr.*, d_from.state AS from_state 
+      `SELECT tr.*, d_from.state AS from_state,
+              h_from.name AS from_hospital_name, d_from.name AS from_district_name,
+              h_to.name AS to_hospital_name, d_to.name AS to_district_name
        FROM transfer_requests tr
        INNER JOIN hospitals h_from ON h_from.id = tr.from_hospital
        INNER JOIN districts d_from ON d_from.id = h_from.district_id
+       INNER JOIN hospitals h_to ON h_to.id = tr.to_hospital
+       INNER JOIN districts d_to ON d_to.id = h_to.district_id
        WHERE tr.id = ? FOR UPDATE`,
       [transferId]
     );
@@ -691,9 +695,10 @@ async function approveStateTransfer(req, res, next) {
 
     // Write audit log entry (B4)
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const actionDesc = `Action: cross_district_transfer_approved | ID: ${transferId} | Status: pending->accepted | From: Hosp ${transfer.from_hospital} (${transfer.from_hospital_name}, Dist: ${transfer.from_district_name}) -> To: Hosp ${transfer.to_hospital} (${transfer.to_hospital_name}, Dist: ${transfer.to_district_name})`.slice(0, 255);
     await connection.query(
-      "INSERT INTO audit_logs (actor_id, action, severity, ip_address) VALUES (?, 'CROSS_DISTRICT_TRANSFER_APPROVED', 'warning', ?)",
-      [req.user.id, ipAddress]
+      "INSERT INTO audit_logs (actor_id, action, severity, ip_address) VALUES (?, ?, 'warning', ?)",
+      [req.user.id, actionDesc, ipAddress]
     );
 
     await connection.commit();

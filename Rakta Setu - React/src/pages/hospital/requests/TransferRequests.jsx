@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import api, { mockApi } from '../../../services/api';
+import api, { hospitalApi } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import { Loader } from '../../../components/ui/Loader';
 import { ErrorState } from '../../../components/ui/ErrorState';
@@ -30,11 +30,11 @@ export const TransferRequests = () => {
 
   const { data: transfers = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['transfers'],
-    queryFn: mockApi.getTransferRequests
+    queryFn: hospitalApi.getTransferRequests
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }) => mockApi.updateTransferStatus(id, status),
+    mutationFn: ({ id, status }) => hospitalApi.updateTransferStatus(id, status),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['transfers'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
@@ -59,7 +59,7 @@ export const TransferRequests = () => {
 
   const createRequestMutation = useMutation({
     mutationFn: async (newReq) => {
-      const key = `idemp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const key = `idemp-${Date.now()}-${crypto.randomUUID()}`;
       const response = await api.post('/hospital/transfers', newReq, {
         headers: { 'Idempotency-Key': key }
       });

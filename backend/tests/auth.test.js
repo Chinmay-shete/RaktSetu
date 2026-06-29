@@ -148,5 +148,65 @@ describe('Auth API (Phase 2 & Phase 7 Hardening)', () => {
     expect(res.body).toHaveProperty('tempPassword');
     expect(res.body.email).toBe(newStaffEmail);
     expect(res.body.role).toBe('staff');
+
+    // 3. Verify logging in with the temp password works and forces password change
+    const staffLoginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        email: newStaffEmail,
+        password: res.body.tempPassword
+      });
+    
+    expect(staffLoginRes.statusCode).toBe(200);
+    expect(staffLoginRes.body.user.mustChangePassword).toBe(true);
+
+    const staffToken = staffLoginRes.body.token;
+
+    // 4. Change password using rotation endpoint
+    const rotateRes = await request(app)
+      .post('/api/v1/auth/change-password')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({
+        currentPassword: res.body.tempPassword,
+        newPassword: 'newsecurepassword123'
+      });
+
+    expect(rotateRes.statusCode).toBe(200);
+    expect(rotateRes.body.success).toBe(true);
+
+    // 5. Verify logging in with new password succeeds and mustChangePassword is false
+    const staffLogin2Res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        email: newStaffEmail,
+        password: 'newsecurepassword123'
+      });
+    
+    expect(staffLogin2Res.statusCode).toBe(200);
+    expect(staffLogin2Res.body.user.mustChangePassword).toBe(false);
+  });
+
+  test('POST /hospital/staff - Should reject spoofed hospitalId in body', async () => {
+    // 1. Log in as hospital admin (hospital_id = 2)
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'hospital_admin@example.com',
+        password: 'password123'
+      });
+    const adminToken = loginRes.body.token;
+
+    // 2. Create staff passing spoofed hospitalId = 9999
+    const res = await request(app)
+      .post('/api/v1/hospital/staff')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: 'Spoofed Staff',
+        email: `spoofed-${Date.now()}@example.com`,
+        role: 'staff',
+        hospitalId: 9999
+      });
+
+    expect(res.statusCode).toBe(400);
   });
 });

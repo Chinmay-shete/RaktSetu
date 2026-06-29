@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { mockApi } from '../../services/api';
+import { hospitalApi } from '../../services/api';
 import { Loader } from '../../components/ui/Loader';
 import { useToast } from '../../hooks/useToast';
 import { ErrorState } from '../../components/ui/ErrorState';
@@ -36,22 +36,27 @@ export const Dashboard = () => {
 
   const { data: inventory = [], isLoading: invLoading, isError: invError, refetch: refetchInv } = useQuery({
     queryKey: ['inventory'],
-    queryFn: mockApi.getInventory
+    queryFn: hospitalApi.getInventory
   });
 
   const { data: transfers = [], isLoading: transLoading, isError: transError, refetch: refetchTrans } = useQuery({
     queryKey: ['transfers'],
-    queryFn: mockApi.getTransferRequests
+    queryFn: hospitalApi.getTransferRequests
   });
 
   const { data: emergencies = [], isLoading: emerLoading } = useQuery({
     queryKey: ['emergencies'],
-    queryFn: mockApi.getEmergencyRequests,
+    queryFn: hospitalApi.getEmergencyRequests,
     refetchInterval: 10000 // Refetch every 10s for live timers
   });
 
+  const { data: notifications = [], isLoading: notifLoading } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: hospitalApi.getNotifications
+  });
+
   const emergencyMutation = useMutation({
-    mutationFn: ({ id, status }) => mockApi.updateEmergencyStatus(id, status),
+    mutationFn: ({ id, status }) => hospitalApi.updateEmergencyStatus(id, status),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['emergencies'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
@@ -63,7 +68,7 @@ export const Dashboard = () => {
     }
   });
 
-  if (invLoading || transLoading || emerLoading) {
+  if (invLoading || transLoading || emerLoading || notifLoading) {
     return <Loader message="Fetching dashboard status..." />;
   }
 
@@ -90,13 +95,12 @@ export const Dashboard = () => {
 
   const uniqueCriticalGroups = [...new Set(criticalGroups)];
 
-  // Simple mock recent activities
-  const recentActivities = [
-    { id: 1, text: 'Added 5 units of O+ blood to inventory', time: '10 mins ago' },
-    { id: 2, text: 'Approved transfer request from Red Cross Hospital', time: '1 hour ago' },
-    { id: 3, text: 'Alert: 2 units of AB- are expiring in 5 days', time: '3 hours ago' },
-    { id: 4, text: 'Discarded 1 expired unit of B-', time: 'Yesterday' }
-  ];
+  // Map real notifications to recent activities
+  const recentActivities = notifications.slice(0, 4).map(n => ({
+    id: n.id,
+    text: `${n.title}: ${n.message}`,
+    time: n.created_at ? new Date(n.created_at).toLocaleDateString() : 'Recent'
+  }));
 
   const quickActions = [
     { label: 'Update Stock', path: '/update-stock', icon: PlusCircle, bg: 'bg-[#BE1F2E]/10 text-[#BE1F2E]' },

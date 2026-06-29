@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { mockApi } from '../../../services/api';
+import { hospitalApi } from '../../../services/api';
 import { exportToCSV } from '../../../utils/csvExport';
 import { useToast } from '../../../hooks/useToast';
 import { Loader } from '../../../components/ui/Loader';
@@ -38,11 +38,11 @@ export const BloodInventory = () => {
 
   const { data: inventory = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['inventory'],
-    queryFn: mockApi.getInventory
+    queryFn: hospitalApi.getInventory
   });
 
   const deleteMutation = useMutation({
-    mutationFn: mockApi.deleteInventory,
+    mutationFn: hospitalApi.deleteInventory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       toast.success("Blood bag batch deleted successfully!");

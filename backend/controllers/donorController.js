@@ -337,7 +337,20 @@ async function listUrgentRequests(req, res, next) {
     }
 
     const radiusMeters = 10000; // 10km radius
-    const pointStr = `POINT(${donor.lng} ${donor.lat})`;
+    const radiusKm = radiusMeters / 1000;
+    const latitude = parseFloat(donor.lat);
+    const longitude = parseFloat(donor.lng);
+
+    const deltaLat = radiusKm / 111.045;
+    const deltaLng = radiusKm / (111.045 * Math.cos(latitude * Math.PI / 180));
+
+    const minLat = latitude - deltaLat;
+    const maxLat = latitude + deltaLat;
+    const minLng = longitude - deltaLng;
+    const maxLng = longitude + deltaLng;
+
+    const envelopeStr = `POLYGON((${minLng} ${minLat}, ${maxLng} ${minLat}, ${maxLng} ${maxLat}, ${minLng} ${maxLat}, ${minLng} ${minLat}))`;
+    const pointStr = `POINT(${longitude} ${latitude})`;
 
     const [rows] = await pool.query(
       `SELECT er.id, er.blood_group, er.units, er.status, er.message, er.target_timestamp, er.lat, er.lng,
@@ -346,10 +359,10 @@ async function listUrgentRequests(req, res, next) {
        FROM emergency_requests er
        INNER JOIN hospitals h ON h.id = er.hospital_id
        WHERE er.status IN ('pending', 'open', 'matched')
-         AND ST_Within(er.location, ST_Buffer(ST_GeomFromText(?, 4326), ?))
+         AND ST_Within(er.location, ST_GeomFromText(?, 4326))
          AND ST_Distance_Sphere(ST_GeomFromText(?, 4326), er.location) <= ?
        ORDER BY distance_m ASC, er.target_timestamp ASC`,
-      [pointStr, pointStr, radiusMeters, pointStr, radiusMeters]
+      [pointStr, envelopeStr, pointStr, radiusMeters]
     );
 
     const requests = [];

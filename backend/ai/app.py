@@ -11,6 +11,16 @@ from config.config import get_settings
 app = Flask(__name__)
 settings = get_settings()
 
+@app.before_request
+def require_internal_token():
+    # Allow health check to pass without token
+    if request.path == '/api/v1/health':
+        return
+    
+    token = request.headers.get('X-Internal-Token')
+    if not token or token != settings.internal_api_secret:
+        return jsonify({"error": "Unauthorized inter-service request"}), 401
+
 def get_db_connection():
     return mysql.connector.connect(
         host=settings.db_host,

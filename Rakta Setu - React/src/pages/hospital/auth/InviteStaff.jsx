@@ -9,7 +9,7 @@ export const InviteStaff = () => {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [tempPassword, setTempPassword] = useState(null);
-  const [invitedUser, setInvitedUser] = useState(null);
+  const [apiError, setApiError] = useState('');
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
@@ -19,8 +19,8 @@ export const InviteStaff = () => {
 
   const onSubmit = async (data) => {
     setTempPassword(null);
-    setInvitedUser(null);
     setIsGenerating(true);
+    setApiError('');
 
     try {
       const response = await api.post('/hospital/staff', {
@@ -30,11 +30,12 @@ export const InviteStaff = () => {
       });
       
       setTempPassword(response.data.tempPassword);
-      setInvitedUser(response.data);
       toast.success(`Staff user created successfully!`);
       reset();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create staff member.');
+      const msg = err.response?.data?.message || 'Failed to create staff member.';
+      setApiError(msg);
+      toast.error(msg);
     } finally {
       setIsGenerating(false);
     }
@@ -75,6 +76,12 @@ export const InviteStaff = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+            {apiError && (
+              <div className="p-3 bg-red-50 text-[#BE1F2E] text-xs font-semibold rounded-lg flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{apiError}</span>
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
                 Full Name

@@ -254,6 +254,11 @@ const updateUserSchema = z.object({
   status: z.enum(['Active', 'Suspended', 'Pending']).optional()
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters')
+});
+
 module.exports = {
   validateRequest,
   sendOtpSchema,
@@ -279,7 +284,8 @@ module.exports = {
   updateCampStatusSchema,
   createStaffSchema,
   approveHospitalSchema,
-  updateUserSchema
+  updateUserSchema,
+  changePasswordSchema
 };
 
 

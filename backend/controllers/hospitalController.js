@@ -2,6 +2,7 @@ const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
 const crypto = require('crypto');
 const { hashPassword } = require('../services/passwordService');
+const { sendEmail } = require('../services/emailService');
 
 // Memory caches for idempotency and forecasts
 const idempotencyKeys = new Map();
@@ -525,9 +526,18 @@ async function searchEmergencyBlood(req, res, next) {
     const searchRadiusKm = parseFloat(radius) || 50; // Default to 50km
     const searchRadiusMeters = searchRadiusKm * 1000;
 
+    const deltaLat = searchRadiusKm / 111.045;
+    const deltaLng = searchRadiusKm / (111.045 * Math.cos(latitude * Math.PI / 180));
+
+    const minLat = latitude - deltaLat;
+    const maxLat = latitude + deltaLat;
+    const minLng = longitude - deltaLng;
+    const maxLng = longitude + deltaLng;
+
+    const envelopeStr = `POLYGON((${minLng} ${minLat}, ${maxLng} ${minLat}, ${maxLng} ${maxLat}, ${minLng} ${maxLat}, ${minLng} ${minLat}))`;
     const pointStr = `POINT(${longitude} ${latitude})`;
 
-    // MySQL Spatial index query using ST_Distance_Sphere and pre-filtering with ST_Within/ST_Buffer to utilize spatial index
+    // MySQL Spatial index query using ST_Within and pre-filtering with bounding envelope to utilize spatial index
     const [rows] = await pool.query(
       `SELECT h.id, h.name, h.address, h.city, h.pincode, h.contact, h.lat, h.lng,
               SUM(bb.units - bb.reserved_units) AS available_units,
@@ -536,11 +546,11 @@ async function searchEmergencyBlood(req, res, next) {
        INNER JOIN blood_batches bb ON bb.hospital_id = h.id
        WHERE bb.blood_group = ?
          AND (bb.units - bb.reserved_units) > 0
-         AND ST_Within(h.location, ST_Buffer(ST_GeomFromText(?, 4326), ?))
+         AND ST_Within(h.location, ST_GeomFromText(?, 4326))
          AND ST_Distance_Sphere(ST_GeomFromText(?, 4326), h.location) <= ?
        GROUP BY h.id
        ORDER BY distance_m ASC`,
-      [pointStr, bloodGroup, pointStr, searchRadiusMeters, pointStr, searchRadiusMeters]
+      [pointStr, bloodGroup, envelopeStr, pointStr, searchRadiusMeters]
     );
 
     const serialized = rows.map(row => ({
@@ -871,7 +881,11 @@ async function getForecastGateway(req, res, next) {
     }
 
     const aiServiceUrl = process.env.AI_SERVICE_URL;
-    const response = await fetch(`${aiServiceUrl}/api/v1/forecast`);
+    const response = await fetch(`${aiServiceUrl}/api/v1/forecast`, {
+      headers: {
+        'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+      }
+    });
     if (!response.ok) {
       throw new ApiError('Failed to fetch forecast from AI service', 502, 'AI_SERVICE_ERROR');
     }
@@ -893,7 +907,11 @@ async function getForecastGateway(req, res, next) {
 async function getWasteAnalyticsGateway(req, res, next) {
   try {
     const aiServiceUrl = process.env.AI_SERVICE_URL;
-    const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics`);
+    const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics`, {
+      headers: {
+        'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+      }
+    });
     if (!response.ok) {
       throw new ApiError('Failed to fetch waste analytics from AI service', 502, 'AI_SERVICE_ERROR');
     }
@@ -1041,7 +1059,13 @@ async function createStaff(req, res, next) {
       throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
     }
 
-    const { name, email, role } = req.body;
+    const { name, email, role, hospitalId: bodyHospitalId, hospital_id: bodyHospitalIdSnake } = req.body;
+    const bodyHospId = bodyHospitalId !== undefined ? bodyHospitalId : bodyHospitalIdSnake;
+
+    if (bodyHospId !== undefined && bodyHospId !== null && String(bodyHospId) !== String(adminHospitalId)) {
+      throw new ApiError('Cannot create staff for another hospital', 400, 'BAD_REQUEST');
+    }
+
     const finalEmail = email.toLowerCase().trim();
 
     // Check if email already registered
@@ -1055,7 +1079,7 @@ async function createStaff(req, res, next) {
     const passwordHash = await hashPassword(tempPassword);
 
     const [userResult] = await pool.query(
-      'INSERT INTO users (email, password_hash, role, hospital_id, full_name, status) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (email, password_hash, role, hospital_id, full_name, status, must_change_password) VALUES (?, ?, ?, ?, ?, ?, 1)',
       [finalEmail, passwordHash, role, adminHospitalId, name, 'Active']
     );
 
@@ -1067,19 +1091,47 @@ async function createStaff(req, res, next) {
       [newUserId, adminHospitalId, 'Welcome to RaktSetu', `Your staff account has been created. Your temporary password is: ${tempPassword}`, 'welcome']
     );
 
+    // Send temp password via email using Resend
+    const emailSubject = 'Welcome to RaktSetu';
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #EDE7E1; border-radius: 12px;">
+        <h2 style="color: #BE1F2E; border-bottom: 2px solid #BE1F2E; padding-bottom: 10px; font-family: Georgia, serif;">Welcome to RaktSetu</h2>
+        <p>Dear ${name},</p>
+        <p>Your hospital staff account has been successfully created by your administrator.</p>
+        <div style="background-color: #FAF8F5; padding: 15px; border-radius: 8px; border: 1px solid #EDE7E1; margin: 20px 0;">
+          <p style="margin: 0 0 10px 0;"><strong>Account details:</strong></p>
+          <p style="margin: 5px 0;"><strong>Email:</strong> ${finalEmail}</p>
+          <p style="margin: 5px 0;"><strong>Temporary Password:</strong> <code style="font-size: 1.1em; color: #BE1F2E; font-weight: bold; background: #FFF; padding: 2px 6px; border: 1px solid #E0DAD4; border-radius: 4px;">${tempPassword}</code></p>
+        </div>
+        <p>Please note that you will be required to change this password upon your first login for security reasons.</p>
+        <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Sincerely,<br>RaktSetu Team</p>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        to: finalEmail,
+        subject: emailSubject,
+        html: emailHtml
+      });
+    } catch (emailErr) {
+      console.error('Failed to send staff welcome email:', emailErr);
+      throw emailErr;
+    }
+
     if (process.env.NODE_ENV === 'production') {
       // In production, never expose the temp password in the response body;
-      // it is delivered only via the in-app notification to the staff user.
+      // it is delivered only via the in-app notification and email to the staff user.
       return res.status(201).json({
         success: true,
-        message: "Staff account created. Credentials delivered via in-app notification."
+        message: "Staff account created. Credentials delivered via email and in-app notification."
       });
     }
 
     // In test/development, return tempPassword so integration tests and walkthroughs can verify it.
     return res.status(201).json({
       success: true,
-      message: "Staff account created. Credentials delivered via in-app notification.",
+      message: "Staff account created. Credentials delivered via email and in-app notification.",
       tempPassword,
       email: finalEmail,
       role

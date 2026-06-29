@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { mockApi } from '../../../services/api';
+import { hospitalApi } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import { Loader } from '../../../components/ui/Loader';
 import { ErrorState } from '../../../components/ui/ErrorState';
@@ -22,11 +22,11 @@ export const ExpiryAlerts = () => {
 
   const { data: inventory = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['inventory'],
-    queryFn: mockApi.getInventory
+    queryFn: hospitalApi.getInventory
   });
 
   const disposeMutation = useMutation({
-    mutationFn: mockApi.deleteInventory,
+    mutationFn: hospitalApi.deleteInventory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       toast.success("Expired batch has been safely disposed and logged.");

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 function parseJwt(token) {
@@ -15,34 +15,37 @@ function parseJwt(token) {
 }
 
 export const ProtectedRoute = ({ children, storageKey, redirectPath }) => {
-  const token = localStorage.getItem('raktsetu_auth_token');
-  let isAuthenticated = false;
+  const [isAuthenticated] = useState(() => {
+    const token = localStorage.getItem('raktsetu_auth_token');
+    let authenticated = false;
 
-  if (token) {
-    const payload = parseJwt(token);
-    if (payload && payload.exp && payload.exp * 1000 > Date.now()) {
-      isAuthenticated = true;
+    if (token) {
+      const payload = parseJwt(token);
+      if (payload && payload.exp && payload.exp * 1000 > Date.now()) {
+        authenticated = true;
+      }
     }
-  }
 
-  // Fallback to legacy localStorage key if token check fails or is not present (graceful migration)
-  if (!isAuthenticated) {
-    const storedData = localStorage.getItem(storageKey);
-    if (storedData) {
-      if (storedData === 'true') {
-        isAuthenticated = true;
-      } else {
-        try {
-          const parsed = JSON.parse(storedData);
-          if (parsed && parsed.status === 'logged_in') {
-            isAuthenticated = true;
+    // Fallback to legacy localStorage key if token check fails or is not present (graceful migration)
+    if (!authenticated) {
+      const storedData = localStorage.getItem(storageKey);
+      if (storedData) {
+        if (storedData === 'true') {
+          authenticated = true;
+        } else {
+          try {
+            const parsed = JSON.parse(storedData);
+            if (parsed && parsed.status === 'logged_in') {
+              authenticated = true;
+            }
+          } catch (e) {
+            // Invalid JSON
           }
-        } catch (e) {
-          // Invalid JSON
         }
       }
     }
-  }
+    return authenticated;
+  });
 
   if (!isAuthenticated) {
     return <Navigate to={redirectPath} replace />;

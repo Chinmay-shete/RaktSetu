@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { mockApi } from '../../../services/api';
+import { hospitalApi } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import { Modal } from '../../../components/ui/Modal';
 import {
@@ -51,7 +51,7 @@ export const UpdateStock = () => {
   const watchCollectionDate = useWatch({ control, name: 'collectionDate' });
 
   const addStockMutation = useMutation({
-    mutationFn: mockApi.addInventory,
+    mutationFn: hospitalApi.addInventory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       toast.success("New blood stock successfully added to inventory!");

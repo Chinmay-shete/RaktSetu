@@ -28,7 +28,9 @@ function serializeUser(user) {
     createdAt: user.created_at,
     created_at: user.created_at,
     lastLogin: user.last_login,
-    last_login: user.last_login
+    last_login: user.last_login,
+    mustChangePassword: !!user.must_change_password,
+    must_change_password: !!user.must_change_password
   };
 }
 
@@ -483,6 +485,41 @@ async function refresh(req, res, next) {
   }
 }
 
+/**
+ * POST /auth/change-password
+ */
+async function changePassword(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) {
+      throw new ApiError('User not found', 404, 'USER_NOT_FOUND');
+    }
+    const user = rows[0];
+
+    const isPasswordValid = await verifyPassword(currentPassword, user.password_hash);
+    if (!isPasswordValid) {
+      throw new ApiError('Invalid current password', 400, 'INVALID_CURRENT_PASSWORD');
+    }
+
+    const hashedNew = await hashPassword(newPassword);
+
+    await pool.query(
+      'UPDATE users SET password_hash = ?, must_change_password = 0, token_version = token_version + 1 WHERE id = ?',
+      [hashedNew, userId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password rotated successfully. Please sign in again.'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -491,5 +528,6 @@ module.exports = {
   logout,
   validateInviteToken,
   setPassword,
-  refresh
+  refresh,
+  changePassword
 };

@@ -4,13 +4,24 @@ setupGlobalLogger();
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const pinoHttp = require('pino-http');
+
+if (process.env.NODE_ENV !== 'test') {
+  const requiredEnv = ['JWT_SECRET', 'AI_SERVICE_URL', 'OTP_API_KEY', 'EMAIL_API_KEY', 'EMAIL_FROM_ADDRESS'];
+  const missing = requiredEnv.filter(name => !process.env[name]);
+  if (missing.length > 0) {
+    console.error(`CRITICAL CONFIG ERROR: Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+}
 
 const { testConnection } = require('./config/db');
 const apiRouter = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
+app.use(helmet());
 const PORT = process.env.PORT || 5000;
 
 // Configure CORS (allow React frontend local ports and support env overrides)

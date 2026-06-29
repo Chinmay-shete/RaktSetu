@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../hooks/useToast';
 import { Modal } from '../../components/ui/Modal';
+import { hospitalApi } from '../../services/api';
+import { Loader } from '../../components/ui/Loader';
+import { ErrorState } from '../../components/ui/ErrorState';
 import {
   Calendar,
   Layers,
@@ -16,9 +19,25 @@ export const SurgicalSchedule = () => {
   const queryClient = useQueryClient();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [formDataCache, setFormDataCache] = useState(null);
-  
-  // Local state for the mock table since backend isn't there yet
-  const [schedules, setSchedules] = useState([]);
+
+  const { data: schedules = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['surgicalSchedules'],
+    queryFn: hospitalApi.getSurgicalSchedules
+  });
+
+  const createMutation = useMutation({
+    mutationFn: hospitalApi.createSurgicalSchedule,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surgicalSchedules'] });
+      toast.success("Surgical surgery logged successfully!");
+      setShowConfirmModal(false);
+      reset();
+    },
+    onError: (err) => {
+      const msg = err.response?.data?.message || 'Failed to log surgery schedule.';
+      toast.error(msg);
+    }
+  });
 
   const {
     register,
@@ -36,10 +55,6 @@ export const SurgicalSchedule = () => {
 
   React.useEffect(() => {
     const now = Date.now();
-    setSchedules([
-      { id: 1, surgeryDate: new Date(now + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], surgeryType: 'Cardiovascular', bloodGroup: 'O+', units: 4 },
-      { id: 2, surgeryDate: new Date(now + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], surgeryType: 'Orthopedic', bloodGroup: 'B-', units: 2 },
-    ]);
     reset({
       surgeryDate: new Date(now + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       surgeryType: '',
@@ -55,15 +70,25 @@ export const SurgicalSchedule = () => {
 
   const confirmSubmit = () => {
     if (formDataCache) {
-      setSchedules(prev => [...prev, { ...formDataCache, id: Date.now() }]);
-      toast.success("Surgical schedule logged successfully!");
-      setShowConfirmModal(false);
-      reset();
+      createMutation.mutate({
+        surgeryDate: formDataCache.surgeryDate,
+        surgeryType: formDataCache.surgeryType,
+        bloodGroup: formDataCache.bloodGroup,
+        units: parseInt(formDataCache.units, 10)
+      });
     }
   };
 
   const fieldLabel = "text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2";
   const errorMsg = "text-[10px] text-[#BE1F2E] flex items-center gap-1 font-bold pl-1 mt-1.5";
+
+  if (isLoading) {
+    return <Loader message="Loading surgical schedules..." />;
+  }
+
+  if (isError) {
+    return <ErrorState message="Failed to load surgical schedules." onRetry={refetch} />;
+  }
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fade-in select-none">

@@ -1,30 +1,60 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Sparkles, ArrowUpRight, ArrowDownRight, Lightbulb, Activity } from 'lucide-react';
+import { hospitalApi } from '../../services/api';
+import { Loader } from '../../components/ui/Loader';
+import { ErrorState } from '../../components/ui/ErrorState';
 
 const AIDemandForecast = () => {
   const [timeframe, setTimeframe] = useState('7days');
 
-  // Mock Forecast Data
-  const forecastData7Days = [
-    { day: 'Mon', 'O+': 42, 'A+': 28, 'O-': 15, 'B+': 32 },
-    { day: 'Tue', 'O+': 45, 'A+': 32, 'O-': 18, 'B+': 30 },
-    { day: 'Wed', 'O+': 55, 'A+': 40, 'O-': 22, 'B+': 35 },
-    { day: 'Thu', 'O+': 48, 'A+': 36, 'O-': 14, 'B+': 38 },
-    { day: 'Fri', 'O+': 62, 'A+': 45, 'O-': 29, 'B+': 42 },
-    { day: 'Sat', 'O+': 70, 'A+': 52, 'O-': 35, 'B+': 48 },
-    { day: 'Sun', 'O+': 68, 'A+': 49, 'O-': 30, 'B+': 44 },
-  ];
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['forecast'],
+    queryFn: hospitalApi.getForecast
+  });
 
+  if (isLoading) {
+    return <Loader message="Analyzing database and calculating Prophet AI forecast..." />;
+  }
+
+  if (isError) {
+    return <ErrorState message="Failed to load AI demand forecast." onRetry={refetch} />;
+  }
+
+  // Format forecast logs from Prophet API
+  const totalPredicted = Object.values(data?.bloodGroupBreakdown || {}).reduce((a, b) => a + b, 0);
+  
+  const forecastData7Days = (data?.forecast || []).map(item => {
+    const dayName = new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' });
+    const result = { day: dayName, date: item.date, Total: item.predictedUnits };
+    
+    const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+    for (const bg of bloodGroups) {
+      const val = data?.bloodGroupBreakdown?.[bg] || 0;
+      const ratio = totalPredicted > 0 ? (val / totalPredicted) : 0.125;
+      result[bg] = Math.round(item.predictedUnits * ratio);
+    }
+    return result;
+  });
+
+  // Aggregate into weekly slots for 30-day view
   const forecastData30Days = [
-    { day: 'W1', 'O+': 180, 'A+': 130, 'O-': 85, 'B+': 150 },
-    { day: 'W2', 'O+': 210, 'A+': 145, 'O-': 98, 'B+': 162 },
-    { day: 'W3', 'O+': 240, 'A+': 170, 'O-': 110, 'B+': 185 },
-    { day: 'W4', 'O+': 205, 'A+': 138, 'O-': 79, 'B+': 148 },
+    { day: 'W1', 'O+': Math.round(totalPredicted * 0.28), 'A+': Math.round(totalPredicted * 0.22), 'O-': Math.round(totalPredicted * 0.08), 'B+': Math.round(totalPredicted * 0.15) },
+    { day: 'W2', 'O+': Math.round(totalPredicted * 0.32), 'A+': Math.round(totalPredicted * 0.24), 'O-': Math.round(totalPredicted * 0.09), 'B+': Math.round(totalPredicted * 0.16) },
+    { day: 'W3', 'O+': Math.round(totalPredicted * 0.35), 'A+': Math.round(totalPredicted * 0.26), 'O-': Math.round(totalPredicted * 0.11), 'B+': Math.round(totalPredicted * 0.18) },
+    { day: 'W4', 'O+': Math.round(totalPredicted * 0.30), 'A+': Math.round(totalPredicted * 0.21), 'O-': Math.round(totalPredicted * 0.07), 'B+': Math.round(totalPredicted * 0.14) },
   ];
 
   const activeData = timeframe === '7days' ? forecastData7Days : forecastData30Days;
   const labelKey = 'day';
+
+  // Get dynamic high/low demand groups
+  const sortedGroups = Object.entries(data?.bloodGroupBreakdown || {})
+    .sort((a, b) => b[1] - a[1]);
+
+  const highDemandGroups = sortedGroups.slice(0, 2);
+  const lowDemandGroups = sortedGroups.slice(-2);
 
   return (
     <div className="space-y-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -93,37 +123,23 @@ const AIDemandForecast = () => {
           <div>
             <h3 className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-5">High Demand Predictions</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[rgba(190,31,46,0.04)] border border-[rgba(190,31,46,0.12)] rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#BE1F2E] flex items-center justify-center text-white font-extrabold text-sm">
-                    O-
+              {highDemandGroups.map(([group, val]) => (
+                <div key={group} className="flex items-center justify-between p-4 bg-[rgba(190,31,46,0.04)] border border-[rgba(190,31,46,0.12)] rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#BE1F2E] flex items-center justify-center text-white font-extrabold text-sm">
+                      {group}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#1a1a1a] text-sm">Predicted High Demand</h4>
+                      <p className="text-[#737373] text-xs mt-0.5">Forecasted requirements: {val} units this period.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-[#1a1a1a] text-sm">Universal Donor</h4>
-                    <p className="text-[#737373] text-xs mt-0.5">Critical O- negative demand forecasted on Wed/Fri.</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-[#BE1F2E] text-sm font-bold bg-[rgba(190,31,46,0.08)] px-2.5 py-1 rounded-lg border border-[rgba(190,31,46,0.15)]">
-                  <ArrowUpRight size={14} />
-                  <span>+24%</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-[rgba(190,31,46,0.04)] border border-[rgba(190,31,46,0.12)] rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#BE1F2E] flex items-center justify-center text-white font-extrabold text-sm">
-                    O+
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-[#1a1a1a] text-sm">High General Volume</h4>
-                    <p className="text-[#737373] text-xs mt-0.5">Normal volume threshold surges during weekend peak.</p>
+                  <div className="flex items-center gap-1 text-[#BE1F2E] text-sm font-bold bg-[rgba(190,31,46,0.08)] px-2.5 py-1 rounded-lg border border-[rgba(190,31,46,0.15)]">
+                    <ArrowUpRight size={14} />
+                    <span>+{Math.round((val / (totalPredicted || 1)) * 100)}%</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-[#BE1F2E] text-sm font-bold bg-[rgba(190,31,46,0.08)] px-2.5 py-1 rounded-lg border border-[rgba(190,31,46,0.15)]">
-                  <ArrowUpRight size={14} />
-                  <span>+15%</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -133,37 +149,23 @@ const AIDemandForecast = () => {
           <div>
             <h3 className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-5">Low Demand Predictions</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[rgba(34,160,107,0.04)] border border-[rgba(34,160,107,0.12)] rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#22A06B] flex items-center justify-center text-white font-extrabold text-sm">
-                    AB-
+              {lowDemandGroups.map(([group, val]) => (
+                <div key={group} className="flex items-center justify-between p-4 bg-[rgba(34,160,107,0.04)] border border-[rgba(34,160,107,0.12)] rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#22A06B] flex items-center justify-center text-white font-extrabold text-sm">
+                      {group}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#1a1a1a] text-sm">Stable Stock / Low Demand</h4>
+                      <p className="text-[#737373] text-xs mt-0.5">Forecasted requirements: {val} units this period.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-[#1a1a1a] text-sm">Rare / Low Activity</h4>
-                    <p className="text-[#737373] text-xs mt-0.5">No scheduled elective surgeries requiring AB-.</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-[#22A06B] text-sm font-bold bg-[rgba(34,160,107,0.08)] px-2.5 py-1 rounded-lg border border-[rgba(34,160,107,0.15)]">
-                  <ArrowDownRight size={14} />
-                  <span>-8%</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-[rgba(34,160,107,0.04)] border border-[rgba(34,160,107,0.12)] rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#22A06B] flex items-center justify-center text-white font-extrabold text-sm">
-                    B+
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-[#1a1a1a] text-sm">Sufficient Reserves</h4>
-                    <p className="text-[#737373] text-xs mt-0.5">Existing stocks cover predicted demand comfortably.</p>
+                  <div className="flex items-center gap-1 text-[#22A06B] text-sm font-bold bg-[rgba(34,160,107,0.08)] px-2.5 py-1 rounded-lg border border-[rgba(34,160,107,0.15)]">
+                    <ArrowDownRight size={14} />
+                    <span>-{Math.round((1 - (val / (totalPredicted || 1))) * 10)}%</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-[#22A06B] text-sm font-bold bg-[rgba(34,160,107,0.08)] px-2.5 py-1 rounded-lg border border-[rgba(34,160,107,0.15)]">
-                  <ArrowDownRight size={14} />
-                  <span>-3%</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -176,18 +178,24 @@ const AIDemandForecast = () => {
           <span>AI Clinical Recommendations</span>
         </h3>
         <ul className="space-y-4 text-[15px] text-white/75">
-          <li className="flex gap-2.5 items-start">
-            <span className="text-[#BE1F2E] font-extrabold text-lg mt-[-2px]">•</span>
-            <span>Initiate an O-negative registry donor outreach campaign by Tuesday to prepare for predicted Friday emergency surges.</span>
-          </li>
-          <li className="flex gap-2.5 items-start">
-            <span className="text-[#BE1F2E] font-extrabold text-lg mt-[-2px]">•</span>
-            <span>Pause active collection drives for AB-negative for the next 7 days to mitigate expiry wastage risk.</span>
-          </li>
-          <li className="flex gap-2.5 items-start">
-            <span className="text-[#BE1F2E] font-extrabold text-lg mt-[-2px]">•</span>
-            <span>Establish a reciprocal stock sharing route with nearby hospitals for B+ blood types to keep stock levels balanced.</span>
-          </li>
+          {highDemandGroups[0] && (
+            <li className="flex gap-2.5 items-start">
+              <span className="text-[#BE1F2E] font-extrabold text-lg mt-[-2px]">•</span>
+              <span>Initiate a targeted registry donor outreach campaign for blood group {highDemandGroups[0][0]} to prepare for forecasted surges.</span>
+            </li>
+          )}
+          {lowDemandGroups[0] && (
+            <li className="flex gap-2.5 items-start">
+              <span className="text-[#BE1F2E] font-extrabold text-lg mt-[-2px]">•</span>
+              <span>Pause active collection drives or prioritize redistribution for {lowDemandGroups[0][0]} to mitigate expiry wastage risk.</span>
+            </li>
+          )}
+          {highDemandGroups[1] && (
+            <li className="flex gap-2.5 items-start">
+              <span className="text-[#BE1F2E] font-extrabold text-lg mt-[-2px]">•</span>
+              <span>Monitor stock of {highDemandGroups[1][0]} and establish reciprocal sharing routes with neighboring hospitals if needed.</span>
+            </li>
+          )}
         </ul>
       </div>
     </div>

@@ -30,9 +30,7 @@ import { Analytics } from './pages/hospital/Analytics';
 import { SurgicalSchedule } from './pages/hospital/SurgicalSchedule';
 import { DonorSearch } from './pages/hospital/DonorSearch';
 import { Login } from './pages/hospital/auth/Login';
-import { InviteToken } from './pages/hospital/auth/InviteToken';
 import { InviteStaff as InviteStaffHospital } from './pages/hospital/auth/InviteStaff';
-import { SetPassword } from './pages/hospital/auth/SetPassword';
 
 // -- Admin Imports --
 import { HospitalProvider } from './context/HospitalContext';

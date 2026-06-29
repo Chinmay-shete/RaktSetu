@@ -72,7 +72,8 @@ CREATE TABLE users (
   last_login TIMESTAMP NULL DEFAULT NULL,
   status ENUM('Active', 'Suspended', 'Pending') NOT NULL DEFAULT 'Active',
   full_name VARCHAR(255) DEFAULT NULL,
-  designation VARCHAR(255) DEFAULT NULL
+  designation VARCHAR(255) DEFAULT NULL,
+  must_change_password TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -205,7 +206,8 @@ CREATE TABLE audit_logs (
 CREATE TABLE otp_codes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   phone VARCHAR(20) NOT NULL,
-  code CHAR(6) NOT NULL,
+  code CHAR(6) DEFAULT NULL,
+  session_id VARCHAR(255) DEFAULT NULL,
   purpose ENUM('registration', 'login') NOT NULL DEFAULT 'registration',
   expires_at TIMESTAMP NOT NULL,
   verified TINYINT(1) NOT NULL DEFAULT 0,

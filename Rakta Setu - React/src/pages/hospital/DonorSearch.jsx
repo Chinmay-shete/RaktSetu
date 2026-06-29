@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { hospitalApi } from '../../services/api';
 import {
   Search,
   MapPin,
   Heart,
   User,
   Phone,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 
 export const DonorSearch = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
-
-  // Mock data for search
-  const mockDonors = [
-    { id: 'D001', name: 'Aarav Sharma', bloodGroup: 'O+', location: 'New Delhi', phone: '+91 98765 43210', lastDonated: '2024-08-12', status: 'Eligible' },
-    { id: 'D002', name: 'Priya Patel', bloodGroup: 'A-', location: 'Mumbai', phone: '+91 98765 43211', lastDonated: '2023-11-05', status: 'Eligible' },
-    { id: 'D003', name: 'Rohan Gupta', bloodGroup: 'O+', location: 'New Delhi', phone: '+91 98765 43212', lastDonated: '2024-09-20', status: 'Not Eligible' },
-  ];
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const {
     register,
@@ -31,15 +28,23 @@ export const DonorSearch = () => {
     }
   });
 
-  const onSubmit = (data) => {
-    // Simulate API call
+  const onSubmit = async (data) => {
+    setIsSearching(true);
+    setSearchError('');
     setHasSearched(true);
-    const results = mockDonors.filter(donor => {
-      const matchBloodGroup = !data.bloodGroup || donor.bloodGroup === data.bloodGroup;
-      const matchLocation = !data.location || donor.location.toLowerCase().includes(data.location.toLowerCase());
-      return matchBloodGroup && matchLocation;
-    });
-    setSearchResults(results);
+    try {
+      const results = await hospitalApi.searchDonors({
+        bloodGroup: data.bloodGroup,
+        location: data.location
+      });
+      setSearchResults(results);
+    } catch (err) {
+      console.error(err);
+      setSearchError('Failed to retrieve matching donors. Please try again.');
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const fieldLabel = "text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2";
@@ -85,9 +90,18 @@ export const DonorSearch = () => {
           </div>
 
           <div className="md:col-span-3">
-            <button type="submit" className="btn-primary w-full" style={{ minHeight: 48 }}>
-              <Search className="h-4 w-4" />
-              Search Donors
+            <button type="submit" disabled={isSearching} className="btn-primary w-full" style={{ minHeight: 48 }}>
+              {isSearching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4" />
+                  Search Donors
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -95,15 +109,26 @@ export const DonorSearch = () => {
 
       {hasSearched && (
         <div className="bg-white rounded-2xl shadow-sm border border-[#EDE7E1] overflow-hidden mt-2">
-          <div className="p-6 border-b border-[#EDE7E1] bg-[#FAF8F5] flex justify-between items-center">
-            <div>
-              <h3 className="text-[18px] font-[600] text-[#1A1210]">Search Results</h3>
-              <p className="text-[13px] text-[#7A5F5F] mt-1">Found {searchResults.length} matching donors.</p>
+          {isSearching ? (
+            <div className="p-12 flex flex-col items-center justify-center gap-3 text-[#7A5F5F]">
+              <Loader2 className="h-8 w-8 animate-spin text-[#BE1F2E]" />
+              <p className="text-xs font-bold uppercase tracking-wider">Locating eligible donors...</p>
             </div>
-            <button className="text-[13px] font-[600] text-[#BE1F2E] flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-[rgba(190,31,46,0.06)] transition-colors border border-[#BE1F2E]/20">
-              <Filter className="w-3.5 h-3.5" /> Filter
-            </button>
-          </div>
+          ) : searchError ? (
+            <div className="p-8 text-center text-[#BE1F2E] text-[13px] font-semibold">
+              {searchError}
+            </div>
+          ) : (
+            <>
+              <div className="p-6 border-b border-[#EDE7E1] bg-[#FAF8F5] flex justify-between items-center">
+                <div>
+                  <h3 className="text-[18px] font-[600] text-[#1A1210]">Search Results</h3>
+                  <p className="text-[13px] text-[#7A5F5F] mt-1">Found {searchResults.length} matching donors.</p>
+                </div>
+                <button className="text-[13px] font-[600] text-[#BE1F2E] flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-[rgba(190,31,46,0.06)] transition-colors border border-[#BE1F2E]/20">
+                  <Filter className="w-3.5 h-3.5" /> Filter
+                </button>
+              </div>
           <div className="overflow-x-auto p-2">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -167,9 +192,11 @@ export const DonorSearch = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </>
       )}
     </div>
+  )}
+</div>
   );
 };
 export default DonorSearch;

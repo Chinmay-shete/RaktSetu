@@ -5,6 +5,7 @@ const {
   sendOtpRateLimiter,
   verifyOtpRateLimiter
 } = require('../middleware/rateLimiter');
+const { requireAuth } = require('../middleware/auth');
 const {
   validateRequest,
   sendOtpSchema,
@@ -13,7 +14,8 @@ const {
   loginSchema,
   logoutSchema,
   setPasswordSchema,
-  refreshSchema
+  refreshSchema,
+  changePasswordSchema
 } = require('../middleware/validation');
 
 const router = express.Router();
@@ -41,5 +43,8 @@ router.post('/set-password', validateRequest(setPasswordSchema), authController.
 
 // 8. Refresh Token
 router.post('/refresh', validateRequest(refreshSchema), authController.refresh);
+
+// 9. Change Password (For direct staff password rotation)
+router.post('/change-password', requireAuth, validateRequest(changePasswordSchema), authController.changePassword);
 
 module.exports = router;

@@ -8,11 +8,7 @@ export const HospitalProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : {
       status: 'idle', // 'idle', 'pending', 'approved', 'logged_in'
       hospitalDetails: null,
-      invitedStaff: [
-        { id: 1, name: 'Dr. Ramesh Kumar', email: 'ramesh.kumar@hospital.com', role: 'Medical Officer', status: 'Accepted', date: '2026-06-10' },
-        { id: 2, name: 'Sister Mini Joseph', email: 'mini.joseph@hospital.com', role: 'Head Nurse', status: 'Pending', date: '2026-06-12' },
-        { id: 3, name: 'Dr. Sarah Alvi', email: 'sarah.alvi@hospital.com', role: 'Lab Technician', status: 'Expired', date: '2026-06-01' }
-      ],
+      invitedStaff: [],
       alertThresholds: {
         minStock: 20,
         maxStock: 200,
@@ -87,11 +83,7 @@ export const HospitalProvider = ({ children }) => {
     setAppState({
       status: 'idle',
       hospitalDetails: null,
-      invitedStaff: [
-        { id: 1, name: 'Dr. Ramesh Kumar', email: 'ramesh.kumar@hospital.com', role: 'Medical Officer', status: 'Accepted', date: '2026-06-10' },
-        { id: 2, name: 'Sister Mini Joseph', email: 'mini.joseph@hospital.com', role: 'Head Nurse', status: 'Pending', date: '2026-06-12' },
-        { id: 3, name: 'Dr. Sarah Alvi', email: 'sarah.alvi@hospital.com', role: 'Lab Technician', status: 'Expired', date: '2026-06-01' }
-      ],
+      invitedStaff: [],
       alertThresholds: {
         minStock: 20,
         maxStock: 200,

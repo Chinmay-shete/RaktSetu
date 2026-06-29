@@ -146,6 +146,12 @@ describe('Transfers & Security Boundaries API (Phase 5 & Phase 6)', () => {
     // 3. Verify reserved_units in Pune Life Care (hospital 2) batch (A+ is batch 1, originally 0 reserved)
     const [batches] = await pool.query('SELECT reserved_units FROM blood_batches WHERE id = 1');
     expect(batches[0].reserved_units).toBe(3);
+
+    // 4. Verify audit_logs entry exists
+    const [logs] = await pool.query("SELECT * FROM audit_logs WHERE action LIKE ? ORDER BY id DESC LIMIT 1", [`%cross_district_transfer_approved%ID: ${transferId}%`]);
+    expect(logs.length).toBe(1);
+    expect(logs[0].actor_id).toBe(5); // State Admin ID
+    expect(logs[0].severity).toBe('warning');
   });
 
   test('PATCH /state/transfers/:id/approve - Should throw FORBIDDEN when transfer is from different state', async () => {

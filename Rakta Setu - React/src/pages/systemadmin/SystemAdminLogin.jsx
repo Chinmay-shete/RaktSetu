@@ -51,7 +51,7 @@ const SystemAdminLogin = () => {
     }
   };
 
-  const handleVerifyMFA = (e) => {
+  const handleVerifyMFA = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -62,25 +62,26 @@ const SystemAdminLogin = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      if (formData.mfaCode === '123456') { // Mock MFA validation
-        const temp = localStorage.getItem('raktsetu_sysadmin_state_temp');
-        if (temp) {
-          localStorage.setItem('raktsetu_sysadmin_state', temp);
-          localStorage.removeItem('raktsetu_sysadmin_state_temp');
-          const parsed = JSON.parse(temp);
-          loginAdmin({
-            name: parsed.user.full_name,
-            designation: 'Lead Systems Architect',
-            email: parsed.user.email,
-          });
-        }
-        navigate('/systemadmin/dashboard');
-      } else {
-        setError('Invalid MFA code. Use 123456 for testing.');
+    try {
+      await api.post('/auth/verify-mfa', { code: formData.mfaCode });
+
+      const temp = localStorage.getItem('raktsetu_sysadmin_state_temp');
+      if (temp) {
+        localStorage.setItem('raktsetu_sysadmin_state', temp);
+        localStorage.removeItem('raktsetu_sysadmin_state_temp');
+        const parsed = JSON.parse(temp);
+        loginAdmin({
+          name: parsed.user.full_name,
+          designation: 'Lead Systems Architect',
+          email: parsed.user.email,
+        });
       }
-    }, 800);
+      navigate('/systemadmin/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid MFA code. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -169,10 +170,6 @@ const SystemAdminLogin = () => {
                   </button>
                 </form>
 
-                <div className="mt-8 text-center text-xs text-[#5A5A5A]">
-                  Console credentials:{' '}
-                  <span className="font-semibold text-[#1a1a1a]">admin@raktsetu.com / system123</span>
-                </div>
               </>
             ) : (
               <>
@@ -224,10 +221,6 @@ const SystemAdminLogin = () => {
                   </button>
                 </form>
 
-                <div className="mt-8 text-center text-xs text-[#5A5A5A]">
-                  Test TOTP code:{' '}
-                  <span className="font-semibold text-[#1a1a1a]">123456</span>
-                </div>
               </>
             )}
           </div>

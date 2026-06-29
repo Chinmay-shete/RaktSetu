@@ -3,43 +3,16 @@ import api from '../services/api';
 
 const SystemAdminContext = createContext();
 
-const MOCK_PENDING_HOSPITALS = [
-  { id: 1, name: 'Apex Blood Center', type: 'Private', area: 'Kothrud', contact: '+91 20 2543 1111', licenseNo: 'BB-PNQ-901', appliedAt: '2 hrs ago' },
-  { id: 2, name: 'Sanjivani Charitable Hospital', type: 'Government', area: 'Hadapsar', contact: '+91 20 2687 2222', licenseNo: 'BB-PNQ-902', appliedAt: '1 day ago' },
-];
-
-const MOCK_PENDING_OFFICERS = [
-  { id: 1, name: 'Mahesh Joshi', district: 'Satara', email: 'officer@satara.gov.in', designation: 'District Health Officer', appliedAt: '3 hrs ago' },
-  { id: 2, name: 'Sneha Kulkarni', district: 'Mumbai Sub', email: 'officer@mumbai.gov.in', designation: 'Deputy Health Director', appliedAt: '2 days ago' },
-];
-
-const MOCK_USER_ACCOUNTS = [
-  { id: 1, name: 'Vikram Malhotra', email: 'admin@raktsetu.com', role: 'sysadmin', status: 'Active', designation: 'Lead Systems Architect', lastActive: 'Just now' },
-  { id: 2, name: 'Rajesh Patil', email: 'officer@pune.gov.in', role: 'district', status: 'Active', designation: 'District Health Officer (Pune)', lastActive: '5 mins ago' },
-  { id: 3, name: 'Dr. Kavita Deshmukh', email: 'kavita@rubyhall.com', role: 'admin', status: 'Active', designation: 'Blood Bank Manager (Ruby Hall)', lastActive: '12 mins ago' },
-  { id: 4, name: 'Rohan Joshi', email: 'rohan@rubyhall.com', role: 'staff', status: 'Active', designation: 'Blood Bank Technician', lastActive: '1 hr ago' },
-  { id: 5, name: 'Amit Sharma', email: 'amit@gmail.com', role: 'donor', status: 'Active', designation: 'O+ Donor', lastActive: 'Yesterday' },
-  { id: 6, name: 'Snehal More', email: 'snehal@gmail.com', role: 'donor', status: 'Suspended', designation: 'A- Donor', lastActive: '3 days ago' },
-];
-
-const MOCK_AUDIT_LOGS = [
-  { id: 1, timestamp: '2026-06-20 11:00:25', actor: 'System', action: 'Daily database backup auto-completed', severity: 'Info', ipAddress: '127.0.0.1' },
-  { id: 2, timestamp: '2026-06-20 10:45:12', actor: 'Rajesh Patil (District Officer)', action: 'Approved Kothrud Community Camp', severity: 'Info', ipAddress: '10.24.8.12' },
-  { id: 3, timestamp: '2026-06-20 09:12:44', actor: 'Dr. Kavita Deshmukh (Hospital Admin)', action: 'Invited staff member rohan@rubyhall.com', severity: 'Info', ipAddress: '10.122.3.9' },
-  { id: 4, timestamp: '2026-06-20 08:30:15', actor: 'System (AI Engine)', action: 'Triggered cross-hospital expiry alert: Ruby Hall to Sassoon', severity: 'Warning', ipAddress: 'Localhost' },
-  { id: 5, timestamp: '2026-06-20 07:15:00', actor: 'System Admin (admin@raktsetu.com)', action: 'Enabled emergency routing feature flag', severity: 'Info', ipAddress: '192.168.1.102' },
-];
-
 export const SystemAdminProvider = ({ children }) => {
   const [adminState, setAdminState] = useState(() => {
     const saved = localStorage.getItem('raktsetu_sysadmin_state');
     return saved ? JSON.parse(saved) : {
       status: 'idle',
       adminDetails: null,
-      pendingHospitals: MOCK_PENDING_HOSPITALS,
-      pendingOfficers: MOCK_PENDING_OFFICERS,
-      users: MOCK_USER_ACCOUNTS,
-      auditLogs: MOCK_AUDIT_LOGS,
+      pendingHospitals: [],
+      pendingOfficers: [],
+      users: [],
+      auditLogs: [],
       featureFlags: {
         emergencyRouting: true,
         aiDemandForecasting: true,

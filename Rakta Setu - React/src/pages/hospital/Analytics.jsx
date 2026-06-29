@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { mockApi } from '../../services/api';
+import React from 'react';
+import { hospitalApi } from '../../services/api';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useQuery } from '@tanstack/react-query';
@@ -34,7 +34,7 @@ ChartJS.register(
 export const Analytics = () => {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['analytics'],
-    queryFn: mockApi.getAnalytics
+    queryFn: hospitalApi.getAnalytics
   });
 
   if (isLoading) return <Loader message="Compiling regional analytics..." />;

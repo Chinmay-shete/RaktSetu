@@ -20,6 +20,7 @@ class Settings:
     db_password: str
     db_name: str
     port: int
+    internal_api_secret: str
 
 @lru_cache
 def get_settings() -> Settings:
@@ -31,5 +32,6 @@ def get_settings() -> Settings:
         db_user=os.getenv("DB_USER", "root"),
         db_password=os.getenv("DB_PASSWORD", ""),
         db_name=os.getenv("DB_NAME", "raktsetu"),
-        port=int(os.getenv("AI_PORT", "5001"))
+        port=int(os.getenv("AI_PORT", "5001")),
+        internal_api_secret=os.getenv("INTERNAL_API_SECRET", "super_secret_internal_token_2026")
     )

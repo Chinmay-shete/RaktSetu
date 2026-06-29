@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Navbar } from '../components/layout/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { mockApi } from '../services/api';
+import { hospitalApi } from '../services/api';
 
 export const HospitalLayout = () => {
   const { isAuthenticated } = useAuth();
@@ -13,14 +13,14 @@ export const HospitalLayout = () => {
   // Hook must be called unconditionally before early return
   const { data: inventory = [] } = useQuery({
     queryKey: ['inventory'],
-    queryFn: mockApi.getInventory,
+    queryFn: hospitalApi.getInventory,
     refetchInterval: 12000,
     enabled: !!isAuthenticated
   });
 
   const { data: emergencies = [] } = useQuery({
     queryKey: ['emergencies'],
-    queryFn: mockApi.getEmergencyRequests,
+    queryFn: hospitalApi.getEmergencyRequests,
     refetchInterval: 10000,
     enabled: !!isAuthenticated
   });

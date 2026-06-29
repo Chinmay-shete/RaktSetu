@@ -150,10 +150,6 @@ const StateAdminLogin = () => {
               </button>
             </form>
 
-            <div className="mt-8 text-center text-xs text-[#5A5A5A]">
-              Demo credentials:{' '}
-              <span className="font-semibold text-[#1a1a1a]">state_admin@example.com / password123</span>
-            </div>
           </div>
 
           <p className="text-center text-[11px] text-[#9A9A9A] leading-relaxed mt-8 px-4">
