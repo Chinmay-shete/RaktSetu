@@ -30,11 +30,21 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access (e.g., clear auth, redirect to login)
+      // Handle unauthorized access — redirect to the role-appropriate login page
       console.warn('Unauthorized access - redirecting to login');
-      // For now, we clear the token
-      localStorage.removeItem('raktsetu_auth_token');
-      window.location.href = '/login'; // Optional: force redirect
+      // Clear all raktsetu auth tokens
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('raktsetu_')) localStorage.removeItem(key);
+      });
+      // Derive correct login URL from current path prefix
+      const path = window.location.pathname;
+      let loginUrl = '/login'; // default: donor
+      if (path.startsWith('/staff')) loginUrl = '/staff/login';
+      else if (path.startsWith('/admin')) loginUrl = '/admin/login';
+      else if (path.startsWith('/district')) loginUrl = '/district/login';
+      else if (path.startsWith('/state')) loginUrl = '/state/login';
+      else if (path.startsWith('/systemadmin')) loginUrl = '/systemadmin/login';
+      window.location.href = loginUrl;
     }
     return Promise.reject(error);
   }

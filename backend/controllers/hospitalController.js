@@ -1067,19 +1067,22 @@ async function createStaff(req, res, next) {
       [newUserId, adminHospitalId, 'Welcome to RaktSetu', `Your staff account has been created. Your temporary password is: ${tempPassword}`, 'welcome']
     );
 
-    if (process.env.NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === 'production') {
+      // In production, never expose the temp password in the response body;
+      // it is delivered only via the in-app notification to the staff user.
       return res.status(201).json({
         success: true,
-        message: "Credentials sent to staff member",
-        tempPassword,
-        email: finalEmail,
-        role
+        message: "Staff account created. Credentials delivered via in-app notification."
       });
     }
 
+    // In test/development, return tempPassword so integration tests and walkthroughs can verify it.
     return res.status(201).json({
       success: true,
-      message: "Credentials sent to staff member"
+      message: "Staff account created. Credentials delivered via in-app notification.",
+      tempPassword,
+      email: finalEmail,
+      role
     });
   } catch (error) {
     next(error);
