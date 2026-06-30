@@ -121,7 +121,7 @@
 - **AC‑4**: Donor receives a push/email notification when eligible *and* a shortage exists within configured radius.
 - **AC‑5**: All protected routes reject unauthenticated access (401) and enforce role checks (403).
 - **AC‑6**: CI pipeline runs unit, integration, and performance tests; failing test blocks merge.
-- **AC‑7**: Documentation includes API spec (OpenAPI), data model ER diagram, and UI mockups (see `RaktSetu_Complete_Project_Report.html`).
+- **AC‑7**: Documentation includes API spec (OpenAPI), data model ER diagram, and UI mockups (see `raktsetu_complete_project_report.html`).
 
 ---
 
@@ -148,4 +148,4 @@
 
 ---
 
-*Prepared based on the existing `PROJECT_UNDERSTANDING.md`, `RaktSetu_Complete_Project_Report.html`, and the index.pdf analysis.*
+*Prepared based on the existing `project_understanding.md`, `raktsetu_complete_project_report.html`, and the raktsetu_specifications.pdf analysis.*

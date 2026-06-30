@@ -494,14 +494,14 @@
 <!-- ══════════════════ INDEX.PDF CONTENT ══════════════════ -->
 <div class="container" id="competitor-analysis">
   <div class="section-header">
-    <span class="section-label">Section 0B — From index.pdf: Competitor Analysis</span>
+    <span class="section-label">Section 0B — From raktsetu_specifications.pdf: Competitor Analysis</span>
     <h2 class="section-title">Market <em>Context</em></h2>
-    <p class="section-desc">The <code class="inline">index.pdf</code> is a comprehensive competitor analysis document. It benchmarks RaktSetu against 5 existing platforms and identifies the 6 unique features that nobody has built for India.</p>
+    <p class="section-desc">The <code class="inline">raktsetu_specifications.pdf</code> is a comprehensive competitor analysis document. It benchmarks RaktSetu against 5 existing platforms and identifies the 6 unique features that nobody has built for India.</p>
   </div>
 
   <div class="callout callout-blue">
     <span class="callout-icon">📄</span>
-    <div><h4>About index.pdf</h4><p>Verified from internet on April 17, 2026. Sources: AABB 2024, PMC, eraktkosh.mohfw.gov.in, bloodconnect.org, sankalpindia.net. This document is what defines the <em>product vision</em> — the 6 unique features are the core differentiators the entire codebase is built around.</p></div>
+    <div><h4>About raktsetu_specifications.pdf</h4><p>Verified from internet on April 17, 2026. Sources: AABB 2024, PMC, eraktkosh.mohfw.gov.in, bloodconnect.org, sankalpindia.net. This document is what defines the <em>product vision</em> — the 6 unique features are the core differentiators the entire codebase is built around.</p></div>
   </div>
 
   <h3>Competitor Landscape</h3>
@@ -517,7 +517,7 @@
     </tbody>
   </table></div>
 
-  <h3>Feature Comparison Matrix (From index.pdf)</h3>
+  <h3>Feature Comparison Matrix (From raktsetu_specifications.pdf)</h3>
   <div class="table-wrap"><table>
     <thead><tr><th>Feature</th><th>eRaktKosh</th><th>BloodConnect</th><th>Sankalp</th><th>eBlood Odisha</th><th>RaktSetu</th></tr></thead>
     <tbody>
@@ -535,7 +535,7 @@
   </table></div>
 
   <div class="highlight-box">
-    <h3>index.pdf Honest Verdict: <em>What to Build vs What to Skip</em></h3>
+    <h3>raktsetu_specifications.pdf Honest Verdict: <em>What to Build vs What to Skip</em></h3>
     <p><strong>Don't waste time rebuilding (already exists):</strong></p>
     <ul>
       <li>Basic blood stock search — eRaktKosh already does this. Integrate/extend it, don't rebuild it.</li>
@@ -551,7 +551,7 @@
     </ul>
   </div>
 
-  <h3>6 Unique Features — Detailed Descriptions (From index.pdf)</h3>
+  <h3>6 Unique Features — Detailed Descriptions (From raktsetu_specifications.pdf)</h3>
   <div class="card-grid">
     <div class="card card-red"><div class="card-num">U1</div>
       <div class="card-icon">🤖</div>
@@ -585,7 +585,7 @@
     </div>
   </div>
 
-  <h3>Tech Stack (From index.pdf Recommendation)</h3>
+  <h3>Tech Stack (From raktsetu_specifications.pdf Recommendation)</h3>
   <div class="table-wrap"><table>
     <thead><tr><th>Module</th><th>Technology</th></tr></thead>
     <tbody>
@@ -605,7 +605,7 @@
 <div class="part-divider" id="part-frontend">
   <span class="part-num">Part One</span>
   <h2>Frontend <em>Architecture</em></h2>
-  <p>Complete audit of all 48 screens, data shapes, auth gating, bugs found, and features from the project specification (index.pdf) that are not yet implemented in the frontend code.</p>
+  <p>Complete audit of all 48 screens, data shapes, auth gating, bugs found, and features from the project specification (raktsetu_specifications.pdf) that are not yet implemented in the frontend code.</p>
 </div>
 
 <!-- 1. ROUTES -->
@@ -990,12 +990,12 @@ const { token, user } = await POST('/auth/login', { email, password });
   <div class="section-header">
     <span class="section-label">Section 5 — Planned Features Not Yet Built in Frontend</span>
     <h2 class="section-title">In the Spec. <em>Not in Code.</em></h2>
-    <p class="section-desc">These features are explicitly described in the project specification documents (index.pdf, RaktSetu_All_User_Types_Report.md, RaktSetu_Improvement_Report.md, architecture/implementation_plan.md) but have <strong>not been implemented</strong> in the current React frontend. Backend should be aware these screens and data flows are coming.</p>
+    <p class="section-desc">These features are explicitly described in the project specification documents (raktsetu_specifications.pdf, raktsetu_all_user_types_report.md, raktsetu_improvement_report.md, docs/planning/district_officer_portal_plan.md) but have <strong>not been implemented</strong> in the current React frontend. Backend should be aware these screens and data flows are coming.</p>
   </div>
 
   <div class="callout callout-blue">
     <span class="callout-icon">📄</span>
-    <div><h4>Source Documents</h4><p>These gaps were identified by comparing the current codebase against: <code class="inline">index.pdf</code> (project specification), <code class="inline">data/RaktSetu_All_User_Types_Report.md</code>, <code class="inline">data/RaktSetu_Improvement_Report.md</code>, <code class="inline">architecture/implementation_plan.md</code>, and <code class="inline">data/raktsetu_scan_and_audit_report.md</code>.</p></div>
+    <div><h4>Source Documents</h4><p>These gaps were identified by comparing the current codebase against: <code class="inline">raktsetu_specifications.pdf</code> (project specification), <code class="inline">docs/reports/raktsetu_all_user_types_report.md</code>, <code class="inline">docs/reports/raktsetu_improvement_report.md</code>, <code class="inline">docs/planning/district_officer_portal_plan.md</code>, and <code class="inline">docs/reports/raktsetu_scan_and_audit_report.md</code>.</p></div>
   </div>
 
   <div class="not-impl-grid">
@@ -1004,56 +1004,56 @@ const { token, user } = await POST('/auth/login', { email, password });
       <span class="ni-tag">Donor Portal — Missing</span>
       <h4>🩸 Eligibility Health Screening (9 Questions)</h4>
       <p>The spec defines 9 NBTC-compliant eligibility questions that donors must answer before each donation (age range, weight ≥45kg, chronic illness, medications, HIV/Hepatitis, pregnancy, surgery/tattoo in last 3 months, feeling well). This self-assessment wizard is <strong>not implemented</strong> in the current donor flow.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Role 1 | Should be at: /eligibility-check</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Role 1 | Should be at: /eligibility-check</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Donor Portal — Missing</span>
       <h4>📍 Google OAuth Login</h4>
       <p>The spec lists "Google OAuth (login with Google account)" as the alternative login method for donors alongside Phone OTP. The current DonorRegistration only implements Phone OTP with a hardcoded OTP of <code class="inline">123456</code>. No Google button exists.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Auth Methods | Should be at: /login + /register-donor</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Auth Methods | Should be at: /login + /register-donor</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Donor Portal — Missing</span>
       <h4>🔔 Availability Toggle</h4>
       <p>The spec defines an "Available Now" toggle that donors can use to pause/resume emergency matching without deleting their account. This field exists in the data spec (<code class="inline">available: boolean</code>) but there is no UI toggle in the Donor Dashboard or Edit Profile page.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Donor Features | Should be at: /dashboard or /edit-profile</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Donor Features | Should be at: /dashboard or /edit-profile</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Donor Portal — Missing</span>
       <h4>💉 Notification Preferences (Channel Settings)</h4>
       <p>The spec defines: Emergency alert toggle, Camp alert toggle, notification channel selector (WhatsApp / SMS / Both). These are described as required fields in donor profile setup but are absent from the ProfileSetup and EditProfile forms.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Donor Data Fields | Should be at: /profile-setup Step 4 + /edit-profile</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Donor Data Fields | Should be at: /profile-setup Step 4 + /edit-profile</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Hospital Staff — Missing</span>
       <h4>📆 Surgical Schedule Entry</h4>
       <p>Hospital Staff can "enter surgical schedules (upcoming operations + blood requirements)" — this is one of the 6 core differentiators (OT schedule feeds AI demand forecast). No surgical schedule form, page, or data model exists in the current frontend.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Staff Permissions | Needs new route: /staff/surgical-schedule</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Staff Permissions | Needs new route: /staff/surgical-schedule</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Hospital Staff — Missing</span>
       <h4>🔍 Donor Search (By Blood Group + Location)</h4>
       <p>Staff should be able to "search for eligible donors in the area (by blood group + location)" directly from the staff dashboard. This feature is described in the spec but no search interface or donor search endpoint is wired in the current code.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Staff Dashboard | Needs new route: /staff/donor-search</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Staff Dashboard | Needs new route: /staff/donor-search</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Hospital Admin — Missing</span>
       <h4>🏕️ Donation Camp Creation Tool</h4>
       <p>Hospital Admins should be able to "organize donation camps — create camp → appears on donors' dashboards in the area." The current admin portal has no camp creation form. Only District Officers have camp management in the current code.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Admin Permissions | Needs new route: /admin/create-camp</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Admin Permissions | Needs new route: /admin/create-camp</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">Hospital Admin — Missing</span>
       <h4>⚡ Expiry Auto-Transfer Settings</h4>
       <p>Hospital Admins should be able to "set auto-expiry transfer alerts — enable/disable automatic transfer suggestion when blood is near expiry." The AlertThresholds page exists, but has no toggle for this auto-transfer feature specifically.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Admin Panel | Should be at: /admin/thresholds</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Admin Panel | Should be at: /admin/thresholds</p>
     </div>
 
     <div class="not-impl-card">
@@ -1067,28 +1067,28 @@ const { token, user } = await POST('/auth/login', { email, password });
       <span class="ni-tag">District Officer — Missing</span>
       <h4>🗺️ Donor Density Map</h4>
       <p>The spec states district officers should see "aggregate donor density maps — how many donors of each blood group per area." While district reports mention it, no donor density heatmap or map visualization is implemented in the District Officer portal.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §District Officer Panel | Needs new route: /district/donor-density</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §District Officer Panel | Needs new route: /district/donor-density</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">District Officer — Missing</span>
       <h4>📣 Emergency Alert Broadcast to Hospitals</h4>
       <p>District Officers should be able to "send emergency alerts to all hospitals in district during a blood crisis." The Alerts page has an "Escalate" button to State Admin, but there is no "Broadcast to All Hospitals" functionality.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §District Permissions | Should be at: /district/alerts</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §District Permissions | Should be at: /district/alerts</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">State Admin — Missing</span>
       <h4>🗺️ State Overview Map</h4>
       <p>The spec describes a "State Overview Map — all districts colour-coded by blood supply health status." The State Admin dashboard shows a data grid of districts but has no actual map visualization (Leaflet, Google Maps, or SVG state map).</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §State Admin Dashboard | Needs new component in: /state/dashboard</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §State Admin Dashboard | Needs new component in: /state/dashboard</p>
     </div>
 
     <div class="not-impl-card">
       <span class="ni-tag">System Admin — Missing</span>
       <h4>🛡️ MFA (TOTP) for System Admin</h4>
       <p>The spec explicitly requires "Email + Password + MFA + Device Auth" for System Admin. The current login is email + password only (same as other roles), with no TOTP code entry step or device authentication flow.</p>
-      <p class="where">Spec source: RaktSetu_All_User_Types_Report.md §Auth Methods | Should be at: /systemadmin/login</p>
+      <p class="where">Spec source: raktsetu_all_user_types_report.md §Auth Methods | Should be at: /systemadmin/login</p>
     </div>
 
     <div class="not-impl-card">
@@ -1747,7 +1747,7 @@ export default api;</pre>
   <div class="section-header">
     <span class="section-label">Section 13 — Future Enhancements</span>
     <h2 class="section-title">Beyond <em>MVP Specs</em></h2>
-    <p class="section-desc">The following features were not explicitly mentioned in the original index.pdf, but are highly recommended additions to make RaktSetu a world-class, enterprise-grade system.</p>
+    <p class="section-desc">The following features were not explicitly mentioned in the original raktsetu_specifications.pdf, but are highly recommended additions to make RaktSetu a world-class, enterprise-grade system.</p>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1934,7 +1934,7 @@ export default api;</pre>
     <div>
       <div style="font-family:'DM Serif Display',serif;font-size:48px;color:white;font-style:italic;line-height:1;">RaktSetu</div>
       <p style="color:rgba(255,255,255,0.35);font-size:13px;margin-top:8px;">Complete Project Report · Generated June 2026</p>
-      <p style="color:rgba(255,255,255,0.25);font-size:12px;margin-top:4px;">Sources: index.pdf · mockApi.js · All 6 Context Providers · All 48 Components · RaktSetu_All_User_Types_Report.md · RaktSetu_Improvement_Report.md · RaktSetu_Backend_Readiness_Report.md · architecture/implementation_plan.md · raktsetu_scan_and_audit_report.md</p>
+      <p style="color:rgba(255,255,255,0.25);font-size:12px;margin-top:4px;">Sources: raktsetu_specifications.pdf · mockApi.js · All 6 Context Providers · All 48 Components · raktsetu_all_user_types_report.md · raktsetu_improvement_report.md · RaktSetu_Backend_Readiness_Report.md · docs/planning/district_officer_portal_plan.md · raktsetu_scan_and_audit_report.md</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
       <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#22A06B;animation:pulse 2s infinite;display:inline-block;"></span><span style="color:rgba(255,255,255,0.5);font-size:13px;">Frontend: 100% Complete</span></div>

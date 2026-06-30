@@ -574,4 +574,4 @@ Donors receive notifications via **FCM (Firebase Cloud Messaging)** push notific
 
 ---
 
-*Report compiled from: `arc/donor_data_fields.html`, `arc/user_dashboard.html`, `arc/raktsetu_full_user_flow.html`, `arc/raktsetu_donor_diagrams.html`, `arc/raktsetu_er_dfd.html`, `arc/onboarding_screens_prompt.md`, `RacktSetu/src/components/DonorRegistration.jsx`, `raktsetu_eligibility_screening.html`, and `RaktSetu_Improvement_Report.md`.*
+*Report compiled from: `arc/donor_data_fields.html`, `arc/user_dashboard.html`, `arc/raktsetu_full_user_flow.html`, `arc/raktsetu_donor_diagrams.html`, `arc/raktsetu_er_dfd.html`, `arc/onboarding_screens_prompt.md`, `RacktSetu/src/components/DonorRegistration.jsx`, `raktsetu_eligibility_screening.html`, and `raktsetu_improvement_report.md`.*

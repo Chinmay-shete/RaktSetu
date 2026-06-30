@@ -1,6 +1,6 @@
 # 🩸 RaktSetu — Complete User Types Reference Report
 
-> **Source:** Full scan of ALL files — `temp.html`, `temp2.html`, `temp3.html`, `temp4.html`, `RaktSetu_WebOnly_Complete_Guide.html`, `RaktSetu_Complete_Engineering_Guide.html`, `arc/raktsetu_full_user_flow.html`, `arc/donor_data_fields.html`, `arc/user_dashboard.html`
+> **Source:** Full scan of ALL files — `temp.html`, `temp2.html`, `temp3.html`, `temp4.html`, `raktsetu_web_only_complete_guide.html`, `raktsetu_complete_engineering_guide.html`, `arc/raktsetu_full_user_flow.html`, `arc/donor_data_fields.html`, `arc/user_dashboard.html`
 > **Date Generated:** June 13, 2026
 > **Purpose:** Definitively answer "how many user types does RaktSetu have?" and clearly explain what each one does.
 
@@ -16,7 +16,7 @@ Your project documentation mentions different numbers in different files because
 |---|---|---|
 | `temp.html` (older guide) | Hospital Staff, District Officer, Donor | 3 |
 | `arc/raktsetu_full_user_flow.html` (original arc/) | Blood Donor, Hospital Staff, Hospital Admin, District Officer | 4 |
-| `temp3.html` + `RaktSetu_WebOnly_Complete_Guide.html` (latest) | Blood Donor, Hospital Staff, Hospital Admin, District Officer, **State Admin**, **System Admin** | **6** ✅ |
+| `temp3.html` + `raktsetu_web_only_complete_guide.html` (latest) | Blood Donor, Hospital Staff, Hospital Admin, District Officer, **State Admin**, **System Admin** | **6** ✅ |
 
 > **Use the 6-role model.** The 6-role system is the most recent and complete design. The older files (3 types, 4 types) are earlier versions that were expanded later. `temp3.html` explicitly notes: *"Fixed: added State Admin + System Admin + missing emergency donor action."*
 
@@ -468,4 +468,4 @@ The `role` field controls what each user sees in the React frontend via RBAC mid
 
 ---
 
-*Report compiled from: `RaktSetu_WebOnly_Complete_Guide.html`, `temp3.html`, `temp4.html`, `temp.html`, `arc/raktsetu_full_user_flow.html`, `arc/donor_data_fields.html`, `arc/user_dashboard.html`, `RaktSetu_Complete_Engineering_Guide.html`*
+*Report compiled from: `raktsetu_web_only_complete_guide.html`, `temp3.html`, `temp4.html`, `temp.html`, `arc/raktsetu_full_user_flow.html`, `arc/donor_data_fields.html`, `arc/user_dashboard.html`, `raktsetu_complete_engineering_guide.html`*

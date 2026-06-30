@@ -1,6 +1,6 @@
 # RaktSetu — Frontend Project Understanding
 
-> **Generated:** 2026-06-23 | Based on full scan of `Rakta Setu - React/src/`  
+> **Generated:** 2026-06-23 | Based on full scan of `frontend/src/`  
 > **Purpose:** Backend readiness blueprint — every page, data shape, API call, and auth gate catalogued so backend responses match the frontend exactly.
 
 ---
@@ -759,4 +759,4 @@ Used by: `PendingApprovals`
 
 ---
 
-*End of PROJECT_UNDERSTANDING.md*
+*End of project_understanding.md*

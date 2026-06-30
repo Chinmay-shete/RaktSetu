@@ -1,6 +1,6 @@
 # District Officer Portal — RaktSetu Implementation Plan
 
-## Background & Purpose (from index.pdf + Architecture Docs)
+## Background & Purpose (from raktsetu_specifications.pdf + Architecture Docs)
 
 RaktSetu is an **AI-powered blood supply management platform** positioned as India's missing layer between eRaktKosh (government stock search) and hospitals. The core differentiators (from the competitor analysis PDF) are:
 
@@ -17,7 +17,7 @@ The **District Officer dashboard (Shortage Prediction Heatmap)** is explicitly l
 
 ---
 
-## The Full 6-User Architecture (from RaktSetu_All_User_Types_Report.md)
+## The Full 6-User Architecture (from raktsetu_all_user_types_report.md)
 
 The project has **6 planned roles** (not 3 or 4 as in older files). We are currently building Role #4:
 
@@ -34,7 +34,7 @@ The project has **6 planned roles** (not 3 or 4 as in older files). We are curre
 
 ## What the District Officer Does (Exact Spec)
 
-From `RaktSetu_All_User_Types_Report.md`, Role 4:
+From `raktsetu_all_user_types_report.md`, Role 4:
 
 **CAN DO:**
 - ✅ View ALL hospitals in their district — live blood stock for each

@@ -7,7 +7,7 @@ This file contains the original overall project context (from the original `prop
 ## 📋 Part 1: Overall Project Context (Original)
 
 ```text
-Once I approve PROJECT_UNDERSTANDING.md, build the full backend using 
+Once I approve project_understanding.md, build the full backend using 
 this context:
 
 ## Project
@@ -123,7 +123,7 @@ transfer status+created_at, lat/lng spatial index on hospitals and donors.
 
 ## Cross-reference check
 Before finalizing each endpoint, cross-check its response shape against 
-PROJECT_UNDERSTANDING.md from Phase 1 to ensure field names and data types 
+project_understanding.md from Phase 1 to ensure field names and data types 
 match exactly what the frontend expects. Flag any mismatch instead of 
 silently guessing.
 

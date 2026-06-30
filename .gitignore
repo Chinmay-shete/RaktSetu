@@ -70,8 +70,6 @@ dist-ssr
 .DS_/*
 
 # Redundant or Nested React Folders
-RacktSetu/
-RacktSetu-React/
 .vite/
 .vscode/
 

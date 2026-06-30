@@ -193,8 +193,29 @@ const DonorRegistration = () => {
     const lastFilled = Math.min(pasted.length, 5);
     otpRefs.current[lastFilled]?.focus();
   };
+  // ── VERIFY OTP ────────────────────────────────────────────────────
+  const handleVerifyOTP = async () => {
+    const code = otp.join('');
+    if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
+    setButtonState('sending');
+    setOtpError('');
 
-      // 4. Store auth data
+    if (!isEmail && confirmationResult) {
+      // ── FIREBASE PHONE OTP VERIFICATION ──
+      try {
+        // 1. Verify OTP with Firebase client SDK
+        const userCredential = await confirmationResult.confirm(code);
+        const firebaseUser = userCredential.user;
+
+        // 2. Get the Firebase ID token
+        const idToken = await firebaseUser.getIdToken();
+
+        // 3. Send the ID token to our backend for registration
+        const response = await api.post('/auth/donor/firebase-register', { idToken });
+
+        const { token, refreshToken, refresh_token, user } = response.data;
+
+        // 4. Store auth data
         localStorage.setItem('raktsetu_auth_token', token);
         if (refreshToken || refresh_token) {
           localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
@@ -232,53 +253,6 @@ const DonorRegistration = () => {
           otp: code,
           purpose: 'registration'
         });
-        const { verification_token } = response.data;
-        setEmailVerificationToken(verification_token);
-        setOtpSuccess(true);
-        setOtpError('');
-        setTimeout(() => {
-          setButtonState('default');
-          setStep(3);
-        }, 700);
-      } catch (err) {
-        console.error('[Email OTP] Verify error:', err);
-        setButtonState('default');
-        const msg = err.response?.data?.message || 'Invalid OTP code. Please try again.';
-        setOtpError(msg);
-      }
-    }
-  };
-
-  const handleCreatePassword = async (e) => {
-    e.preventDefault();
-    if (password.length < 8) {
-      setPasswordError('Password must be at least 8 characters.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setPasswordError('Passwords do not match.');
-      return;
-    }
-
-    setPasswordError('');
-    setButtonState('sending');
-
-    try {
-      // Send register details to backend
-      const registerBody = {
-        role: 'donor',
-        password: password,
-        verificationToken: emailVerificationToken
-      };
-
-      // If registration was via phone (Firebase), include phone; if via email, include email
-      if (isEmail) {
-        registerBody.email = inputVal.toLowerCase().trim();
-      } else {
-        registerBody.phone = inputVal.trim();
-      }
-
-      const response = await api.post('/auth/register', registerBody);
         const { verification_token } = response.data;
         setEmailVerificationToken(verification_token);
         setOtpSuccess(true);
