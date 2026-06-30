@@ -25,14 +25,22 @@ function validateRequest(schema) {
 // -----------------------------------------------------------------------------
 
 const sendOtpSchema = z.object({
-  phone: z.string().min(10, 'Phone number must be at least 10 characters').max(15, 'Phone number cannot exceed 15 characters').regex(/^\+?[0-9]+$/, 'Invalid phone number format'),
+  phone: z.string().min(10, 'Phone number must be at least 10 characters').max(15, 'Phone number cannot exceed 15 characters').regex(/^\+?[0-9]+$/, 'Invalid phone number format').optional(),
+  email: z.string().email('Invalid email format').optional(),
   purpose: z.enum(['registration', 'login']).optional()
+}).refine(data => data.phone || data.email, {
+  message: 'Must provide either phone or email',
+  path: ['phone']
 });
 
 const verifyOtpSchema = z.object({
-  phone: z.string().min(10).max(15),
+  phone: z.string().min(10).max(15).optional(),
+  email: z.string().email('Invalid email format').optional(),
   otp: z.string().length(6, 'OTP must be exactly 6 digits').regex(/^[0-9]+$/, 'OTP must contain only numbers'),
   purpose: z.enum(['registration', 'login']).optional()
+}).refine(data => data.phone || data.email, {
+  message: 'Must provide either phone or email',
+  path: ['phone']
 });
 
 const registerSchema = z.union([

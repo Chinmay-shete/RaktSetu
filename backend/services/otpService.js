@@ -3,6 +3,7 @@ const twilio = require('twilio');
 const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
 const { createOtpVerificationToken } = require('./jwtService');
+const emailService = require('./emailService');
 
 function getTwilioClient() {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -13,7 +14,7 @@ function getTwilioClient() {
   return twilio(accountSid, authToken);
 }
 
-async function sendOtp(phone, purpose) {
+async function sendOtp(target, purpose, isEmail = false) {
   const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || '5', 10);
   const expiresAt = new Date(Date.now() + (expiresMinutes * 60 * 1000));
   
@@ -24,23 +25,49 @@ async function sendOtp(phone, purpose) {
   let sessionId = null;
 
   if (!isTest) {
-    const twilioClient = getTwilioClient();
-    const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
-    if (!twilioPhone) {
-      throw new ApiError('TWILIO_PHONE_NUMBER is not defined in environment variables.', 500, 'CONFIG_ERROR');
-    }
+    if (isEmail) {
+      try {
+        // Send the OTP code via Resend Email
+        await emailService.sendEmail({
+          to: target,
+          subject: 'Verify your contact - RaktSetu OTP',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EDE7E1; border-radius: 12px;">
+              <h2 style="color: #BE1F2E; font-style: italic;">RaktSetu</h2>
+              <p>Hello,</p>
+              <p>Your 6-digit verification code is:</p>
+              <div style="background-color: #F5F0EB; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; text-align: center; color: #1A0A0A; margin: 20px 0;">
+                ${code}
+              </div>
+              <p style="color: #9A9A9A; font-size: 13px;">This code is valid for ${expiresMinutes} minutes. Please do not share this OTP with anyone.</p>
+              <hr style="border: 0; border-top: 1px solid #EDE7E1; margin: 20px 0;">
+              <p style="color: #A8A0A0; font-size: 11px;">&copy; 2026 RaktSetu. Precision Blood Logistics.</p>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.error('Error sending Email via Resend:', err);
+        throw new ApiError(`Failed to send Email OTP via Resend: ${err.message}`, 502, 'EMAIL_PROVIDER_ERROR');
+      }
+    } else {
+      const twilioClient = getTwilioClient();
+      const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+      if (!twilioPhone) {
+        throw new ApiError('TWILIO_PHONE_NUMBER is not defined in environment variables.', 500, 'CONFIG_ERROR');
+      }
 
-    try {
-      // Send the OTP code via Twilio SMS
-      const message = await twilioClient.messages.create({
-        body: `${code} is your OTP to verify phone number at RaktSetu. Please do not share OTP with anyone.`,
-        from: twilioPhone,
-        to: phone // E.164 formatted (+919322966139) from the frontend
-      });
-      sessionId = message.sid; // Use Twilio message SID as sessionId
-    } catch (err) {
-      console.error('Error sending SMS via Twilio:', err);
-      throw new ApiError(`Failed to send SMS OTP via Twilio: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
+      try {
+        // Send the OTP code via Twilio SMS
+        const message = await twilioClient.messages.create({
+          body: `${code} is your OTP to verify phone number at RaktSetu. Please do not share OTP with anyone.`,
+          from: twilioPhone,
+          to: target // E.164 formatted (+919322966139) from the frontend
+        });
+        sessionId = message.sid; // Use Twilio message SID as sessionId
+      } catch (err) {
+        console.error('Error sending SMS via Twilio:', err);
+        throw new ApiError(`Failed to send SMS OTP via Twilio: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
+      }
     }
   }
 
@@ -48,16 +75,16 @@ async function sendOtp(phone, purpose) {
   try {
     await connection.beginTransaction();
 
-    // Invalidate existing unused codes for this phone & purpose
+    // Invalidate existing unused codes for this target & purpose
     await connection.query(
       'UPDATE otp_codes SET verified = 1 WHERE phone = ? AND purpose = ? AND verified = 0',
-      [phone, purpose]
+      [target, purpose]
     );
 
     // Insert new OTP record (with generated code and session ID)
     await connection.query(
       'INSERT INTO otp_codes (phone, code, session_id, purpose, expires_at) VALUES (?, ?, ?, ?, ?)',
-      [phone, code, sessionId, purpose, expiresAt]
+      [target, code, sessionId, purpose, expiresAt]
     );
 
     await connection.commit();
@@ -69,7 +96,7 @@ async function sendOtp(phone, purpose) {
   }
 
   if (isTest) {
-    console.log(`[SMS OTP] (Test Mode) Sent code ${code} to ${phone} (Purpose: ${purpose})`);
+    console.log(`[OTP] (Test Mode) Sent code ${code} to ${target} (Purpose: ${purpose}, Email: ${isEmail})`);
   }
 
   return {
@@ -78,7 +105,7 @@ async function sendOtp(phone, purpose) {
   };
 }
 
-async function verifyOtp(phone, otp, purpose) {
+async function verifyOtp(target, otp, purpose) {
   const now = new Date();
 
   const [rows] = await pool.query(
@@ -87,11 +114,11 @@ async function verifyOtp(phone, otp, purpose) {
      WHERE phone = ? AND purpose = ? AND verified = 0
      ORDER BY created_at DESC 
      LIMIT 1`,
-     [phone, purpose]
+     [target, purpose]
   );
 
   if (rows.length === 0) {
-    throw new ApiError('No active OTP found for this phone number', 400, 'OTP_NOT_FOUND');
+    throw new ApiError('No active OTP found for this verification target', 400, 'OTP_NOT_FOUND');
   }
 
   const row = rows[0];
@@ -135,13 +162,13 @@ async function verifyOtp(phone, otp, purpose) {
   // Mark OTP as verified/used
   await pool.query('UPDATE otp_codes SET verified = 1 WHERE id = ?', [row.id]);
 
-  // Create verification token that proves this phone is verified
-  const verificationToken = createOtpVerificationToken(phone, purpose);
+  // Create verification token that proves this target is verified
+  const verificationToken = createOtpVerificationToken(target, purpose);
 
   return {
     message: 'OTP verified successfully',
     verification_token: verificationToken,
-    phone
+    target
   };
 }
 

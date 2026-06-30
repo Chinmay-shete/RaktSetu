@@ -24,26 +24,53 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor — on 401, clear all auth state and redirect to role-appropriate login
+// Response Interceptor — on 401, attempt silent refresh; clear only on final failure
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.warn('Unauthorized access - redirecting to login');
-      // Clear all raktsetu_ prefixed auth tokens
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('raktsetu_')) localStorage.removeItem(key);
-      });
-      // Derive correct login URL from current path prefix
-      const path = window.location.pathname;
-      let loginUrl = '/login'; // default: donor
-      if (path.startsWith('/staff')) loginUrl = '/staff/login';
-      else if (path.startsWith('/admin')) loginUrl = '/admin/login';
-      else if (path.startsWith('/district')) loginUrl = '/district/login';
-      else if (path.startsWith('/state')) loginUrl = '/state/login';
-      else if (path.startsWith('/systemadmin')) loginUrl = '/systemadmin/login';
-      window.location.href = loginUrl;
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If we get a 401 and haven't already retried, try refreshing the access token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('raktsetu_refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        // Call the refresh endpoint with ONLY the JSON body (no extra headers)
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+          { refreshToken }
+        );
+
+        const newAccessToken = data.token;
+        if (newAccessToken) {
+          localStorage.setItem('raktsetu_auth_token', newAccessToken);
+          // Retry the original request with the new token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // Refresh failed — clear all auth state and redirect to login
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('raktsetu_')) localStorage.removeItem(key);
+        });
+        const path = window.location.pathname;
+        let loginUrl = '/login';
+        if (path.startsWith('/staff')) loginUrl = '/staff/login';
+        else if (path.startsWith('/admin')) loginUrl = '/admin/login';
+        else if (path.startsWith('/district')) loginUrl = '/district/login';
+        else if (path.startsWith('/state')) loginUrl = '/state/login';
+        else if (path.startsWith('/systemadmin')) loginUrl = '/systemadmin/login';
+        window.location.href = loginUrl;
+        return Promise.reject(refreshError);
+      }
     }
+
+    // Non-401 or already-retried — propagate the error to the caller
     return Promise.reject(error);
   }
 );

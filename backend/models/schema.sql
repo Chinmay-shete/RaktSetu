@@ -202,10 +202,13 @@ CREATE TABLE audit_logs (
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 14. OTP Codes Table (Auth Support)
+-- 15. OTP Codes Table (Auth Support)
+-- The 'phone' column is deliberately wider than 20 because it stores both phone
+-- numbers and email addresses as the OTP target.  Email-only users will have
+-- their address in this column; phone-only users will have their E.164 number.
 CREATE TABLE otp_codes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  phone VARCHAR(20) NOT NULL,
+  phone VARCHAR(255) NOT NULL,
   code CHAR(6) DEFAULT NULL,
   session_id VARCHAR(255) DEFAULT NULL,
   purpose ENUM('registration', 'login') NOT NULL DEFAULT 'registration',

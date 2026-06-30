@@ -86,8 +86,10 @@ async function issueTokens(user) {
  */
 async function sendOtp(req, res, next) {
   try {
-    const { phone, purpose = 'registration' } = req.body;
-    const result = await otpService.sendOtp(phone, purpose);
+    const { phone, email, purpose = 'registration' } = req.body;
+    const target = phone || email;
+    const isEmail = !!email;
+    const result = await otpService.sendOtp(target, purpose, isEmail);
     return res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -99,8 +101,9 @@ async function sendOtp(req, res, next) {
  */
 async function verifyOtp(req, res, next) {
   try {
-    const { phone, otp, purpose = 'registration' } = req.body;
-    const result = await otpService.verifyOtp(phone, otp, purpose);
+    const { phone, email, otp, purpose = 'registration' } = req.body;
+    const target = phone || email;
+    const result = await otpService.verifyOtp(target, otp, purpose);
     return res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -122,20 +125,35 @@ async function register(req, res, next) {
       const tokenToVerify = verificationToken || verification_token;
 
       if (!tokenToVerify) {
-        throw new ApiError('Verification token is required for phone registration', 400, 'TOKEN_REQUIRED');
+        throw new ApiError('Verification token is required for registration', 400, 'TOKEN_REQUIRED');
       }
 
-      // Verify OTP verification token
-      jwtService.verifyOtpVerificationToken(tokenToVerify, phone, 'registration');
-
-      // Check if phone already exists
-      const [existingPhone] = await connection.query('SELECT id FROM users WHERE phone = ?', [phone]);
-      if (existingPhone.length > 0) {
-        throw new ApiError('Phone number already registered', 409, 'PHONE_EXISTS');
+      // The verified target is either the explicit email field or the phone field
+      // (the frontend reuses the primary field for whichever was verified).
+      const verifiedTarget = email || phone;
+      if (!verifiedTarget) {
+        throw new ApiError('Phone number or email is required for registration', 400, 'TARGET_REQUIRED');
       }
 
-      // Email is optional for mobile-only registration
-      const finalEmail = email ? email.toLowerCase() : `${phone}@donor.raktsetu.local`;
+      // Detect whether the verified target is an email address or a phone number
+      const isEmailTarget = String(verifiedTarget).includes('@');
+
+      // Verify OTP verification token (token was issued for the same target value)
+      jwtService.verifyOtpVerificationToken(tokenToVerify, verifiedTarget, 'registration');
+
+      let finalPhone = isEmailTarget ? null : phone;
+      let finalEmail = isEmailTarget
+        ? verifiedTarget.toLowerCase()
+        : (email ? email.toLowerCase() : `${phone}@donor.raktsetu.local`);
+
+      if (finalPhone) {
+        // Check if phone already exists
+        const [existingPhone] = await connection.query('SELECT id FROM users WHERE phone = ?', [finalPhone]);
+        if (existingPhone.length > 0) {
+          throw new ApiError('Phone number already registered', 409, 'PHONE_EXISTS');
+        }
+      }
+
       const [existingEmail] = await connection.query('SELECT id FROM users WHERE email = ?', [finalEmail]);
       if (existingEmail.length > 0) {
         throw new ApiError('Email already registered', 409, 'EMAIL_EXISTS');
@@ -146,7 +164,7 @@ async function register(req, res, next) {
       // Insert User
       const [userResult] = await connection.query(
         'INSERT INTO users (email, phone, password_hash, role) VALUES (?, ?, ?, ?)',
-        [finalEmail, phone, passwordHash, 'donor']
+        [finalEmail, finalPhone, passwordHash, 'donor']
       );
 
       const user_id = userResult.insertId;

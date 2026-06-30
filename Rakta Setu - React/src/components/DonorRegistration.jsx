@@ -22,6 +22,7 @@ const DonorRegistration = () => {
   // Firebase OTP state
   const [confirmationResult, setConfirmationResult] = useState(null);
   const recaptchaVerifierRef = useRef(null);
+  const [emailVerificationToken, setEmailVerificationToken] = useState('');
 
   // Password Setup
   const [password, setPassword] = useState('');
@@ -101,8 +102,12 @@ const DonorRegistration = () => {
         setOtpError(errorMsg);
       }
     } else {
-      // ── EMAIL FLOW (existing mock) ──
-      setTimeout(() => {
+      // ── EMAIL FLOW (Real Resend OTP) ──
+      try {
+        await api.post('/auth/send-otp', {
+          email: inputVal.toLowerCase().trim(),
+          purpose: 'registration'
+        });
         setButtonState('sent');
         setTimeout(() => {
           setStep(2);
@@ -112,7 +117,12 @@ const DonorRegistration = () => {
           setOtpSuccess(false);
           setButtonState('default');
         }, 700);
-      }, 1200);
+      } catch (err) {
+        console.error('[Email OTP] Send error:', err);
+        setButtonState('default');
+        const msg = err.response?.data?.message || 'Failed to send OTP. Please try again.';
+        setOtpError(msg);
+      }
     }
   };
 
@@ -135,6 +145,16 @@ const DonorRegistration = () => {
         console.error('[Firebase OTP] Resend error:', err);
         setOtpError('Failed to resend OTP. Please try again.');
         recaptchaVerifierRef.current = null;
+      }
+    } else if (isEmail) {
+      try {
+        await api.post('/auth/send-otp', {
+          email: inputVal.toLowerCase().trim(),
+          purpose: 'registration'
+        });
+      } catch (err) {
+        console.error('[Email OTP] Resend error:', err);
+        setOtpError('Failed to resend OTP. Please try again.');
       }
     }
 
@@ -174,29 +194,7 @@ const DonorRegistration = () => {
     otpRefs.current[lastFilled]?.focus();
   };
 
-  // ── VERIFY OTP ────────────────────────────────────────────────────
-  const handleVerifyOTP = async () => {
-    const code = otp.join('');
-    if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
-    setButtonState('sending');
-    setOtpError('');
-
-    if (!isEmail && confirmationResult) {
-      // ── FIREBASE PHONE OTP VERIFICATION ──
-      try {
-        // 1. Verify OTP with Firebase client SDK
-        const userCredential = await confirmationResult.confirm(code);
-        const firebaseUser = userCredential.user;
-
-        // 2. Get the Firebase ID token
-        const idToken = await firebaseUser.getIdToken();
-
-        // 3. Send the ID token to our backend for registration
-        const response = await api.post('/auth/donor/firebase-register', { idToken });
-
-        const { token, refreshToken, refresh_token, user } = response.data;
-
-        // 4. Store auth data
+      // 4. Store auth data
         localStorage.setItem('raktsetu_auth_token', token);
         if (refreshToken || refresh_token) {
           localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
@@ -227,27 +225,34 @@ const DonorRegistration = () => {
         }
       }
     } else {
-      // ── EMAIL FLOW (existing mock) ──
-      setTimeout(() => {
+      // ── EMAIL FLOW (Real Resend OTP Verification) ──
+      try {
+        const response = await api.post('/auth/verify-otp', {
+          email: inputVal.toLowerCase().trim(),
+          otp: code,
+          purpose: 'registration'
+        });
+        const { verification_token } = response.data;
+        setEmailVerificationToken(verification_token);
         setOtpSuccess(true);
         setOtpError('');
         setTimeout(() => {
           setButtonState('default');
-          if (!isEmail) {
-            localStorage.setItem('raktsetu_otp_verified', 'true');
-            navigate('/profile-setup');
-          } else {
-            setStep(3);
-          }
+          setStep(3);
         }, 700);
-      }, 900);
+      } catch (err) {
+        console.error('[Email OTP] Verify error:', err);
+        setButtonState('default');
+        const msg = err.response?.data?.message || 'Invalid OTP code. Please try again.';
+        setOtpError(msg);
+      }
     }
   };
 
-  const handleCreatePassword = (e) => {
+  const handleCreatePassword = async (e) => {
     e.preventDefault();
-    if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters.');
+    if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters.');
       return;
     }
     if (password !== confirmPassword) {
@@ -258,55 +263,79 @@ const DonorRegistration = () => {
     setPasswordError('');
     setButtonState('sending');
 
-    setTimeout(() => {
-      setButtonState('default');
-      const normalizedInput = inputVal.toLowerCase().trim();
-      const userKey = 'raktsetu_user_' + normalizedInput;
-      const mockRole = getRoleFromEmail(inputVal);
-      
-      localStorage.setItem(userKey, JSON.stringify({
-        username: normalizedInput,
+    try {
+      // Send register details to backend
+      const registerBody = {
+        role: 'donor',
         password: password,
-        role: mockRole
-      }));
+        verificationToken: emailVerificationToken
+      };
 
-      // Route users automatically based on their roles
-      if (mockRole === 'staff') {
-        localStorage.setItem('raktsetu_hospital_authenticated', 'true');
-        window.location.href = '/staff/dashboard';
-      } else if (mockRole === 'admin') {
-        const adminState = {
-          status: 'logged_in',
-          hospitalDetails: { hospitalName: 'Apex City Hospital' },
-          invitedStaff: [
-            { id: 1, name: 'Dr. Ramesh Kumar', email: 'ramesh.kumar@hospital.com', role: 'Medical Officer', status: 'Accepted', date: '2026-06-10' }
-          ]
-        };
-        localStorage.setItem('raktsetu_admin_app_state', JSON.stringify(adminState));
-        window.location.href = '/admin/dashboard';
-      } else if (mockRole === 'district') {
-        const districtState = {
-          status: 'logged_in',
-          officerDetails: { name: 'Rajesh Patil', district: 'Pune' }
-        };
-        localStorage.setItem('raktsetu_district_state', JSON.stringify(districtState));
-        window.location.href = '/district/dashboard';
-      } else if (mockRole === 'state') {
-        const stateState = {
-          status: 'logged_in',
-          officerDetails: { name: 'Arvind Sawant', state: 'Maharashtra' }
-        };
-        localStorage.setItem('raktsetu_state_admin', JSON.stringify(stateState));
-        window.location.href = '/state/dashboard';
-      } else if (mockRole === 'systemadmin') {
-        const sysAdminState = { status: 'logged_in' };
-        localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify(sysAdminState));
-        window.location.href = '/systemadmin/dashboard';
+      // If registration was via phone (Firebase), include phone; if via email, include email
+      if (isEmail) {
+        registerBody.email = inputVal.toLowerCase().trim();
       } else {
-        localStorage.setItem('raktsetu_otp_verified', 'true');
-        navigate('/profile-setup');
+        registerBody.phone = inputVal.trim();
       }
-    }, 1000);
+
+      const response = await api.post('/auth/register', registerBody);
+        const { verification_token } = response.data;
+        setEmailVerificationToken(verification_token);
+        setOtpSuccess(true);
+        setOtpError('');
+        setTimeout(() => {
+          setButtonState('default');
+          setStep(3);
+        }, 700);
+      } catch (err) {
+        console.error('[Email OTP] Verify error:', err);
+        setButtonState('default');
+        const msg = err.response?.data?.message || 'Invalid OTP code. Please try again.';
+        setOtpError(msg);
+      }
+    }
+  };
+
+  const handleCreatePassword = async (e) => {
+    e.preventDefault();
+    if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+
+    setPasswordError('');
+    setButtonState('sending');
+
+    try {
+      // Send register details to backend
+      const response = await api.post('/auth/register', {
+        role: 'donor',
+        phone: inputVal.toLowerCase().trim(), // Pass verified email as the 'phone' parameter for verification matching
+        password: password,
+        verificationToken: emailVerificationToken
+      });
+      
+      const { token, refreshToken, refresh_token, user } = response.data;
+      
+      localStorage.setItem('raktsetu_auth_token', token);
+      if (refreshToken || refresh_token) {
+        localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
+      }
+      localStorage.setItem('raktsetu_donor_authenticated', 'true');
+      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
+      
+      setButtonState('default');
+      navigate('/profile-setup');
+    } catch (err) {
+      console.error('[Email Register] Error:', err);
+      setButtonState('default');
+      const msg = err.response?.data?.message || 'Failed to complete registration.';
+      setPasswordError(msg);
+    }
   };
 
   const getRoleFromEmail = (val) => {
@@ -497,7 +526,7 @@ const DonorRegistration = () => {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 6 characters"
+                      placeholder="At least 8 characters"
                       required
                     />
                     <button

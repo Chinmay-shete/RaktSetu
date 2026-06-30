@@ -109,11 +109,13 @@ function createRefreshToken(userId) {
 
 /**
  * Creates an OTP verification token.
+ * The `target` can be either a phone number or an email address depending
+ * on which channel the OTP was sent through.
  */
-function createOtpVerificationToken(phone, purpose) {
+function createOtpVerificationToken(target, purpose) {
   const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || '5', 10);
   const payload = {
-    phone,
+    target,
     purpose,
     type: TOKEN_TYPE_OTP,
     exp: Math.floor(Date.now() / 1000) + (expiresMinutes * 60),
@@ -123,13 +125,20 @@ function createOtpVerificationToken(phone, purpose) {
 }
 
 /**
- * Verifies that the OTP verification token matches the phone number and purpose.
+ * Verifies that the OTP verification token matches the target (email or phone) and purpose.
+ * Backward-compatible: accepts both `target` (new) and `phone` (legacy) payload fields.
  */
-function verifyOtpVerificationToken(token, phone, purpose) {
+function verifyOtpVerificationToken(token, target, purpose) {
   const payload = decodeToken(token, TOKEN_TYPE_OTP);
-  if (payload.phone !== phone) {
-    throw new ApiError('OTP verification token does not match phone number', 401, 'INVALID_OTP_TOKEN');
+  const storedTarget = payload.target || payload.phone; // backward-compat
+  if (storedTarget !== target) {
+    throw new ApiError('OTP verification token does not match target', 401, 'INVALID_OTP_TOKEN');
   }
+  if (payload.purpose !== purpose) {
+    throw new ApiError('OTP verification token purpose mismatch', 401, 'INVALID_OTP_TOKEN');
+  }
+  return true;
+}
   if (payload.purpose !== purpose) {
     throw new ApiError('OTP verification token purpose mismatch', 401, 'INVALID_OTP_TOKEN');
   }
