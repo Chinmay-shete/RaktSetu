@@ -8,7 +8,7 @@ const helmet = require('helmet');
 const pinoHttp = require('pino-http');
 
 if (process.env.NODE_ENV !== 'test') {
-  const requiredEnv = ['JWT_SECRET', 'AI_SERVICE_URL', 'OTP_API_KEY', 'EMAIL_API_KEY', 'EMAIL_FROM_ADDRESS'];
+  const requiredEnv = ['JWT_SECRET', 'AI_SERVICE_URL', 'EMAIL_API_KEY', 'EMAIL_FROM_ADDRESS'];
   const missing = requiredEnv.filter(name => !process.env[name]);
   if (missing.length > 0) {
     console.error(`CRITICAL CONFIG ERROR: Missing required environment variables: ${missing.join(', ')}`);
@@ -39,7 +39,7 @@ if (!process.env.AI_SERVICE_URL) {
 
 const allowedOrigins = corsOriginEnv
   ? corsOriginEnv.split(',')
-  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8080'];
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:8080', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -48,6 +48,7 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
+    console.error(`[CORS REJECTED] Origin: ${origin}`);
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
   },
   credentials: true

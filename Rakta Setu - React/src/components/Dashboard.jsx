@@ -70,7 +70,7 @@ const Dashboard = () => {
           : 'Eligible Now'
       });
       setDonations(donationsRes.data.donations || []);
-      setUrgentRequests(urgentRes.data || []);
+      setUrgentRequests(urgentRes.data.requests || []);
     } catch (err) {
       console.error("Error loading donor dashboard data", err);
       setError("An error occurred while loading donor statistics and logs.");
@@ -114,7 +114,7 @@ const Dashboard = () => {
           : 'Eligible Now'
       });
       setDonations(donationsRes.data.donations || []);
-      setUrgentRequests(urgentRes.data || []);
+      setUrgentRequests(urgentRes.data.requests || []);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to submit pledge. Please check eligibility.");
     }

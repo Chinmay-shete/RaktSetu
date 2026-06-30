@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { createRecaptchaVerifier, sendFirebaseOtp } from '../services/firebaseConfig';
+import api from '../services/api';
 
 const DonorRegistration = () => {
   const navigate = useNavigate();
@@ -16,6 +18,10 @@ const DonorRegistration = () => {
   const [otpSuccess, setOtpSuccess] = useState(false);
   const [allFilled, setAllFilled] = useState(false);
   const otpRefs = useRef([]);
+
+  // Firebase OTP state
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const recaptchaVerifierRef = useRef(null);
 
   // Password Setup
   const [password, setPassword] = useState('');
@@ -50,27 +56,88 @@ const DonorRegistration = () => {
     setIsEmail(v.includes('@'));
   };
 
-  const handleSendOTP = () => {
+  // ── SEND OTP ──────────────────────────────────────────────────────
+  const handleSendOTP = async () => {
     if (!inputVal || buttonState !== 'default') return;
     setButtonState('sending');
-    setTimeout(() => {
-      setButtonState('sent');
-      setTimeout(() => {
-        setStep(2);
-        setTimer(45);
-        setResendDisabled(true);
-        setOtpError('');
-        setOtpSuccess(false);
+    setOtpError('');
+
+    if (!isEmail) {
+      // ── FIREBASE PHONE OTP ──
+      try {
+        const phoneNumber = inputVal.startsWith('+') ? inputVal : `+91${inputVal.replace(/\D/g, '')}`;
+
+        // Create reCAPTCHA verifier (invisible)
+        if (!recaptchaVerifierRef.current) {
+          recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+        }
+
+        const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+        setConfirmationResult(confirmation);
+
+        setButtonState('sent');
+        setTimeout(() => {
+          setStep(2);
+          setTimer(45);
+          setResendDisabled(true);
+          setOtpError('');
+          setOtpSuccess(false);
+          setButtonState('default');
+        }, 700);
+      } catch (err) {
+        console.error('[Firebase OTP] Send error:', err);
         setButtonState('default');
-      }, 700);
-    }, 1200);
+        // Reset reCAPTCHA on error so it can be retried
+        recaptchaVerifierRef.current = null;
+
+        let errorMsg = `Failed to send OTP. Please try again. [${err.code || 'UNKNOWN'}]: ${err.message || 'No message'}`;
+        if (err.code === 'auth/too-many-requests') {
+          errorMsg = 'Too many attempts. Please wait a few minutes and try again.';
+        } else if (err.code === 'auth/invalid-phone-number') {
+          errorMsg = 'Invalid phone number. Please enter a valid 10-digit number.';
+        } else if (err.code === 'auth/quota-exceeded') {
+          errorMsg = 'SMS quota exceeded. Please try again later.';
+        }
+        setOtpError(errorMsg);
+      }
+    } else {
+      // ── EMAIL FLOW (existing mock) ──
+      setTimeout(() => {
+        setButtonState('sent');
+        setTimeout(() => {
+          setStep(2);
+          setTimer(45);
+          setResendDisabled(true);
+          setOtpError('');
+          setOtpSuccess(false);
+          setButtonState('default');
+        }, 700);
+      }, 1200);
+    }
   };
 
-  const handleResendOTP = () => {
+  // ── RESEND OTP ────────────────────────────────────────────────────
+  const handleResendOTP = async () => {
     setTimer(45);
     setResendDisabled(true);
     setOtp(['', '', '', '', '', '']);
     setOtpError('');
+
+    if (!isEmail && confirmationResult) {
+      // Re-trigger Firebase OTP
+      try {
+        const phoneNumber = inputVal.startsWith('+') ? inputVal : `+91${inputVal.replace(/\D/g, '')}`;
+        // Need a fresh reCAPTCHA verifier for resend
+        recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+        const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+        setConfirmationResult(confirmation);
+      } catch (err) {
+        console.error('[Firebase OTP] Resend error:', err);
+        setOtpError('Failed to resend OTP. Please try again.');
+        recaptchaVerifierRef.current = null;
+      }
+    }
+
     setTimeout(() => otpRefs.current[0]?.focus(), 50);
   };
 
@@ -107,24 +174,74 @@ const DonorRegistration = () => {
     otpRefs.current[lastFilled]?.focus();
   };
 
-  const handleVerifyOTP = () => {
+  // ── VERIFY OTP ────────────────────────────────────────────────────
+  const handleVerifyOTP = async () => {
     const code = otp.join('');
     if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
     setButtonState('sending');
-    setTimeout(() => {
-      setOtpSuccess(true);
-      setOtpError('');
-      setTimeout(() => {
-        setButtonState('default');
-        if (!isEmail) {
-          // Skip password creation for mobile numbers
-          localStorage.setItem('raktsetu_otp_verified', 'true');
-          navigate('/profile-setup');
-        } else {
-          setStep(3); // Go to Password setup step
+    setOtpError('');
+
+    if (!isEmail && confirmationResult) {
+      // ── FIREBASE PHONE OTP VERIFICATION ──
+      try {
+        // 1. Verify OTP with Firebase client SDK
+        const userCredential = await confirmationResult.confirm(code);
+        const firebaseUser = userCredential.user;
+
+        // 2. Get the Firebase ID token
+        const idToken = await firebaseUser.getIdToken();
+
+        // 3. Send the ID token to our backend for registration
+        const response = await api.post('/auth/donor/firebase-register', { idToken });
+
+        const { token, refreshToken, refresh_token, user } = response.data;
+
+        // 4. Store auth data
+        localStorage.setItem('raktsetu_auth_token', token);
+        if (refreshToken || refresh_token) {
+          localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
         }
-      }, 700);
-    }, 900);
+        localStorage.setItem('raktsetu_donor_authenticated', 'true');
+        localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
+
+        setOtpSuccess(true);
+        setTimeout(() => {
+          setButtonState('default');
+          navigate('/profile-setup');
+        }, 700);
+      } catch (err) {
+        console.error('[Firebase OTP] Verify error:', err);
+        setButtonState('default');
+
+        if (err.code === 'auth/invalid-verification-code') {
+          setOtpError('Invalid OTP code. Please check and try again.');
+        } else if (err.code === 'auth/code-expired') {
+          setOtpError('OTP has expired. Please request a new one.');
+        } else if (err.response?.data?.code === 'PHONE_EXISTS') {
+          // Phone already registered – redirect to login
+          setOtpError('Phone number already registered. Redirecting to login...');
+          setTimeout(() => navigate('/login'), 2000);
+        } else {
+          const msg = err.response?.data?.message || 'Verification failed. Please try again.';
+          setOtpError(msg);
+        }
+      }
+    } else {
+      // ── EMAIL FLOW (existing mock) ──
+      setTimeout(() => {
+        setOtpSuccess(true);
+        setOtpError('');
+        setTimeout(() => {
+          setButtonState('default');
+          if (!isEmail) {
+            localStorage.setItem('raktsetu_otp_verified', 'true');
+            navigate('/profile-setup');
+          } else {
+            setStep(3);
+          }
+        }, 700);
+      }, 900);
+    }
   };
 
   const handleCreatePassword = (e) => {
@@ -214,6 +331,9 @@ const DonorRegistration = () => {
     <div className="min-h-screen bg-[#F5F0EB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
       <div className="noise-filter" />
 
+      {/* Invisible reCAPTCHA container – required by Firebase Phone Auth */}
+      <div id="recaptcha-container" />
+
       {/* ── SIMPLIFIED AUTH NAVBAR ─────────────────────────────────────── */}
       <nav className="w-full bg-white border-b border-[#E0DAD4] sticky top-0 z-40">
         <div className="flex justify-between items-center h-16 px-6 md:px-10 lg:px-16 w-full">
@@ -263,6 +383,14 @@ const DonorRegistration = () => {
                   />
                 </div>
               </div>
+
+              {/* Error message for OTP send failures */}
+              {otpError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4 animate-fade-in">
+                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                  <p className="text-[13px] font-[600] text-[#BE1F2E]">{otpError}</p>
+                </div>
+              )}
 
               <button
                 className="btn-primary w-full"
@@ -315,7 +443,7 @@ const DonorRegistration = () => {
               {otpSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(34,160,107,0.08)] border border-[rgba(34,160,107,0.2)] mb-4 animate-fade-in">
                   <span className="material-symbols-outlined text-[#22A06B] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                  <p className="text-[13px] font-[600] text-[#22A06B]">Verified! Moving to password setup…</p>
+                  <p className="text-[13px] font-[600] text-[#22A06B]">Verified! Setting up your account…</p>
                 </div>
               )}
 
@@ -331,7 +459,7 @@ const DonorRegistration = () => {
               {/* Action Buttons */}
               <div className="flex gap-3 mb-6">
                 <button
-                  onClick={() => { setStep(1); setButtonState('default'); }}
+                  onClick={() => { setStep(1); setButtonState('default'); setOtpError(''); }}
                   className="w-1/3 h-[52px] rounded-full border border-[#D8D0CA] text-[#5A5A5A] text-[14px] font-[600] hover:bg-[#F5F0EB] transition-all cursor-pointer"
                 >
                   ← Back

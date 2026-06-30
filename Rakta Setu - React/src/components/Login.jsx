@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { createRecaptchaVerifier, sendFirebaseOtp } from '../services/firebaseConfig';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,6 +24,10 @@ const Login = () => {
   const [allFilled, setAllFilled] = useState(false);
   const otpRefs = useRef([]);
   
+  // Firebase OTP state
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const recaptchaVerifierRef = useRef(null);
+
   const [buttonState, setButtonState] = useState('default');
 
   // Mobile OTP detection
@@ -45,15 +50,23 @@ const Login = () => {
     }
   }, [loginMethod, mobileStep]);
 
+  // ── SEND OTP VIA FIREBASE ─────────────────────────────────────────
   const handleSendOTP = async () => {
     if (mobile.length !== 10 || buttonState !== 'default') return;
     setButtonState('sending');
+    setOtpError('');
+
     try {
-      const formattedPhone = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      await api.post('/auth/send-otp', {
-        phone: formattedPhone,
-        purpose: 'login'
-      });
+      const phoneNumber = `+91${mobile}`;
+
+      // Create reCAPTCHA verifier (invisible)
+      if (!recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+      }
+
+      const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+      setConfirmationResult(confirmation);
+
       setButtonState('sent');
       setTimeout(() => {
         setMobileStep(2);
@@ -64,17 +77,40 @@ const Login = () => {
         setButtonState('default');
       }, 700);
     } catch (err) {
+      console.error('[Firebase OTP] Send error:', err);
       setButtonState('default');
-      const msg = err.response?.data?.message || 'Failed to send OTP. Please try again.';
-      setOtpError(msg);
+      recaptchaVerifierRef.current = null;
+
+      let errorMsg = `Failed to send OTP. Please try again. [${err.code || 'UNKNOWN'}]: ${err.message || 'No message'}`;
+      if (err.code === 'auth/too-many-requests') {
+        errorMsg = 'Too many attempts. Please wait a few minutes and try again.';
+      } else if (err.code === 'auth/invalid-phone-number') {
+        errorMsg = 'Invalid phone number. Please enter a valid 10-digit number.';
+      } else if (err.code === 'auth/quota-exceeded') {
+        errorMsg = 'SMS quota exceeded. Please try again later.';
+      }
+      setOtpError(errorMsg);
     }
   };
 
-  const handleResendOTP = () => {
+  // ── RESEND OTP ────────────────────────────────────────────────────
+  const handleResendOTP = async () => {
     setTimer(45);
     setResendDisabled(true);
     setOtp(['', '', '', '', '', '']);
     setOtpError('');
+
+    try {
+      const phoneNumber = `+91${mobile}`;
+      recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+      const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+      setConfirmationResult(confirmation);
+    } catch (err) {
+      console.error('[Firebase OTP] Resend error:', err);
+      setOtpError('Failed to resend OTP. Please try again.');
+      recaptchaVerifierRef.current = null;
+    }
+
     setTimeout(() => otpRefs.current[0]?.focus(), 50);
   };
 
@@ -111,20 +147,7 @@ const Login = () => {
     otpRefs.current[lastFilled]?.focus();
   };
 
-  const getRoleFromEmail = (val) => {
-    const email = val.toLowerCase().trim();
-    const parts = email.split('@');
-    if (parts.length < 2) return 'donor';
-    const domain = parts[1];
-    if (domain.includes('staff')) return 'staff';
-    if (domain.includes('admin')) return 'admin';
-    if (domain.includes('district')) return 'district';
-    if (domain.includes('state')) return 'state';
-    if (domain.includes('systemadmin') || domain.includes('sysadmin')) return 'systemadmin';
-    return 'donor';
-  };
-
-  // Perform Email Login
+  // ── EMAIL LOGIN ───────────────────────────────────────────────────
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setEmailError('');
@@ -172,30 +195,29 @@ const Login = () => {
     }
   };
 
-  // Perform Mobile OTP Login
+  // ── VERIFY OTP (FIREBASE) ─────────────────────────────────────────
   const handleVerifyOTP = async () => {
     const code = otp.join('');
     if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
     setButtonState('sending');
+    setOtpError('');
+
     try {
-      const formattedPhone = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      
-      // 1. Verify OTP to get verification token
-      const verifyRes = await api.post('/auth/verify-otp', {
-        phone: formattedPhone,
-        otp: code,
-        purpose: 'login'
-      });
-      const { verification_token } = verifyRes.data;
+      // 1. Verify OTP with Firebase client SDK
+      const userCredential = await confirmationResult.confirm(code);
+      const firebaseUser = userCredential.user;
 
-      // 2. Login using verification token
-      const loginRes = await api.post('/auth/login', {
-        phone: formattedPhone,
-        verificationToken: verification_token
-      });
+      // 2. Get the Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
 
-      const { token, user } = loginRes.data;
+      // 3. Send to backend for login
+      const loginRes = await api.post('/auth/donor/firebase-login', { idToken });
+
+      const { token, refreshToken, refresh_token, user } = loginRes.data;
       localStorage.setItem('raktsetu_auth_token', token);
+      if (refreshToken || refresh_token) {
+        localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
+      }
       localStorage.setItem('raktsetu_donor_authenticated', 'true');
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
       
@@ -206,9 +228,19 @@ const Login = () => {
         navigate('/dashboard');
       }, 700);
     } catch (err) {
+      console.error('[Firebase OTP] Login verify error:', err);
       setButtonState('default');
-      const msg = err.response?.data?.message || 'Invalid OTP code. Please try again.';
-      setOtpError(msg);
+
+      if (err.code === 'auth/invalid-verification-code') {
+        setOtpError('Invalid OTP code. Please check and try again.');
+      } else if (err.code === 'auth/code-expired') {
+        setOtpError('OTP has expired. Please request a new one.');
+      } else if (err.response?.data?.code === 'USER_NOT_FOUND') {
+        setOtpError('No account found. Please register first.');
+      } else {
+        const msg = err.response?.data?.message || 'Invalid OTP code. Please try again.';
+        setOtpError(msg);
+      }
     }
   };
 
@@ -218,6 +250,9 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-[#F5F0EB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
       <div className="noise-filter" />
+
+      {/* Invisible reCAPTCHA container – required by Firebase Phone Auth */}
+      <div id="recaptcha-container" />
 
       {/* ── SIMPLIFIED AUTH NAVBAR ─────────────────────────────────────── */}
       <nav className="w-full bg-white border-b border-[#E0DAD4] sticky top-0 z-40">
@@ -337,109 +372,120 @@ const Login = () => {
           )}
 
           {/* ── MOBILE PATH ───────────────────────────────────────────── */}
-          {loginMethod === 'mobile' && (
+          {loginMethod === 'mobile' && mobileStep === 1 && (
             <div className="animate-fade-in">
-              {mobileStep === 1 ? (
-                <div className="space-y-5 animate-fade-in">
-                  <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Mobile Number</label>
-                    <div className={`flex items-center h-[52px] border rounded-xl bg-white overflow-hidden transition-all ${isMobileValid ? 'border-[#BE1F2E]' : 'border-[#D8D0CA]'} focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]`}>
-                      <div className="flex items-center px-4 border-r border-[#E0DAD4] h-1/2">
-                        <span className="text-[14px] font-[500] text-[#5A5A5A]">+91</span>
-                      </div>
-                      <input
-                        className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] placeholder:text-[#A8A0A0] outline-none"
-                        maxLength="10"
-                        type="tel"
-                        value={mobile}
-                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
-                        placeholder="Enter 10-digit number"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    className="btn-primary w-full mt-4"
-                    style={{ minHeight: 52 }}
-                    disabled={!isMobileValid || buttonState !== 'default'}
-                    onClick={handleSendOTP}
-                  >
-                    {buttonState === 'default' && <>Send OTP <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>}
-                    {buttonState === 'sending' && <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Sending…</>}
-                    {buttonState === 'sent' && <><span className="material-symbols-outlined text-[18px]">check_circle</span> OTP Sent!</>}
-                  </button>
+              <div className="mb-5">
+                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Mobile Number</label>
+                <div className={`flex items-center h-[52px] border rounded-xl bg-white overflow-hidden transition-all ${isMobileValid ? 'border-[#BE1F2E]' : 'border-[#D8D0CA]'} focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]`}>
+                  <span className="pl-4 text-[16px] text-[#9A9A9A] font-[500]">+91</span>
+                  <input
+                    className="flex-grow bg-transparent border-none focus:ring-0 px-3 text-[16px] text-[#1A1A1A] placeholder:text-[#A8A0A0] outline-none"
+                    type="tel"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
+                    placeholder="Enter 10-digit mobile number"
+                    maxLength={10}
+                  />
                 </div>
-              ) : (
-                <div className="animate-fade-in">
-                  <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
-                    We've sent a 6-digit code via SMS to <strong className="text-[#1A1A1A]">+91 {mobile}</strong>
-                  </p>
+              </div>
 
-                  {/* OTP Boxes */}
-                  <div className="flex gap-2.5 justify-center mb-6">
-                    {otp.map((digit, idx) => (
-                      <input
-                        key={idx}
-                        ref={(el) => (otpRefs.current[idx] = el)}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(e.target.value, idx)}
-                        onKeyDown={(e) => handleOtpKeyDown(e, idx)}
-                        onPaste={handleOtpPaste}
-                        className={`otp-box flex-1 w-[52px] h-[60px] max-w-[52px] ${digit ? 'filled' : ''}`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Error / Success */}
-                  {otpError && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4 animate-fade-in">
-                      <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
-                      <p className="text-[13px] font-[600] text-[#BE1F2E]">{otpError}</p>
-                    </div>
-                  )}
-                  {otpSuccess && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(34,160,107,0.08)] border border-[rgba(34,160,107,0.2)] mb-4 animate-fade-in">
-                      <span className="material-symbols-outlined text-[#22A06B] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                      <p className="text-[13px] font-[600] text-[#22A06B]">Verified! Signing in…</p>
-                    </div>
-                  )}
-
-                  {/* Resend countdown */}
-                  <div className="flex justify-between items-center mb-6 text-[13px]">
-                    {resendDisabled ? (
-                      <span className="text-[#9A9A9A]">Resend OTP in {timer}s</span>
-                    ) : (
-                      <button onClick={handleResendOTP} className="text-link text-[13px] font-[600]">Resend OTP</button>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 mb-6">
-                    <button
-                      onClick={() => { setMobileStep(1); setButtonState('default'); }}
-                      className="w-1/3 h-[52px] rounded-full border border-[#D8D0CA] text-[#5A5A5A] text-[14px] font-[600] hover:bg-[#F5F0EB] transition-all cursor-pointer"
-                    >
-                      ← Back
-                    </button>
-                    <button
-                      onClick={handleVerifyOTP}
-                      disabled={!allFilled || buttonState === 'sending'}
-                      className={`btn-primary w-2/3 btn-arrow-hover ${allFilled ? 'btn-pulse' : ''}`}
-                      style={{ minHeight: 52 }}
-                    >
-                      {buttonState === 'sending' ? (
-                        <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Verifying…</>
-                      ) : (
-                        <>Verify &amp; Sign In <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>
-                      )}
-                    </button>
-                  </div>
+              {otpError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4 animate-fade-in">
+                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                  <p className="text-[13px] font-[600] text-[#BE1F2E]">{otpError}</p>
                 </div>
               )}
+
+              <button
+                className="btn-primary w-full"
+                style={{ minHeight: 52 }}
+                disabled={!isMobileValid || buttonState !== 'default'}
+                onClick={handleSendOTP}
+              >
+                {buttonState === 'default' && <>Send OTP <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>}
+                {buttonState === 'sending' && <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Sending OTP…</>}
+                {buttonState === 'sent' && <><span className="material-symbols-outlined text-[18px]">check_circle</span> OTP Sent!</>}
+              </button>
+
+              <div className="text-center mt-6">
+                <p className="text-[12px] text-[#9A9A9A] flex items-center justify-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">lock</span>
+                  Secured by Firebase Phone Authentication
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── MOBILE OTP VERIFICATION ─────────────────────────────── */}
+          {loginMethod === 'mobile' && mobileStep === 2 && (
+            <div className="animate-fade-in">
+              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
+                We've sent a 6-digit code to <strong className="text-[#1A1A1A]">+91 {mobile}</strong>
+              </p>
+
+              {/* OTP Boxes */}
+              <div className="flex gap-2.5 justify-center mb-6">
+                {otp.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    ref={(el) => (otpRefs.current[idx] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(e.target.value, idx)}
+                    onKeyDown={(e) => handleOtpKeyDown(e, idx)}
+                    onPaste={handleOtpPaste}
+                    className={`otp-box flex-1 w-[52px] h-[60px] max-w-[52px] ${digit ? 'filled' : ''}`}
+                  />
+                ))}
+              </div>
+
+              {/* Error / Success */}
+              {otpError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4 animate-fade-in">
+                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                  <p className="text-[13px] font-[600] text-[#BE1F2E]">{otpError}</p>
+                </div>
+              )}
+              {otpSuccess && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(34,160,107,0.08)] border border-[rgba(34,160,107,0.2)] mb-4 animate-fade-in">
+                  <span className="material-symbols-outlined text-[#22A06B] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  <p className="text-[13px] font-[600] text-[#22A06B]">Verified! Signing you in…</p>
+                </div>
+              )}
+
+              {/* Resend countdown */}
+              <div className="flex justify-between items-center mb-6 text-[13px]">
+                {resendDisabled ? (
+                  <span className="text-[#9A9A9A]">Resend OTP in {timer}s</span>
+                ) : (
+                  <button onClick={handleResendOTP} className="text-link text-[13px] font-[600]">Resend OTP</button>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mb-6">
+                <button
+                  onClick={() => { setMobileStep(1); setButtonState('default'); setOtpError(''); }}
+                  className="w-1/3 h-[52px] rounded-full border border-[#D8D0CA] text-[#5A5A5A] text-[14px] font-[600] hover:bg-[#F5F0EB] transition-all cursor-pointer"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={handleVerifyOTP}
+                  disabled={!allFilled || buttonState === 'sending'}
+                  className={`btn-primary w-2/3 btn-arrow-hover ${allFilled ? 'btn-pulse' : ''}`}
+                  style={{ minHeight: 52 }}
+                >
+                  {buttonState === 'sending' ? (
+                    <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Verifying…</>
+                  ) : (
+                    <>Verify & Sign In <span className="material-symbols-outlined text-[18px] btn-arrow">arrow_forward</span></>
+                  )}
+                </button>
+              </div>
             </div>
           )}
 

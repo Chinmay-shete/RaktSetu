@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
+const truecallerAuthController = require('../controllers/truecallerAuthController');
 const {
   loginRateLimiter,
   sendOtpRateLimiter,
@@ -31,6 +32,9 @@ router.post('/register', validateRequest(registerSchema), authController.registe
 
 // 4. Login (Email/Password or Phone/OTP)
 router.post('/login', loginRateLimiter, validateRequest(loginSchema), authController.login);
+
+// 4.5. Login with Truecaller
+router.post('/truecaller-login', loginRateLimiter, truecallerAuthController.truecallerLogin);
 
 // 5. Logout
 router.post('/logout', validateRequest(logoutSchema), authController.logout);

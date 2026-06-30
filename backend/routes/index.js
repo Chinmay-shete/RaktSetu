@@ -1,6 +1,7 @@
 const express = require('express');
 const { getHealth } = require('../controllers/healthController');
 const authRoutes = require('./authRoutes');
+const donorAuthRoutes = require('./donorAuthRoutes');
 const donorRoutes = require('./donorRoutes');
 const landingRoutes = require('./landingRoutes');
 const hospitalRoutes = require('./hospitalRoutes');
@@ -14,6 +15,9 @@ router.get('/health', getHealth);
 
 // Auth Routes
 router.use('/auth', authRoutes);
+
+// Donor Firebase Auth Routes
+router.use('/auth/donor', donorAuthRoutes);
 
 // Donor Portal Routes
 router.use('/donor', donorRoutes);

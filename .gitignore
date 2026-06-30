@@ -81,3 +81,7 @@ venv/
 ENV/
 env/
 backend/ai/.venv/
+
+# Firebase secrets (service account JSON)
+backend/secrets/
+secrets/

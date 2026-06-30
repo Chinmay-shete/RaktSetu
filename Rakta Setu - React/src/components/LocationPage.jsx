@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const LocationPage = () => {
   const navigate = useNavigate();
@@ -71,18 +72,81 @@ const LocationPage = () => {
     else setPincodeError('');
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (pincode.length > 0 && pincode.length < 6) { setPincodeError('Enter a valid 6-digit PIN'); return; }
-    const existing = JSON.parse(localStorage.getItem('raktsetu_donor_profile') || '{}');
-    localStorage.setItem('raktsetu_donor_profile', JSON.stringify({
-      ...existing, city, pincode, donatedBefore,
-      lastDonation: donatedBefore ? lastDonation : '',
-      donationType: donatedBefore ? donationType : '',
-      donationTimes: donatedBefore ? donationTimes : '',
-      gpsEnabled,
-    }));
-    localStorage.removeItem('raktsetu_otp_verified');
-    navigate('/dashboard');
+    
+    try {
+      const existing = JSON.parse(localStorage.getItem('raktsetu_donor_profile') || '{}');
+      
+      // 1. Prepare profile data (normalize U+2212 '−' to '-' so enum validation passes)
+      const bloodGroupNormalized = (existing.bloodGroup || 'O+').replace('−', '-');
+      const chronicIllness = !!(existing.screeningAnswers?.q6);
+      const lastDonatedDate = donatedBefore && lastDonation ? lastDonation : null;
+      
+      const profileData = {
+        fullName: existing.fullName || 'Anonymous Donor',
+        age: parseInt(existing.age || '25', 10),
+        gender: existing.gender || 'Male',
+        bloodGroup: bloodGroupNormalized,
+        weight: 60, // Default weight passing validation
+        chronicIllness,
+        lastDonatedDate
+      };
+      
+      // 2. Submit profile to backend
+      await api.post('/donor/profile', profileData);
+      
+      // 3. Save location details
+      let latitude = 0.0;
+      let longitude = 0.0;
+      const storedLocation = localStorage.getItem('raktsetu_location');
+      if (storedLocation) {
+        try {
+          const parsedLoc = JSON.parse(storedLocation);
+          latitude = parsedLoc.latitude || 0.0;
+          longitude = parsedLoc.longitude || 0.0;
+        } catch (e) {
+          // ignore
+        }
+      }
+      
+      // If GPS wasn't used, fall back to city coordinates
+      if (latitude === 0.0 && longitude === 0.0) {
+        const cityCoords = {
+          'Mumbai': { lat: 19.0760, lng: 72.8777 },
+          'Pune': { lat: 18.5204, lng: 73.8567 },
+          'Nagpur': { lat: 21.1458, lng: 79.0882 },
+          'Satara': { lat: 17.6805, lng: 73.9918 },
+          'Kolhapur': { lat: 16.7050, lng: 74.2433 }
+        };
+        const coords = cityCoords[city] || { lat: 19.0760, lng: 72.8777 };
+        latitude = coords.lat;
+        longitude = coords.lng;
+      }
+      
+      await api.post('/donor/location', {
+        lat: latitude,
+        lng: longitude,
+        city: city || 'Mumbai',
+        pincode: pincode || '400001'
+      });
+      
+      // Save local state
+      localStorage.setItem('raktsetu_donor_profile', JSON.stringify({
+        ...existing, city, pincode, donatedBefore,
+        lastDonation: donatedBefore ? lastDonation : '',
+        donationType: donatedBefore ? donationType : '',
+        donationTimes: donatedBefore ? donationTimes : '',
+        gpsEnabled,
+      }));
+      localStorage.setItem('raktsetu_donor_authenticated', 'true');
+      localStorage.removeItem('raktsetu_otp_verified');
+      
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Failed to submit profile to backend:', err);
+      alert('Failed to save profile. Please try again.');
+    }
   };
 
   return (

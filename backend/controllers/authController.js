@@ -529,5 +529,8 @@ module.exports = {
   validateInviteToken,
   setPassword,
   refresh,
-  changePassword
+  changePassword,
+  // Exported for reuse by donorFirebaseController
+  issueTokens,
+  serializeUser
 };
