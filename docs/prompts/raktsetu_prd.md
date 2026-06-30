@@ -148,4 +148,4 @@
 
 ---
 
-*Prepared based on the existing `project_understanding.md`, `raktsetu_complete_project_report.html`, and the raktsetu_specifications.pdf analysis.*
+*Prepared based on the existing `project_understanding.md`, `raktsetu_complete_project_report.html`, and the index.pdf analysis.*

@@ -494,14 +494,14 @@
 <!-- ══════════════════ INDEX.PDF CONTENT ══════════════════ -->
 <div class="container" id="competitor-analysis">
   <div class="section-header">
-    <span class="section-label">Section 0B — From raktsetu_specifications.pdf: Competitor Analysis</span>
+    <span class="section-label">Section 0B — From index.pdf: Competitor Analysis</span>
     <h2 class="section-title">Market <em>Context</em></h2>
-    <p class="section-desc">The <code class="inline">raktsetu_specifications.pdf</code> is a comprehensive competitor analysis document. It benchmarks RaktSetu against 5 existing platforms and identifies the 6 unique features that nobody has built for India.</p>
+    <p class="section-desc">The <code class="inline">index.pdf</code> is a comprehensive competitor analysis document. It benchmarks RaktSetu against 5 existing platforms and identifies the 6 unique features that nobody has built for India.</p>
   </div>
 
   <div class="callout callout-blue">
     <span class="callout-icon">📄</span>
-    <div><h4>About raktsetu_specifications.pdf</h4><p>Verified from internet on April 17, 2026. Sources: AABB 2024, PMC, eraktkosh.mohfw.gov.in, bloodconnect.org, sankalpindia.net. This document is what defines the <em>product vision</em> — the 6 unique features are the core differentiators the entire codebase is built around.</p></div>
+    <div><h4>About index.pdf</h4><p>Verified from internet on April 17, 2026. Sources: AABB 2024, PMC, eraktkosh.mohfw.gov.in, bloodconnect.org, sankalpindia.net. This document is what defines the <em>product vision</em> — the 6 unique features are the core differentiators the entire codebase is built around.</p></div>
   </div>
 
   <h3>Competitor Landscape</h3>
@@ -517,7 +517,7 @@
     </tbody>
   </table></div>
 
-  <h3>Feature Comparison Matrix (From raktsetu_specifications.pdf)</h3>
+  <h3>Feature Comparison Matrix (From index.pdf)</h3>
   <div class="table-wrap"><table>
     <thead><tr><th>Feature</th><th>eRaktKosh</th><th>BloodConnect</th><th>Sankalp</th><th>eBlood Odisha</th><th>RaktSetu</th></tr></thead>
     <tbody>
@@ -535,7 +535,7 @@
   </table></div>
 
   <div class="highlight-box">
-    <h3>raktsetu_specifications.pdf Honest Verdict: <em>What to Build vs What to Skip</em></h3>
+    <h3>index.pdf Honest Verdict: <em>What to Build vs What to Skip</em></h3>
     <p><strong>Don't waste time rebuilding (already exists):</strong></p>
     <ul>
       <li>Basic blood stock search — eRaktKosh already does this. Integrate/extend it, don't rebuild it.</li>
@@ -551,7 +551,7 @@
     </ul>
   </div>
 
-  <h3>6 Unique Features — Detailed Descriptions (From raktsetu_specifications.pdf)</h3>
+  <h3>6 Unique Features — Detailed Descriptions (From index.pdf)</h3>
   <div class="card-grid">
     <div class="card card-red"><div class="card-num">U1</div>
       <div class="card-icon">🤖</div>
@@ -585,7 +585,7 @@
     </div>
   </div>
 
-  <h3>Tech Stack (From raktsetu_specifications.pdf Recommendation)</h3>
+  <h3>Tech Stack (From index.pdf Recommendation)</h3>
   <div class="table-wrap"><table>
     <thead><tr><th>Module</th><th>Technology</th></tr></thead>
     <tbody>
@@ -605,7 +605,7 @@
 <div class="part-divider" id="part-frontend">
   <span class="part-num">Part One</span>
   <h2>Frontend <em>Architecture</em></h2>
-  <p>Complete audit of all 48 screens, data shapes, auth gating, bugs found, and features from the project specification (raktsetu_specifications.pdf) that are not yet implemented in the frontend code.</p>
+  <p>Complete audit of all 48 screens, data shapes, auth gating, bugs found, and features from the project specification (index.pdf) that are not yet implemented in the frontend code.</p>
 </div>
 
 <!-- 1. ROUTES -->
@@ -990,12 +990,12 @@ const { token, user } = await POST('/auth/login', { email, password });
   <div class="section-header">
     <span class="section-label">Section 5 — Planned Features Not Yet Built in Frontend</span>
     <h2 class="section-title">In the Spec. <em>Not in Code.</em></h2>
-    <p class="section-desc">These features are explicitly described in the project specification documents (raktsetu_specifications.pdf, raktsetu_all_user_types_report.md, raktsetu_improvement_report.md, docs/planning/district_officer_portal_plan.md) but have <strong>not been implemented</strong> in the current React frontend. Backend should be aware these screens and data flows are coming.</p>
+    <p class="section-desc">These features are explicitly described in the project specification documents (index.pdf, raktsetu_all_user_types_report.md, raktsetu_improvement_report.md, docs/planning/district_officer_portal_plan.md) but have <strong>not been implemented</strong> in the current React frontend. Backend should be aware these screens and data flows are coming.</p>
   </div>
 
   <div class="callout callout-blue">
     <span class="callout-icon">📄</span>
-    <div><h4>Source Documents</h4><p>These gaps were identified by comparing the current codebase against: <code class="inline">raktsetu_specifications.pdf</code> (project specification), <code class="inline">docs/reports/raktsetu_all_user_types_report.md</code>, <code class="inline">docs/reports/raktsetu_improvement_report.md</code>, <code class="inline">docs/planning/district_officer_portal_plan.md</code>, and <code class="inline">docs/reports/raktsetu_scan_and_audit_report.md</code>.</p></div>
+    <div><h4>Source Documents</h4><p>These gaps were identified by comparing the current codebase against: <code class="inline">index.pdf</code> (project specification), <code class="inline">docs/reports/raktsetu_all_user_types_report.md</code>, <code class="inline">docs/reports/raktsetu_improvement_report.md</code>, <code class="inline">docs/planning/district_officer_portal_plan.md</code>, and <code class="inline">docs/reports/raktsetu_scan_and_audit_report.md</code>.</p></div>
   </div>
 
   <div class="not-impl-grid">
@@ -1747,7 +1747,7 @@ export default api;</pre>
   <div class="section-header">
     <span class="section-label">Section 13 — Future Enhancements</span>
     <h2 class="section-title">Beyond <em>MVP Specs</em></h2>
-    <p class="section-desc">The following features were not explicitly mentioned in the original raktsetu_specifications.pdf, but are highly recommended additions to make RaktSetu a world-class, enterprise-grade system.</p>
+    <p class="section-desc">The following features were not explicitly mentioned in the original index.pdf, but are highly recommended additions to make RaktSetu a world-class, enterprise-grade system.</p>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1934,7 +1934,7 @@ export default api;</pre>
     <div>
       <div style="font-family:'DM Serif Display',serif;font-size:48px;color:white;font-style:italic;line-height:1;">RaktSetu</div>
       <p style="color:rgba(255,255,255,0.35);font-size:13px;margin-top:8px;">Complete Project Report · Generated June 2026</p>
-      <p style="color:rgba(255,255,255,0.25);font-size:12px;margin-top:4px;">Sources: raktsetu_specifications.pdf · mockApi.js · All 6 Context Providers · All 48 Components · raktsetu_all_user_types_report.md · raktsetu_improvement_report.md · RaktSetu_Backend_Readiness_Report.md · docs/planning/district_officer_portal_plan.md · raktsetu_scan_and_audit_report.md</p>
+      <p style="color:rgba(255,255,255,0.25);font-size:12px;margin-top:4px;">Sources: index.pdf · mockApi.js · All 6 Context Providers · All 48 Components · raktsetu_all_user_types_report.md · raktsetu_improvement_report.md · RaktSetu_Backend_Readiness_Report.md · docs/planning/district_officer_portal_plan.md · raktsetu_scan_and_audit_report.md</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
       <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#22A06B;animation:pulse 2s infinite;display:inline-block;"></span><span style="color:rgba(255,255,255,0.5);font-size:13px;">Frontend: 100% Complete</span></div>

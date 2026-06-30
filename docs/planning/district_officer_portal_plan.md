@@ -1,6 +1,6 @@
 # District Officer Portal — RaktSetu Implementation Plan
 
-## Background & Purpose (from raktsetu_specifications.pdf + Architecture Docs)
+## Background & Purpose (from index.pdf + Architecture Docs)
 
 RaktSetu is an **AI-powered blood supply management platform** positioned as India's missing layer between eRaktKosh (government stock search) and hospitals. The core differentiators (from the competitor analysis PDF) are:
 
