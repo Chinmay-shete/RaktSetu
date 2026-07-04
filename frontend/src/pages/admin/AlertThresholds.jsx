@@ -7,12 +7,12 @@ const AlertThresholds = () => {
   const { appState, updateAlertThresholds } = useHospital();
   
   const [formData, setFormData] = useState({
-    minStock: appState.alertThresholds.minStock,
-    maxStock: appState.alertThresholds.maxStock,
-    criticalUnits: appState.alertThresholds.criticalUnits,
-    expiryDays: appState.alertThresholds.expiryDays,
-    emergencyAlerts: appState.alertThresholds.emergencyAlerts,
-    autoTransfer: appState.alertThresholds.autoTransfer || false
+    minStock: appState?.alertThresholds?.minStock ?? 20,
+    maxStock: appState?.alertThresholds?.maxStock ?? 200,
+    criticalUnits: appState?.alertThresholds?.criticalUnits ?? 10,
+    expiryDays: appState?.alertThresholds?.expiryDays ?? 5,
+    emergencyAlerts: appState?.alertThresholds?.emergencyAlerts ?? true,
+    autoTransfer: appState?.alertThresholds?.autoTransfer ?? false
   });
 
   const [showToast, setShowToast] = useState(false);

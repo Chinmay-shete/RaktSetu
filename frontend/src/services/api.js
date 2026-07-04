@@ -79,7 +79,7 @@ api.interceptors.response.use(
 // These replace the old mockApi named export. All calls go through the real backend.
 
 export const hospitalApi = {
-  getInventory: () => api.get('/hospital/inventory').then(res => res.data),
+  getInventory: () => api.get('/hospital/inventory').then(res => res.data.data || res.data),
   addInventory: (item) => api.post('/hospital/inventory', item).then(res => res.data),
   updateInventory: (id, fields) => api.put(`/hospital/inventory/${id}`, fields).then(res => res.data),
   deleteInventory: (id) => api.delete(`/hospital/inventory/${id}`).then(res => res.data),

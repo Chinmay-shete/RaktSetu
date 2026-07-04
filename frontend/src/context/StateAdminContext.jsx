@@ -6,8 +6,7 @@ const StateAdminContext = createContext();
 // 15 Maharashtra districts with realistic mock blood supply data
 export const StateAdminProvider = ({ children }) => {
   const [appState, setAppState] = useState(() => {
-    const saved = localStorage.getItem('raktsetu_state_admin');
-    return saved ? JSON.parse(saved) : {
+    const defaultState = {
       status: 'idle',
       officialDetails: null,
       districts: [],
@@ -15,6 +14,16 @@ export const StateAdminProvider = ({ children }) => {
       policyAlerts: [],
       escalationReports: [],
     };
+    const saved = localStorage.getItem('raktsetu_state_admin');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...defaultState, ...parsed };
+      } catch (e) {
+        return defaultState;
+      }
+    }
+    return defaultState;
   });
 
   const [isLoading, setIsLoading] = useState(false);

@@ -57,7 +57,7 @@ export const BloodInventory = () => {
   if (isError) return <ErrorState message="Failed to load stock data." onRetry={refetch} />;
 
   // Filtering
-  const filteredInventory = inventory.filter(item => {
+  const filteredInventory = (Array.isArray(inventory) ? inventory : []).filter(item => {
     const matchesSearch = 
       item.bloodGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.source.toLowerCase().includes(searchTerm.toLowerCase()) ||

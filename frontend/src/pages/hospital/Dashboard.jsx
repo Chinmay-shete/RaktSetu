@@ -84,12 +84,15 @@ export const Dashboard = () => {
     );
   }
 
-  const totalUnits = inventory.reduce((sum, item) => sum + item.units, 0);
-  const availableUnits = inventory.reduce((sum, item) => sum + Math.max(0, item.units - item.reservedUnits), 0);
-  const expiringSoonCount = inventory.filter(item => item.status === 'Expiring Soon').length;
-  const pendingTransfersCount = transfers.filter(t => t.status === 'Pending').length;
+  const safeInventory = Array.isArray(inventory) ? inventory : [];
+  const safeTransfers = Array.isArray(transfers) ? transfers : [];
 
-  const criticalGroups = inventory
+  const totalUnits = safeInventory.reduce((sum, item) => sum + item.units, 0);
+  const availableUnits = safeInventory.reduce((sum, item) => sum + Math.max(0, item.units - item.reservedUnits), 0);
+  const expiringSoonCount = safeInventory.filter(item => item.status === 'Expiring Soon').length;
+  const pendingTransfersCount = safeTransfers.filter(t => t.status === 'Pending').length;
+
+  const criticalGroups = safeInventory
     .filter(item => (item.units - item.reservedUnits) <= 3 && item.status !== 'Expired')
     .map(item => item.bloodGroup);
 

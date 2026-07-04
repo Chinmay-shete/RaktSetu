@@ -4,8 +4,7 @@ const HospitalContext = createContext();
 
 export const HospitalProvider = ({ children }) => {
   const [appState, setAppState] = useState(() => {
-    const saved = localStorage.getItem('raktsetu_admin_app_state');
-    return saved ? JSON.parse(saved) : {
+    const defaultState = {
       status: 'idle', // 'idle', 'pending', 'approved', 'logged_in'
       hospitalDetails: null,
       invitedStaff: [],
@@ -17,6 +16,24 @@ export const HospitalProvider = ({ children }) => {
         emergencyAlerts: true
       }
     };
+    const saved = localStorage.getItem('raktsetu_admin_app_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Explicitly deep-merge alertThresholds to prevent partial overrides
+        return {
+          ...defaultState,
+          ...parsed,
+          alertThresholds: {
+            ...defaultState.alertThresholds,
+            ...(parsed.alertThresholds || {})
+          }
+        };
+      } catch (e) {
+        return defaultState;
+      }
+    }
+    return defaultState;
   });
 
   useEffect(() => {

@@ -5,14 +5,23 @@ const DistrictContext = createContext();
 
 export const DistrictProvider = ({ children }) => {
   const [appState, setAppState] = useState(() => {
-    const saved = localStorage.getItem('raktsetu_district_state');
-    return saved ? JSON.parse(saved) : {
+    const defaultState = {
       status: 'idle',
       officerDetails: null,
       hospitals: [],
       alerts: [],
       camps: [],
     };
+    const saved = localStorage.getItem('raktsetu_district_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...defaultState, ...parsed };
+      } catch (e) {
+        return defaultState;
+      }
+    }
+    return defaultState;
   });
 
   const [isLoading, setIsLoading] = useState(false);

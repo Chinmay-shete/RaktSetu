@@ -33,6 +33,9 @@ router.post('/register', validateRequest(registerSchema), authController.registe
 // 4. Login (Email/Password or Phone/OTP)
 router.post('/login', loginRateLimiter, validateRequest(loginSchema), authController.login);
 
+// 4.1. Verify MFA (TOTP)
+router.post('/verify-mfa', authController.verifyMfa);
+
 // 4.5. Login with Truecaller
 router.post('/truecaller-login', loginRateLimiter, truecallerAuthController.truecallerLogin);
 

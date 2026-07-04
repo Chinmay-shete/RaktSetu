@@ -22,6 +22,10 @@ async function sendOtp(target, purpose, isEmail = false) {
   
   // Always generate a secure 6-digit random code locally
   const code = String(crypto.randomInt(100000, 999999));
+  
+  // Log the generated OTP for easy local testing without email domain restrictions
+  console.warn(`[DEVELOPMENT DEBUG] Generated OTP Code: ${code.split('').join(' ')}`);
+  
   let sessionId = null;
 
   if (!isTest) {

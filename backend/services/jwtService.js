@@ -92,7 +92,7 @@ function createRefreshToken(userId) {
   const expiresDays = parseInt(process.env.JWT_REFRESH_EXPIRES_DAYS || '7', 10);
   const durationSeconds = expiresDays * 24 * 60 * 60;
   const expiresAt = new Date(Date.now() + (durationSeconds * 1000));
-  
+
   const payload = {
     sub: String(userId),
     type: TOKEN_TYPE_REFRESH,
@@ -100,7 +100,7 @@ function createRefreshToken(userId) {
     iat: Math.floor(Date.now() / 1000),
     jti: crypto.randomBytes(8).toString('hex')
   };
-  
+
   return {
     token: encode(payload, JWT_REFRESH_SECRET),
     expiresAt
@@ -134,11 +134,6 @@ function verifyOtpVerificationToken(token, target, purpose) {
   if (storedTarget !== target) {
     throw new ApiError('OTP verification token does not match target', 401, 'INVALID_OTP_TOKEN');
   }
-  if (payload.purpose !== purpose) {
-    throw new ApiError('OTP verification token purpose mismatch', 401, 'INVALID_OTP_TOKEN');
-  }
-  return true;
-}
   if (payload.purpose !== purpose) {
     throw new ApiError('OTP verification token purpose mismatch', 401, 'INVALID_OTP_TOKEN');
   }

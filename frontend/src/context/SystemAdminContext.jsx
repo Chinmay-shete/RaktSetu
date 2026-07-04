@@ -5,8 +5,7 @@ const SystemAdminContext = createContext();
 
 export const SystemAdminProvider = ({ children }) => {
   const [adminState, setAdminState] = useState(() => {
-    const saved = localStorage.getItem('raktsetu_sysadmin_state');
-    return saved ? JSON.parse(saved) : {
+    const defaultState = {
       status: 'idle',
       adminDetails: null,
       pendingHospitals: [],
@@ -30,6 +29,16 @@ export const SystemAdminProvider = ({ children }) => {
         }
       }
     };
+    const saved = localStorage.getItem('raktsetu_sysadmin_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...defaultState, ...parsed };
+      } catch (e) {
+        return defaultState;
+      }
+    }
+    return defaultState;
   });
 
   const [isLoading, setIsLoading] = useState(false);

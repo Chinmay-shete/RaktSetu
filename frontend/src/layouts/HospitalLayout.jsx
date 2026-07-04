@@ -25,9 +25,9 @@ export const HospitalLayout = () => {
     enabled: !!isAuthenticated
   });
 
-  const expiryCount = inventory.filter(item => item.status === 'Expiring Soon' || item.status === 'Expired').length;
+  const expiryCount = (Array.isArray(inventory) ? inventory : []).filter(item => item.status === 'Expiring Soon' || item.status === 'Expired').length;
 
-  const emergencyCount = emergencies.filter(req => req.status === 'Pending').length;
+  const emergencyCount = (Array.isArray(emergencies) ? emergencies : []).filter(req => req.status === 'Pending').length;
 
   const badges = {
     expiry: expiryCount,

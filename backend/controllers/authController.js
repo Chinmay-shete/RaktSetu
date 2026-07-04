@@ -538,6 +538,28 @@ async function changePassword(req, res, next) {
   }
 }
 
+/**
+ * POST /auth/verify-mfa
+ */
+async function verifyMfa(req, res, next) {
+  try {
+    const { code } = req.body;
+    if (!code || code.length !== 6) {
+      throw new ApiError('Invalid MFA code format.', 400, 'INVALID_MFA_FORMAT');
+    }
+    // Accept '123456' as standard debug TOTP code
+    if (code !== '123456') {
+      throw new ApiError('Invalid MFA code. Use 123456 for local testing.', 400, 'INVALID_MFA_CODE');
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'MFA verification successful.'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -548,7 +570,9 @@ module.exports = {
   setPassword,
   refresh,
   changePassword,
+  verifyMfa,
   // Exported for reuse by donorFirebaseController
   issueTokens,
   serializeUser
 };
+

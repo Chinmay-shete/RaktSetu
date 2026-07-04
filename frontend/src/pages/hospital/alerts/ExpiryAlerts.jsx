@@ -44,7 +44,7 @@ export const ExpiryAlerts = () => {
   if (isError) return <ErrorState message="Could not fetch inventory safety logs." onRetry={refetch} />;
 
   // Filter for alert states: Expired or Expiring Soon (<30 days remaining)
-  const alerts = inventory
+  const alerts = (Array.isArray(inventory) ? inventory : [])
     .filter(item => item.status === 'Expired' || item.status === 'Expiring Soon')
     .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
