@@ -70,7 +70,7 @@ const registerSchema = z.union([
     hospitalType: z.enum(['Government', 'Private', 'Trust', 'Semi-Govt']),
     license_no: z.string().min(1, 'License number is required'),
     address: z.string().min(5, 'Address must be at least 5 characters'),
-    city: z.enum(['Mumbai', 'Pune', 'Nagpur', 'Satara', 'Kolhapur']),
+    city: z.string().min(2, 'City name must be at least 2 characters'),
     state: z.string().min(2, 'State must be at least 2 characters'),
     pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers'),
     lat: z.union([z.number(), z.string().transform(Number)]),
@@ -156,7 +156,7 @@ const saveLocationSchema = z.object({
   lng: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= -180 && val <= 180, {
     message: 'Longitude must be between -180 and 180'
   }),
-  city: z.enum(['Mumbai', 'Pune', 'Nagpur', 'Satara', 'Kolhapur']),
+  city: z.string().min(2, 'City name must be at least 2 characters'),
   pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers')
 });
 
