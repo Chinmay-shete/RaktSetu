@@ -2,11 +2,16 @@
 
 This quick-start guide details how to install, configure, and run the **RaktSetu Blood Supply Management Platform** on **macOS**.
 
+> [!NOTE]
+> **Is this your first time running the project?**
+> - **First-Time Setup:** Follow the installation, database schema import, and configuration steps below.
+> - **Subsequent Runs (Second Time+):** There is **no need to re-install** or re-configure anything. Skip directly to the [🔄 Subsequent Runs (Second Time+)](#-subsequent-runs-second-time) section at the very bottom of this file.
+
 ---
 
-## 🚀 Quick Run (TL;DR)
+## 🚀 First-Time Quick Run (TL;DR)
 
-If you already have Node.js, Python 3, and MySQL installed and running:
+If you already have Node.js, Python 3, and MySQL installed on your macOS system:
 
 ```bash
 # 1. Setup environment files
@@ -32,7 +37,7 @@ cd backend/ai && ./.venv/bin/python app.py
 
 ---
 
-## 🛠️ Detailed Setup Instructions
+## 🛠️ Detailed First-Time Setup Instructions
 
 ### 1. macOS Prerequisites
 
@@ -131,3 +136,28 @@ curl -i http://localhost:5000/api/v1/health
     ```bash
     kill -9 $(lsof -t -i:5000 -i:5001 -i:5173)
     ```
+
+---
+
+## 🔄 Subsequent Runs (Second Time+)
+
+For all runs after your initial setup, you **do not need to install or configure anything again**. Simply start the services using the commands below:
+
+### 1. Ensure MySQL is running
+If MySQL is not already running, start it:
+```bash
+brew services start mysql
+```
+
+### 2. Start Frontend & Backend
+In the project root terminal:
+```bash
+npm run dev
+```
+
+### 3. Start AI Microservice
+In a new terminal window:
+```bash
+cd backend/ai
+./.venv/bin/python app.py
+```

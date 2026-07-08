@@ -10,6 +10,7 @@
     "migrate": "node -r dotenv/config -e \"const { execSync } = require('child_process'); const env = { ...process.env }; if (process.env.DB_PASSWORD) env.MYSQL_PWD = process.env.DB_PASSWORD; execSync('mysql -u ' + process.env.DB_USER + ' -h ' + process.env.DB_HOST + ' ' + process.env.DB_NAME + ' < ./models/migrations/001_initial_schema.sql', { env, stdio: 'inherit' });\""
   },
   "dependencies": {
+    "axios": "^1.18.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

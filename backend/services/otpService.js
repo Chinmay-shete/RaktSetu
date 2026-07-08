@@ -1,37 +1,101 @@
 const crypto = require('crypto');
-const twilio = require('twilio');
+const axios = require('axios');
 const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
 const { createOtpVerificationToken } = require('./jwtService');
 const emailService = require('./emailService');
 
-function getTwilioClient() {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  if (!accountSid || !authToken) {
-    throw new ApiError('Twilio credentials are not defined in environment variables.', 500, 'CONFIG_ERROR');
+// ─────────────────────────────────────────────────────────────────────────────
+// MSG91 SMS Sender — Works perfectly with Indian phone numbers 🇮🇳
+// No SDK needed, uses MSG91 REST API directly via axios
+// Get credentials from: https://msg91.com → Dashboard → API Keys
+// ─────────────────────────────────────────────────────────────────────────────
+async function sendSmsViaMSG91(phoneNumber, otp, expiresMinutes) {
+  const authKey = process.env.MSG91_AUTH_KEY;
+  const templateId = process.env.MSG91_TEMPLATE_ID;
+  const senderId = process.env.MSG91_SENDER_ID || 'RAKSETU';
+
+  if (!authKey) {
+    throw new ApiError(
+      'MSG91_AUTH_KEY is not set in environment variables. Get it from msg91.com Dashboard → API Keys.',
+      500,
+      'CONFIG_ERROR'
+    );
   }
-  return twilio(accountSid, authToken);
+
+  if (!templateId) {
+    throw new ApiError(
+      'MSG91_TEMPLATE_ID is not set in environment variables. Create an OTP template on msg91.com and copy its Template ID.',
+      500,
+      'CONFIG_ERROR'
+    );
+  }
+
+  // MSG91 expects phone in format: 91XXXXXXXXXX (country code + 10 digit number, NO +)
+  // If frontend sends +91XXXXXXXXXX → strip the leading +
+  const formattedPhone = phoneNumber.replace(/^\+/, '');
+
+  try {
+    const response = await axios.post(
+      'https://control.msg91.com/api/v5/otp',
+      {
+        template_id: templateId,
+        mobile: formattedPhone,
+        authkey: authKey,
+        otp: otp,
+        sender: senderId,
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000, // 10 second timeout
+      }
+    );
+
+    const data = response.data;
+
+    // MSG91 returns { type: 'success', message: '...' } on success
+    if (data.type !== 'success') {
+      throw new Error(data.message || 'MSG91 returned a non-success response');
+    }
+
+    return data;
+  } catch (err) {
+    // Axios error with response from MSG91
+    if (err.response) {
+      const msg = err.response.data?.message || JSON.stringify(err.response.data);
+      throw new ApiError(`MSG91 SMS failed: ${msg}`, 502, 'SMS_PROVIDER_ERROR');
+    }
+    // Network / timeout error
+    throw new ApiError(`MSG91 SMS network error: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
+  }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Main sendOtp function — called by auth routes
+// target    → phone number (E.164 like +919876543210) OR email address
+// purpose   → 'donor_registration' | 'donor_login' | etc.
+// isEmail   → true for email OTP, false for SMS OTP
+// ─────────────────────────────────────────────────────────────────────────────
 async function sendOtp(target, purpose, isEmail = false) {
   const expiresMinutes = parseInt(process.env.OTP_EXPIRES_MINUTES || '5', 10);
   const expiresAt = new Date(Date.now() + (expiresMinutes * 60 * 1000));
-  
+
   const isTest = process.env.NODE_ENV === 'test';
-  
+
   // Always generate a secure 6-digit random code locally
   const code = String(crypto.randomInt(100000, 999999));
-  
-  // Log the generated OTP for easy local testing without email domain restrictions
-  console.warn(`[DEVELOPMENT DEBUG] Generated OTP Code: ${code.split('').join(' ')}`);
-  
+
+  // Log OTP in development for easy testing (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`[DEV DEBUG] OTP for ${target}: ${code.split('').join(' ')}`);
+  }
+
   let sessionId = null;
 
   if (!isTest) {
     if (isEmail) {
       try {
-        // Send the OTP code via Resend Email
+        // Send OTP via Resend Email
         await emailService.sendEmail({
           to: target,
           subject: 'Verify your contact - RaktSetu OTP',
@@ -50,42 +114,35 @@ async function sendOtp(target, purpose, isEmail = false) {
           `
         });
       } catch (err) {
-        console.error('Error sending Email via Resend:', err);
-        throw new ApiError(`Failed to send Email OTP via Resend: ${err.message}`, 502, 'EMAIL_PROVIDER_ERROR');
+        console.error('Error sending Email OTP via Resend:', err);
+        throw new ApiError(`Failed to send Email OTP: ${err.message}`, 502, 'EMAIL_PROVIDER_ERROR');
       }
     } else {
-      const twilioClient = getTwilioClient();
-      const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
-      if (!twilioPhone) {
-        throw new ApiError('TWILIO_PHONE_NUMBER is not defined in environment variables.', 500, 'CONFIG_ERROR');
-      }
-
+      // Send OTP via MSG91 SMS (India-ready 🇮🇳)
       try {
-        // Send the OTP code via Twilio SMS
-        const message = await twilioClient.messages.create({
-          body: `${code} is your OTP to verify phone number at RaktSetu. Please do not share OTP with anyone.`,
-          from: twilioPhone,
-          to: target // E.164 formatted (+919322966139) from the frontend
-        });
-        sessionId = message.sid; // Use Twilio message SID as sessionId
+        const result = await sendSmsViaMSG91(target, code, expiresMinutes);
+        sessionId = result.request_id || null; // MSG91 may return a request_id
       } catch (err) {
-        console.error('Error sending SMS via Twilio:', err);
-        throw new ApiError(`Failed to send SMS OTP via Twilio: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
+        console.error('Error sending SMS OTP via MSG91:', err);
+        // Re-throw ApiError as-is, wrap plain errors
+        if (err instanceof ApiError) throw err;
+        throw new ApiError(`Failed to send SMS OTP: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
       }
     }
   }
 
+  // Save OTP to database
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Invalidate existing unused codes for this target & purpose
+    // Invalidate any existing unused OTP for same target + purpose
     await connection.query(
       'UPDATE otp_codes SET verified = 1 WHERE phone = ? AND purpose = ? AND verified = 0',
       [target, purpose]
     );
 
-    // Insert new OTP record (with generated code and session ID)
+    // Insert new OTP record
     await connection.query(
       'INSERT INTO otp_codes (phone, code, session_id, purpose, expires_at) VALUES (?, ?, ?, ?, ?)',
       [target, code, sessionId, purpose, expiresAt]
@@ -100,7 +157,7 @@ async function sendOtp(target, purpose, isEmail = false) {
   }
 
   if (isTest) {
-    console.log(`[OTP] (Test Mode) Sent code ${code} to ${target} (Purpose: ${purpose}, Email: ${isEmail})`);
+    console.log(`[OTP] (Test Mode) Code ${code} → ${target} (Purpose: ${purpose}, Email: ${isEmail})`);
   }
 
   return {
@@ -109,6 +166,9 @@ async function sendOtp(target, purpose, isEmail = false) {
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// verifyOtp — validates the OTP entered by the user
+// ─────────────────────────────────────────────────────────────────────────────
 async function verifyOtp(target, otp, purpose) {
   const now = new Date();
 
@@ -118,7 +178,7 @@ async function verifyOtp(target, otp, purpose) {
      WHERE phone = ? AND purpose = ? AND verified = 0
      ORDER BY created_at DESC 
      LIMIT 1`,
-     [target, purpose]
+    [target, purpose]
   );
 
   if (rows.length === 0) {
@@ -143,10 +203,10 @@ async function verifyOtp(target, otp, purpose) {
     throw new ApiError('OTP code missing from database', 500, 'OTP_CORRUPT');
   }
 
-  // Compare user input securely using timingSafeEqual
+  // Compare securely using timingSafeEqual (prevents timing attacks)
   const codeBuffer = Buffer.from(row.code);
   const otpBuffer = Buffer.from(otp);
-  
+
   let isMatch = false;
   if (codeBuffer.length === otpBuffer.length) {
     isMatch = crypto.timingSafeEqual(codeBuffer, otpBuffer);
@@ -163,10 +223,10 @@ async function verifyOtp(target, otp, purpose) {
     }
   }
 
-  // Mark OTP as verified/used
+  // Mark OTP as used
   await pool.query('UPDATE otp_codes SET verified = 1 WHERE id = ?', [row.id]);
 
-  // Create verification token that proves this target is verified
+  // Issue a short-lived verification token
   const verificationToken = createOtpVerificationToken(target, purpose);
 
   return {

@@ -288,7 +288,7 @@ const DonorRegistration = () => {
       // Send register details to backend
       const response = await api.post('/auth/register', {
         role: 'donor',
-        phone: inputVal.toLowerCase().trim(), // Pass verified email as the 'phone' parameter for verification matching
+        email: inputVal.toLowerCase().trim(), // Email-based registration — backend detects @ and sets phone=null
         password: password,
         verificationToken: emailVerificationToken
       });

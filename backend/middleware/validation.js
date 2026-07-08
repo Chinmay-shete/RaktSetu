@@ -44,14 +44,17 @@ const verifyOtpSchema = z.object({
 });
 
 const registerSchema = z.union([
-  // Donor Registration
+  // Donor Registration — supports both phone OTP and email OTP flows
   z.object({
     role: z.literal('donor'),
-    phone: z.string().min(10).max(15),
+    phone: z.string().min(10).max(15).optional(),
     email: z.string().email('Invalid email address').optional().or(z.literal('')),
     password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
     verificationToken: z.string().optional(),
     verification_token: z.string().optional()
+  }).refine(data => data.phone || data.email, {
+    message: 'Either phone or email is required for donor registration',
+    path: ['phone']
   }).refine(data => data.verificationToken || data.verification_token, {
     message: 'verificationToken is required',
     path: ['verificationToken']
