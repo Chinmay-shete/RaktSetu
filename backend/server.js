@@ -39,12 +39,18 @@ if (!process.env.AI_SERVICE_URL) {
 
 const allowedOrigins = corsOriginEnv
   ? corsOriginEnv.split(',')
-  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:8080', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175',
+     'http://localhost:5176', 'http://localhost:5177', 'http://localhost:8080',
+     'http://127.0.0.1:5173', 'http://127.0.0.1:5174', 'http://127.0.0.1:5175', 'http://127.0.0.1:3000'];
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
+    // Allow any localhost or private IP port in development (handles Vite port shifting and mobile testing)
+    if (/^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }

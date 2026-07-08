@@ -15,6 +15,8 @@ import TermsOfService from './components/TermsOfService';
 import NotFound from './components/NotFound';
 import Unauthorized from './components/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
+import DonorGuidelines from './components/DonorGuidelines';
+import ContactMedicalTeam from './components/ContactMedicalTeam';
 
 // -- Staff/Hospital Imports --
 import { AuthProvider } from './context/AuthContext';
@@ -118,6 +120,8 @@ function App() {
                 <Route path="/find-camps" element={<FindCamps />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/donor-guidelines" element={<DonorGuidelines />} />
+                <Route path="/contact" element={<ContactMedicalTeam />} />
 
                 {/* --------------------------- */}
                 {/* 2. STAFF / HOSPITAL ROUTES  */}

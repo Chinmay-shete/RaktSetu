@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import DonorNavbar from './layout/DonorNavbar';
+import DonorFooter from './layout/DonorFooter';
+import { useToast } from '../hooks/useToast';
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
+  const toast = useToast();
+
   const [profile, setProfile] = useState({
-    fullName: 'Arjun Malhotra',
-    age: '29',
+    fullName: '',
+    age: '',
     gender: 'Male',
-    city: 'New Delhi',
-    pincode: '110001',
-    bloodGroup: 'O-Positive',
-    weight: '78',
+    city: '',
+    pincode: '',
+    bloodGroup: 'O+',
+    weight: '',
     chronicIllness: false,
+    donorCode: '',
     notifySMS: true,
     notifyWhatsApp: false,
     notifyEmail: true
@@ -24,129 +29,169 @@ const EditProfile = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => setNavScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // States to track label focus color highlights
+  const [focusedField, setFocusedField] = useState(null);
 
-  const handleFieldBlur = (field) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    const errs = { ...errors };
-    const val = profile[field];
-    
-    if (field === 'fullName') {
-      const trimmed = val.trim();
-      if (!trimmed) {
-        errs.fullName = 'Full name is required';
-      } else if (!/^[A-Za-z\s]+$/.test(trimmed)) {
-        errs.fullName = 'Name can only contain letters and spaces';
-      } else if (trimmed.split(/\s+/).length < 2) {
-        errs.fullName = 'Please enter both your first and last name';
-      } else {
-        delete errs.fullName;
-      }
-    }
-    if (field === 'age') {
-      if (!val) errs.age = 'Age is required';
-      else if (parseInt(val) < 18 || parseInt(val) > 65) errs.age = 'Age must be between 18 and 65';
-      else delete errs.age;
-    }
-    setErrors(errs);
-  };
-
+  /* ── Fetch profile on mount ─────────────────────────────────────── */
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await api.get('/donor/profile');
         const data = response.data;
         const merged = {
-          fullName: data.fullName || '',
-          age: data.age?.toString() || '',
-          gender: data.gender || 'Male',
-          city: data.city || '',
-          pincode: data.pincode || '',
-          bloodGroup: data.bloodGroup || 'O+',
-          weight: data.weight?.toString() || '',
+          fullName:      data.fullName || '',
+          age:           data.age?.toString() || '',
+          gender:        data.gender || 'Male',
+          city:          data.city || '',
+          pincode:       data.pincode || '',
+          bloodGroup:    data.bloodGroup || 'O+',
+          weight:        data.weight ? data.weight.toString() : '',
           chronicIllness: !!data.chronicIllness,
-          donorCode: data.donorCode || 'Not Set',
-          notifySMS: true,
+          donorCode:     data.donorCode || '',
+          notifySMS:     true,
           notifyWhatsApp: false,
-          notifyEmail: true
+          notifyEmail:   true
         };
         setProfile(merged);
         setInitialProfile(merged);
       } catch (err) {
-        console.error("Failed to fetch donor profile", err);
+        console.error('Failed to fetch donor profile', err);
+        const stored = localStorage.getItem('raktsetu_donor_profile');
+        if (stored) {
+          const data = JSON.parse(stored);
+          const merged = {
+            fullName:      data.fullName || '',
+            age:           data.age?.toString() || '',
+            gender:        data.gender || 'Male',
+            city:          data.city || '',
+            pincode:       data.pincode || '',
+            bloodGroup:    data.bloodGroup || 'O+',
+            weight:        data.weight ? data.weight.toString() : '',
+            chronicIllness: !!data.chronicIllness,
+            donorCode:     data.donorCode || '',
+            notifySMS:     true,
+            notifyWhatsApp: false,
+            notifyEmail:   true
+          };
+          setProfile(merged);
+          setInitialProfile(merged);
+        }
       }
     };
     fetchProfile();
-  }, [navigate]);
+  }, []);
 
+  /* ── Dirty detection ─────────────────────────────────────────────── */
   useEffect(() => {
     if (initialProfile) {
-      const dirty = Object.keys(profile).some(key => profile[key] !== initialProfile[key]);
+      const dirty = Object.keys(profile).some(
+        key => String(profile[key]) !== String(initialProfile[key])
+      );
       setIsDirty(dirty);
     }
   }, [profile, initialProfile]);
 
+  /* ── Field change handler ────────────────────────────────────────── */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setProfile(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    if (errors[name]) setErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
   };
 
+  /* ── Inline blur validation ──────────────────────────────────────── */
+  const handleFieldBlur = (field) => {
+    setFocusedField(null);
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const errs = { ...errors };
+    const val = profile[field];
+    if (field === 'fullName') {
+      const t = val.trim();
+      if (!t) errs.fullName = 'Full name is required';
+      else if (!/^[A-Za-z\s]+$/.test(t)) errs.fullName = 'Name can only contain letters and spaces';
+      else if (t.split(/\s+/).length < 2) errs.fullName = 'Enter both first and last name';
+      else delete errs.fullName;
+    }
+    if (field === 'age') {
+      if (!val) errs.age = 'Age is required';
+      else if (parseInt(val) < 18 || parseInt(val) > 65) errs.age = 'Age must be 18–65';
+      else delete errs.age;
+    }
+    if (field === 'weight' && val) {
+      const w = parseFloat(val);
+      if (isNaN(w) || w < 45 || w > 300) errs.weight = 'Weight must be at least 45 kg';
+      else delete errs.weight;
+    }
+    setErrors(errs);
+  };
+
+  /* ── Save ────────────────────────────────────────────────────────── */
   const handleSave = async (e) => {
     if (e) e.preventDefault();
+
     const errs = {};
     const trimmedName = profile.fullName.trim();
-    if (!trimmedName) {
-      errs.fullName = 'Full name is required';
-    } else if (!/^[A-Za-z\s]+$/.test(trimmedName)) {
-      errs.fullName = 'Name can only contain letters and spaces';
-    } else if (trimmedName.split(/\s+/).length < 2) {
-      errs.fullName = 'Please enter both your first and last name';
-    }
+    if (!trimmedName) errs.fullName = 'Full name is required';
+    else if (!/^[A-Za-z\s]+$/.test(trimmedName)) errs.fullName = 'Letters and spaces only';
+    else if (trimmedName.split(/\s+/).length < 2) errs.fullName = 'Enter both first and last name';
     if (!profile.age) errs.age = 'Age is required';
-    else if (parseInt(profile.age) < 18 || parseInt(profile.age) > 65) errs.age = 'Age must be between 18 and 65';
-    
+    else if (parseInt(profile.age) < 18 || parseInt(profile.age) > 65) errs.age = 'Age must be 18–65';
+    if (profile.weight) {
+      const w = parseFloat(profile.weight);
+      if (isNaN(w) || w < 45 || w > 300) errs.weight = 'Weight must be at least 45 kg';
+    }
+
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      setTouched({ fullName: true, age: true });
+      setTouched({ fullName: true, age: true, weight: true });
       return;
     }
+
     setSaveLoading(true);
+    setSaveSuccess(false);
 
     try {
-      const response = await api.put('/donor/profile', {
-        fullName: profile.fullName,
-        age: parseInt(profile.age, 10),
-        gender: profile.gender,
-        weight: parseFloat(profile.weight),
+      const payload = {
+        fullName:      profile.fullName.trim(),
+        age:           parseInt(profile.age, 10),
+        gender:        profile.gender,
         chronicIllness: profile.chronicIllness,
         availableForDonation: true
-      });
-      
+      };
+      if (profile.weight !== '' && profile.weight !== null) {
+        payload.weight = parseFloat(profile.weight);
+      } else {
+        payload.weight = null;
+      }
+
+      const response = await api.put('/donor/profile', payload);
       const data = response.data;
+
       const updated = {
         ...profile,
-        fullName: data.fullName,
-        age: data.age?.toString(),
-        gender: data.gender,
-        weight: data.weight?.toString(),
-        chronicIllness: data.chronicIllness
+        fullName:      data.fullName || profile.fullName,
+        age:           data.age?.toString() || profile.age,
+        gender:        data.gender || profile.gender,
+        weight:        data.weight ? data.weight.toString() : '',
+        chronicIllness: data.chronicIllness ?? profile.chronicIllness
       };
-      
+
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify(updated));
+      setProfile(updated);
       setInitialProfile(updated);
       setIsDirty(false);
-      setSaveLoading(false);
-      navigate('/dashboard');
+      setSaveSuccess(true);
+      toast.success('Profile saved successfully!');
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
+      console.error('Save error:', err);
       setErrors({ api: err.response?.data?.message || 'Failed to update profile.' });
+      toast.error('Failed to update profile.');
+    } finally {
       setSaveLoading(false);
     }
   };
@@ -159,330 +204,459 @@ const EditProfile = () => {
     }
   };
 
+  const getBloodGroupParts = (bg) => {
+    if (!bg) return { type: 'O', sign: '+', label: 'Positive' };
+    const sign = bg.includes('-') || bg.includes('−') ? '-' : '+';
+    const type = bg.replace('+', '').replace('-', '').replace('−', '').trim();
+    const label = sign === '-' ? 'Negative' : 'Positive';
+    return { type, sign, label };
+  };
+
+  const bgParts = getBloodGroupParts(profile.bloodGroup);
+
   return (
-    <div className="bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#ffdad8] selection:text-[#1b1c1a]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#ffdad8]"
+         style={{ fontFamily: 'DM Sans, sans-serif' }}>
       <div className="noise-filter" />
 
-      {/* ── NAVBAR ─────────────────────────────────────────────────────── */}
-      <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          navScrolled
-            ? 'bg-white/95 backdrop-blur-lg shadow-sm border-b border-[#E0DAD4]'
-            : 'bg-white/90 backdrop-blur-md border-b border-[#E0DAD4]'
-        }`}
-        style={{ height: 72 }}
-      >
-        <div className="flex justify-between items-center h-full w-full px-6 md:px-10 lg:px-16">
-          <Link
-            to="/dashboard"
-            className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
-            style={{ fontFeatureSettings: '"liga" 0' }}
-          >
-            RaktSetu
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-10">
-            <Link to="/find-camps" className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap">Find Camps</Link>
-            <Link to="/dashboard" className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap">My Impact</Link>
-            <Link to="/edit-profile" className="text-[14px] font-[600] text-[#BE1F2E] border-b-2 border-[#BE1F2E] pb-1 whitespace-nowrap">Profile</Link>
-          </div>
-          
-          <div className="flex items-center gap-6 shrink-0">
-            <button className="px-5 py-2 text-[14px] font-[600] text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.06)] rounded-full transition-all whitespace-nowrap hidden sm:block">
-              Emergency Request
-            </button>
-            <div className="w-10 h-10 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0" onClick={() => navigate('/edit-profile')}>
-              <img className="w-full h-full object-cover" alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4LePSzF9UlW9h3IVZNZA-jV2c_WlVBNOPY2YRf99m4LW6pnZCOJow0bRw6skvc_LwP1Sjs85QaT6fzeIhBQQwGz1cr7qSI-8pe5tYU7UGinXprHgh-PK3cqnJI4GSnh0oPXhDHqPSKEOnfTxKJG5Rq2yoBTo7yub1N3Vml9LsMa5dsvmQIi2q31bqbhLaYDbmBFE5idwcqyYnZUlrzUizutMwPtY0Wobo9nsUpDKigPRPnhBg27638USNnXdaUSlGAlX-APGnWJw" />
+      {/* ──────────────────────────────────────────────────────── */}
+      {/* ── DESKTOP LAYOUT (md:block hidden) ───────────────────── */}
+      {/* ──────────────────────────────────────────────────────── */}
+      <div className="hidden md:block">
+        <DonorNavbar />
+
+        {isDirty && (
+          <div className="fixed top-[72px] left-0 w-full bg-[#BE1F2E] text-white py-3 px-4 z-40 flex items-center justify-between gap-3 shadow-md">
+            <span className="text-[13px] font-[500] flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]">warning</span>
+              <span>You have unsaved changes.</span>
+            </span>
+            <div className="flex gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => { setProfile(initialProfile); setErrors({}); setTouched({}); }}
+                className="px-3 py-1.5 text-[12px] font-[600] border border-white rounded-full hover:bg-white hover:text-[#BE1F2E] transition-all"
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saveLoading}
+                className="px-4 py-1.5 text-[12px] font-[600] bg-white text-[#BE1F2E] rounded-full hover:bg-[#ffdad8] transition-all disabled:opacity-50"
+              >
+                {saveLoading ? 'Saving…' : 'Save'}
+              </button>
             </div>
           </div>
-        </div>
-      </nav>
+        )}
 
-      {/* Sticky Save Bar */}
-      {isDirty && (
-        <div className="sticky top-[72px] left-0 w-full bg-[#BE1F2E] text-white py-3.5 px-6 z-40 flex items-center justify-between shadow-md animate-slide-down">
-          <span className="text-[14px] font-medium flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">warning</span>
-            You have unsaved changes in your profile.
-          </span>
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                setProfile(initialProfile);
-                setIsDirty(false);
-              }}
-              className="px-4 py-1.5 text-[13px] font-[600] border border-white rounded-full hover:bg-white hover:text-[#BE1F2E] transition-all"
-            >
-              Discard
-            </button>
-            <button
-              type="submit"
-              onClick={handleSave}
-              disabled={saveLoading}
-              className="px-5 py-1.5 text-[13px] font-[600] bg-white text-[#BE1F2E] rounded-full hover:bg-[#F5F0EB] transition-all flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {saveLoading ? 'Saving...' : 'Save Now'}
-            </button>
-          </div>
-        </div>
-      )}
+        <main className={`pb-24 w-full max-w-3xl mx-auto px-6 ${isDirty ? 'pt-36' : 'pt-24'}`}>
+          <header className="mb-8">
+            <h1 className="font-serif italic leading-none tracking-[-0.03em] text-[#1A0A0A] text-[72px]">
+              Edit Profile
+            </h1>
+            <p className="text-[#737373] text-[16px] mt-3 max-w-md leading-relaxed">
+              Keep your donor profile up to date for accurate matching and emergency readiness.
+            </p>
+          </header>
 
-      {/* ── MAIN ───────────────────────────────────────────────────────── */}
-      <main className="pt-32 pb-32 w-full max-w-4xl mx-auto px-6">
-        <header className="mb-12">
-          <h1 className="font-serif italic mb-4 leading-none tracking-[-0.03em] text-[#1A0A0A]" style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}>Edit Profile</h1>
-          <p className="text-[#737373] text-[18px] max-w-xl leading-[28px]">
-            Maintain your medical logistics profile to ensure accurate donor matching and clinical readiness during emergencies.
-          </p>
-        </header>
-
-        <section className="bg-white border border-[rgba(26,18,16,0.09)] p-8 md:p-12 shadow-sm rounded-lg">
-          <form className="space-y-12" onSubmit={handleSave}>
-            
-            {/* Profile Image & Header */}
-            <div className="flex flex-col md:flex-row items-center pb-12 border-b border-[rgba(26,18,16,0.09)] justify-center text-center">
-              <div>
-                <h2 className="font-serif italic leading-[48px] text-[#1A0A0A]" style={{ fontSize: 'clamp(28px, 4vw, 48px)' }}>Donor Credentials</h2>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <p className="text-[#737373] text-[14px] font-[500] uppercase tracking-[0.02em]">Patient ID: {profile.donorCode}</p>
-                  <button
-                    type="button"
-                    onClick={handleCopyId}
-                    className="p-1 text-[#BE1F2E] hover:bg-[#BE1F2E]/10 rounded-full transition-colors flex items-center justify-center"
-                    title="Copy Patient ID"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">{copied ? 'done' : 'content_copy'}</span>
-                  </button>
-                  {copied && <span className="text-[11px] text-[#22A06B] font-semibold uppercase tracking-wider">Copied!</span>}
-                </div>
+          <form onSubmit={handleSave} className="space-y-6">
+            {/* Identity */}
+            <section className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-7 shadow-sm">
+              <div className="mb-5 pb-4 border-b border-[rgba(26,18,16,0.07)]">
+                <h3 className="text-[22px] font-[600] italic text-[#BE1F2E]">Identity</h3>
+                <p className="text-[13px] text-[#737373] mt-0.5 font-medium">Official donor identification details</p>
               </div>
-            </div>
-
-            {/* Identity Section */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12">
-              <div className="md:col-span-4">
-                <h3 className="text-[24px] font-[500] italic text-[#BE1F2E] leading-[32px]">Identity</h3>
-                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Official donor identification details.</p>
-              </div>
-              <div className="md:col-span-8 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[14px] font-[500] text-[#685c59]">Full Name</label>
-                  <input 
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-[600] text-[#685c59]">Full Name</label>
+                  <input
                     name="fullName"
                     value={profile.fullName}
                     onChange={handleChange}
                     onBlur={() => handleFieldBlur('fullName')}
-                    className={`input-field ${errors.fullName && touched.fullName ? 'error' : ''}`} 
-                    type="text" 
+                    className={`w-full h-[48px] border rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none transition-all ${
+                      errors.fullName && touched.fullName ? 'border-[#BE1F2E]' : 'border-[#D8D0CA] focus:border-[#BE1F2E]'
+                    }`}
+                  />
+                  {errors.fullName && touched.fullName && <p className="text-[12px] text-[#BE1F2E] mt-1">{errors.fullName}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-[600] text-[#685c59]">Age</label>
+                    <input
+                      name="age"
+                      type="number"
+                      value={profile.age}
+                      onChange={handleChange}
+                      onBlur={() => handleFieldBlur('age')}
+                      className={`w-full h-[48px] border rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none transition-all ${
+                        errors.age && touched.age ? 'border-[#BE1F2E]' : 'border-[#D8D0CA] focus:border-[#BE1F2E]'
+                      }`}
+                    />
+                    {errors.age && touched.age && <p className="text-[12px] text-[#BE1F2E] mt-1">{errors.age}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-[600] text-[#685c59]">Gender</label>
+                    <select
+                      name="gender"
+                      value={profile.gender}
+                      onChange={handleChange}
+                      className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none pr-10 cursor-pointer"
+                    >
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Non-binary</option>
+                      <option>Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Geography */}
+            <section className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-7 shadow-sm">
+              <div className="mb-5 pb-4 border-b border-[rgba(26,18,16,0.07)]">
+                <h3 className="text-[22px] font-[600] italic text-[#BE1F2E]">Geography</h3>
+                <p className="text-[13px] text-[#737373] mt-0.5 font-medium">Location details for proximity camp matching</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-[600] text-[#685c59]">City</label>
+                  <input
+                    name="city"
+                    value={profile.city}
+                    onChange={handleChange}
+                    className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-[600] text-[#685c59]">Pincode</label>
+                  <input
+                    name="pincode"
+                    value={profile.pincode}
+                    onChange={handleChange}
+                    className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Medical */}
+            <section className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-7 shadow-sm">
+              <div className="mb-5 pb-4 border-b border-[rgba(26,18,16,0.07)]">
+                <h3 className="text-[22px] font-[600] italic text-[#BE1F2E]">Medical</h3>
+                <p className="text-[13px] text-[#737373] mt-0.5 font-medium">Clinical health parameters</p>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-[#ffdad8]/20 border border-[#ffdad8] rounded-xl">
+                  <div>
+                    <p className="text-[12px] font-[600] uppercase tracking-widest text-[#92001c]">Blood Group</p>
+                    <p className="text-[12px] text-[#737373] mt-0.5">Requires medical verification to change</p>
+                  </div>
+                  <span className="text-[28px] font-[800] text-[#BE1F2E]">{profile.bloodGroup}</span>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-[600] text-[#685c59]">Weight (kg)</label>
+                  <input
+                    name="weight"
+                    type="number"
+                    value={profile.weight}
+                    onChange={handleChange}
+                    onBlur={() => handleFieldBlur('weight')}
+                    placeholder="Optional"
+                    className={`w-full h-[48px] border rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none transition-all ${
+                      errors.weight && touched.weight ? 'border-[#BE1F2E]' : 'border-[#D8D0CA] focus:border-[#BE1F2E]'
+                    }`}
+                  />
+                  {errors.weight && touched.weight && <p className="text-[12px] text-[#BE1F2E] mt-1">{errors.weight}</p>}
+                </div>
+                <div className="flex items-center justify-between p-4 border border-[#D8D0CA] rounded-xl bg-[#faf8f5]">
+                  <div>
+                    <p className="text-[14px] font-[500] text-[#685c59]">Chronic Illness</p>
+                    <p className="text-[12px] text-[#A8A0A0] mt-0.5">Existing medical conditions</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProfile(prev => ({ ...prev, chronicIllness: !prev.chronicIllness }))}
+                    className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
+                      profile.chronicIllness ? 'bg-[#BE1F2E]' : 'bg-[#D8D0CA]'
+                    }`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                      profile.chronicIllness ? 'translate-x-7' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="px-6 py-4 border border-[rgba(26,18,16,0.12)] rounded-full text-[14px] font-[600] text-[#685c59] hover:bg-[#f5f0eb]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saveLoading}
+                className="bg-[#BE1F2E] text-white px-8 py-4 rounded-full text-[14px] font-[600] hover:bg-[#a31825]"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </main>
+        <DonorFooter />
+      </div>
+
+      {/* ──────────────────────────────────────────────────────── */}
+      {/* ── MOBILE LAYOUT (block md:hidden) ────────────────────── */}
+      {/* ──────────────────────────────────────────────────────── */}
+      <div className="block md:hidden">
+        {/* TopAppBar */}
+        <header className="w-full top-0 sticky z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center justify-between px-4 py-4">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="text-[#9e001f] hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200"
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h1 className="text-[20px] font-semibold text-[#9e001f]">Profile</h1>
+          <div className="w-6"></div>
+        </header>
+
+        <main className="max-w-md mx-auto px-4 pt-8 pb-32 space-y-10">
+          <form onSubmit={handleSave} className="space-y-10">
+            {/* Identity Section */}
+            <section className="space-y-6">
+              <div className="flex items-end justify-between border-b border-[#e5bdbb] pb-2">
+                <h2 className="text-[32px] font-serif text-[#9e001f] italic leading-none">Identity</h2>
+                <span className="text-[12px] font-semibold text-[#737373] uppercase tracking-widest">Section 01</span>
+              </div>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <label className={`text-[14px] font-medium transition-colors ${focusedField === 'fullName' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Full Name</label>
+                  <input
+                    name="fullName"
+                    value={profile.fullName}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('fullName')}
+                    onBlur={() => handleFieldBlur('fullName')}
+                    placeholder="Enter your full name"
+                    type="text"
+                    className={`w-full bg-white border rounded-lg px-4 py-3 text-[16px] outline-none transition-all ${
+                      errors.fullName && touched.fullName
+                        ? 'border-[#BE1F2E] focus:ring-2 focus:ring-[#BE1F2E]/25'
+                        : 'border-[rgba(26,18,16,0.09)] focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]'
+                    }`}
                   />
                   {errors.fullName && touched.fullName && (
-                    <p className="text-[12px] text-[#BE1F2E] mt-1.5 flex items-center gap-1">
+                    <p className="text-[12px] text-[#BE1F2E] flex items-center gap-1">
                       <span className="material-symbols-outlined text-[14px]">error</span> {errors.fullName}
                     </p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[14px] font-[500] text-[#685c59]">Age</label>
-                    <input 
+                  <div className="flex flex-col gap-2">
+                    <label className={`text-[14px] font-medium transition-colors ${focusedField === 'age' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Age</label>
+                    <input
                       name="age"
+                      type="number"
                       value={profile.age}
                       onChange={handleChange}
+                      onFocus={() => setFocusedField('age')}
                       onBlur={() => handleFieldBlur('age')}
-                      className={`input-field ${errors.age && touched.age ? 'error' : ''}`} 
-                      type="number" 
+                      className={`w-full bg-white border rounded-lg px-4 py-3 text-[16px] outline-none transition-all ${
+                        errors.age && touched.age
+                          ? 'border-[#BE1F2E] focus:ring-2 focus:ring-[#BE1F2E]/25'
+                          : 'border-[rgba(26,18,16,0.09)] focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]'
+                      }`}
                     />
                     {errors.age && touched.age && (
-                      <p className="text-[12px] text-[#BE1F2E] mt-1.5 flex items-center gap-1">
+                      <p className="text-[12px] text-[#BE1F2E] flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">error</span> {errors.age}
                       </p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[14px] font-[500] text-[#685c59]">Gender</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[14px] font-medium text-[#5c403f]">Gender</label>
                     <div className="relative">
-                      <select 
+                      <select
                         name="gender"
                         value={profile.gender}
                         onChange={handleChange}
-                        className="input-field appearance-none !pr-10"
+                        className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] appearance-none"
                       >
                         <option>Male</option>
                         <option>Female</option>
                         <option>Non-binary</option>
                         <option>Prefer not to say</option>
                       </select>
-                      <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#A8A0A0]">
-                        expand_more
-                      </span>
+                      <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-[#906f6e] pointer-events-none">expand_more</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* Geography Section */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-[rgba(26,18,16,0.04)]">
-              <div className="md:col-span-4">
-                <h3 className="text-[24px] font-[500] italic text-[#BE1F2E] leading-[32px]">Geography</h3>
-                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Logistics optimization parameters.</p>
+            <section className="space-y-6">
+              <div className="flex items-end justify-between border-b border-[#e5bdbb] pb-2">
+                <h2 className="text-[32px] font-serif text-[#9e001f] italic leading-none">Geography</h2>
+                <span className="text-[12px] font-semibold text-[#737373] uppercase tracking-widest">Section 02</span>
               </div>
-              <div className="md:col-span-8 grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[14px] font-[500] text-[#685c59]">City</label>
-                  <input 
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <label className={`text-[14px] font-medium transition-colors ${focusedField === 'city' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>City</label>
+                  <input
                     name="city"
                     value={profile.city}
                     onChange={handleChange}
-                    className="input-field" 
-                    type="text" 
+                    onFocus={() => setFocusedField('city')}
+                    onBlur={() => setFocusedField(null)}
+                    type="text"
+                    className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[14px] font-[500] text-[#685c59]">Pincode</label>
-                  <input 
+                <div className="flex flex-col gap-2">
+                  <label className={`text-[14px] font-medium transition-colors ${focusedField === 'pincode' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Pincode</label>
+                  <input
                     name="pincode"
                     value={profile.pincode}
                     onChange={handleChange}
-                    className="input-field" 
-                    type="text" 
+                    onFocus={() => setFocusedField('pincode')}
+                    onBlur={() => setFocusedField(null)}
+                    type="text"
+                    className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
                   />
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* Medical Section */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-[rgba(26,18,16,0.04)]">
-              <div className="md:col-span-4">
-                <h3 className="text-[24px] font-[500] italic text-[#BE1F2E] leading-[32px]">Medical</h3>
-                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Clinical data for safe extraction.</p>
+            <section className="space-y-6">
+              <div className="flex items-end justify-between border-b border-[#e5bdbb] pb-2">
+                <h2 className="text-[32px] font-serif text-[#9e001f] italic leading-none">Medical</h2>
+                <span className="text-[12px] font-semibold text-[#737373] uppercase tracking-widest">Section 03</span>
               </div>
-              <div className="md:col-span-8 space-y-8">
-                <div className="flex items-center justify-between p-6 bg-[#ffdad8]/30 border border-[#ffdad8] rounded-lg">
-                  <div>
-                    <h4 className="text-[14px] font-[500] text-[#92001c]">Blood Group</h4>
-                    <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em]">Requires verification to change</p>
-                  </div>
-                  <span className="text-[30px] font-[700] text-[#BE1F2E]">{profile.bloodGroup}</span>
+
+              {/* Blood Group Highlight Card */}
+              <div className="bg-[#9e001f]/5 border border-[#9e001f]/10 rounded-xl p-5 relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 opacity-10">
+                  <span className="material-symbols-outlined text-[96px] text-[#9e001f]" style={{ fontVariationSettings: "'FILL' 1" }}>bloodtype</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[14px] font-[500] text-[#685c59]">Weight (kg)</label>
-                    <input 
-                      name="weight"
-                      value={profile.weight}
-                      onChange={handleChange}
-                      className="input-field" 
-                      type="number" 
+                <div className="relative z-10 flex flex-col gap-1">
+                  <span className="text-[12px] font-semibold text-[#9e001f] uppercase tracking-widest">Verified Blood Type</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[60px] font-serif text-[#9e001f] leading-none">{bgParts.type}</span>
+                    <span className="bg-[#9e001f] text-white rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">{bgParts.label}</span>
+                  </div>
+                  <p className="text-[12px] text-[#5c403f] mt-2 flex items-start gap-2 leading-relaxed">
+                    <span className="material-symbols-outlined text-[16px] mt-0.5 shrink-0">info</span>
+                    This field is locked. Changing blood group requires medical verification from a certified center.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <label className={`text-[14px] font-medium transition-colors ${focusedField === 'weight' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Weight (kg)</label>
+                    <span className="text-[10px] font-[600] text-[#A8A0A0] bg-[#f5f0eb] px-1.5 py-0.5 rounded uppercase tracking-wide">Optional</span>
+                  </div>
+                  <input
+                    name="weight"
+                    type="number"
+                    value={profile.weight}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('weight')}
+                    onBlur={() => handleFieldBlur('weight')}
+                    className={`w-full bg-white border rounded-lg px-4 py-3 text-[16px] outline-none transition-all ${
+                      errors.weight && touched.weight
+                        ? 'border-[#BE1F2E] focus:ring-2 focus:ring-[#BE1F2E]/25'
+                        : 'border-[rgba(26,18,16,0.09)] focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]'
+                    }`}
+                  />
+                  {errors.weight && touched.weight && (
+                    <p className="text-[12px] text-[#BE1F2E] flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">error</span> {errors.weight}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center justify-between bg-white border border-[rgba(26,18,16,0.09)] rounded-lg p-4">
+                  <div className="flex flex-col">
+                    <span className="text-[14px] font-semibold text-[#1b1c1a]">Chronic Illness</span>
+                    <span className="text-[12px] text-[#737373]">Do you have any existing conditions?</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={profile.chronicIllness}
+                      onChange={(e) => setProfile(prev => ({ ...prev, chronicIllness: e.target.checked }))}
+                      className="sr-only peer"
                     />
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-[#D8D0CA] rounded-xl bg-white relative group">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[14px] font-[500] text-[#685c59]">Chronic Illness</span>
-                      <div className="relative cursor-pointer group/tooltip">
-                        <span className="material-symbols-outlined text-[16px] text-[#A8A0A0] hover:text-[#BE1F2E] transition-colors">info</span>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#1A0A0A] text-white text-[12px] rounded-lg shadow-xl opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-25 leading-normal">
-                          Includes conditions like hypertension, diabetes, asthma, or cardiac issues which affect donation windows.
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#1A0A0A]"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <button 
-                      type="button"
-                      onClick={() => setProfile(prev => ({ ...prev, chronicIllness: !prev.chronicIllness }))}
-                      className={`toggle-track ${profile.chronicIllness ? 'on' : ''}`}
-                    >
-                      <span className="toggle-thumb" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Preferences Section */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-[rgba(26,18,16,0.04)]">
-              <div className="md:col-span-4">
-                <h3 className="text-[24px] font-[500] italic text-[#BE1F2E] leading-[32px]">Preferences</h3>
-                <p className="text-[#737373] text-[12px] font-[600] tracking-[0.05em] mt-1">Manage how you receive alerts.</p>
-              </div>
-              <div className="md:col-span-8 space-y-4">
-                <label className="text-[14px] font-[500] text-[#685c59]">Notification Channels</label>
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className="relative flex items-center justify-center">
-                      <input type="checkbox" name="notifySMS" checked={profile.notifySMS ?? true} onChange={handleChange} className="appearance-none w-5 h-5 border border-[#D8D0CA] rounded bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors" />
-                      <span className="material-symbols-outlined absolute text-white text-[14px] opacity-0 pointer-events-none" style={{ opacity: profile.notifySMS !== false ? 1 : 0 }}>check</span>
-                    </div>
-                    <span className="text-[14px] text-[#1b1c1a] group-hover:text-[#BE1F2E] transition-colors">SMS Alerts</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className="relative flex items-center justify-center">
-                      <input type="checkbox" name="notifyWhatsApp" checked={profile.notifyWhatsApp ?? false} onChange={handleChange} className="appearance-none w-5 h-5 border border-[#D8D0CA] rounded bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors" />
-                      <span className="material-symbols-outlined absolute text-white text-[14px] opacity-0 pointer-events-none" style={{ opacity: profile.notifyWhatsApp ? 1 : 0 }}>check</span>
-                    </div>
-                    <span className="text-[14px] text-[#1b1c1a] group-hover:text-[#BE1F2E] transition-colors">WhatsApp Messages</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className="relative flex items-center justify-center">
-                      <input type="checkbox" name="notifyEmail" checked={profile.notifyEmail ?? true} onChange={handleChange} className="appearance-none w-5 h-5 border border-[#D8D0CA] rounded bg-white checked:bg-[#BE1F2E] checked:border-[#BE1F2E] transition-colors" />
-                      <span className="material-symbols-outlined absolute text-white text-[14px] opacity-0 pointer-events-none" style={{ opacity: profile.notifyEmail !== false ? 1 : 0 }}>check</span>
-                    </div>
-                    <span className="text-[14px] text-[#1b1c1a] group-hover:text-[#BE1F2E] transition-colors">Email Updates</span>
+                    <div className="w-11 h-6 bg-[#e4e2df] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#9e001f]" />
                   </label>
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Actions */}
-            <div className="pt-12 flex flex-col md:flex-row items-center justify-end gap-4 border-t border-[rgba(26,18,16,0.09)]">
-              <button 
-                type="button" 
+            {/* Form Actions */}
+            <div className="flex flex-col gap-3 pt-6">
+              <button
+                type="submit"
+                disabled={saveLoading}
+                className="w-full bg-[#9e001f] text-white font-semibold py-4 rounded-full active:scale-95 hover:opacity-90 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-2"
+              >
+                {saveLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
                 onClick={() => navigate('/dashboard')}
-                className="w-full md:w-auto px-8 py-4 text-[14px] font-[500] text-[#685c59] hover:text-[#1b1c1a] transition-colors"
+                className="w-full bg-transparent text-[#5c403f] font-semibold py-3 rounded-full hover:bg-[#f5f3f0] transition-colors text-center"
               >
                 Cancel
               </button>
-              <button 
-                type="submit"
-                disabled={saveLoading}
-                className="w-full md:w-auto bg-[#BE1F2E] text-white px-12 py-4 rounded-full text-[14px] font-[500] hover:scale-105 shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saveLoading && (
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                )}
-                {saveLoading ? 'Saving Changes...' : 'Save Changes'}
-              </button>
             </div>
           </form>
-        </section>
-      </main>
+        </main>
 
-      {/* Footer */}
-      <footer className="bg-[#1a1210] border-t border-white/10 w-full py-32">
-        <div className="flex flex-col md:flex-row justify-between items-start w-full px-6 md:px-10 lg:px-16 gap-16 md:gap-0">
-          <div className="space-y-6">
-            <div className="font-serif text-[60px] text-white italic leading-[54px]">RaktSetu</div>
-            <p className="text-[#737373] text-[16px] max-w-xs leading-[24px]">© 2024 RaktSetu. Clinical Excellence in Blood Logistics.</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
-            <Link className="text-[#737373] hover:text-white transition-colors text-[16px]" to="/privacy">Privacy Policy</Link>
-            <Link className="text-[#737373] hover:text-white transition-colors text-[16px]" to="/terms">Terms of Service</Link>
-            <a className="text-[#737373] hover:text-white transition-colors text-[16px]" href="#">Donor Guidelines</a>
-            <a className="text-[#737373] hover:text-white transition-colors text-[16px]" href="#">Contact Medical Team</a>
-          </div>
-          <div className="space-y-4">
-            <div className="text-white text-[14px] font-[500] uppercase tracking-[0.02em] opacity-50">Operational Status</div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-              <span className="text-white text-[16px]">Live Logistics Network</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+        {/* BottomNavBar */}
+        <nav className="fixed bottom-0 w-full z-50 bg-[#1a1210] flex justify-around items-center px-4 py-3 h-20 shadow-xl">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
+          >
+            <span className="material-symbols-outlined">home</span>
+            <span className="text-[12px] font-medium mt-0.5">Home</span>
+          </button>
+          <button
+            onClick={() => navigate('/find-camps')}
+            className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
+          >
+            <span className="material-symbols-outlined">bloodtype</span>
+            <span className="text-[12px] font-medium mt-0.5">Requests</span>
+          </button>
+          <button
+            onClick={() => navigate('/find-camps')}
+            className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
+          >
+            <span className="material-symbols-outlined">explore</span>
+            <span className="text-[12px] font-medium mt-0.5">Map</span>
+          </button>
+          <button
+            onClick={() => navigate('/edit-profile')}
+            className="flex flex-col items-center justify-center bg-[#9e001f] text-white rounded-full px-5 py-1.5"
+          >
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+            <span className="text-[12px] font-semibold">Profile</span>
+          </button>
+        </nav>
+      </div>
     </div>
   );
 };

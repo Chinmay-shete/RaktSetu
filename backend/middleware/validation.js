@@ -132,9 +132,12 @@ const createProfileSchema = z.object({
   }),
   gender: z.enum(['Male', 'Female', 'Other']),
   bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
-  weight: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 45, {
-    message: 'Weight must be at least 45 kg'
-  }),
+  weight: z.union([z.number(), z.string().transform(Number)])
+    .optional()
+    .nullable()
+    .refine(val => val === undefined || val === null || val >= 45, {
+      message: 'Weight must be at least 45 kg'
+    }),
   chronicIllness: z.boolean(),
   lastDonatedDate: z.string().nullable().optional().or(z.literal(''))
 });
@@ -143,7 +146,12 @@ const updateProfileSchema = z.object({
   fullName: z.string().min(2).optional(),
   age: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 18 && val <= 65).optional(),
   gender: z.enum(['Male', 'Female', 'Other']).optional(),
-  weight: z.union([z.number(), z.string().transform(Number)]).refine(val => val >= 45).optional(),
+  weight: z.union([z.number(), z.string().transform(Number)])
+    .optional()
+    .nullable()
+    .refine(val => val === undefined || val === null || val >= 45, {
+      message: 'Weight must be at least 45 kg'
+    }),
   chronicIllness: z.boolean().optional(),
   availableForDonation: z.boolean().optional(),
   lastDonatedDate: z.string().nullable().optional().or(z.literal(''))

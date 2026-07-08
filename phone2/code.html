@@ -1,0 +1,271 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Edit Profile | RaktSetu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "inverse-surface": "#30312f",
+                "inverse-primary": "#ffb3b1",
+                "primary-fixed-dim": "#ffb3b1",
+                "bone-bg": "#faf8f5",
+                "on-surface-variant": "#5c403f",
+                "error": "#ba1a1a",
+                "primary": "#9e001f",
+                "charcoal-card": "#1a1210",
+                "surface-container-high": "#eae8e5",
+                "tertiary-fixed": "#b6eaff",
+                "text-muted": "#737373",
+                "crimson-accent": "#c8102e",
+                "tertiary-container": "#296c81",
+                "outline": "#906f6e",
+                "surface-container-highest": "#e4e2df",
+                "on-primary": "#ffffff",
+                "on-error-container": "#93000a",
+                "secondary-container": "#f0dfdb",
+                "on-background": "#1b1c1a",
+                "surface-container": "#efeeeb",
+                "primary-container": "#c8102e",
+                "surface-bright": "#fbf9f6",
+                "surface": "#fbf9f6",
+                "on-tertiary-fixed": "#001f28",
+                "error-container": "#ffdad6",
+                "surface-variant": "#e4e2df",
+                "surface-container-low": "#f5f3f0",
+                "primary-fixed": "#ffdad8",
+                "on-tertiary": "#ffffff",
+                "on-primary-fixed": "#410007",
+                "on-secondary-fixed": "#221a17",
+                "on-secondary": "#ffffff",
+                "inverse-on-surface": "#f2f0ed",
+                "on-primary-fixed-variant": "#92001c",
+                "tertiary-fixed-dim": "#91d0e7",
+                "background": "#fbf9f6",
+                "on-surface": "#1b1c1a",
+                "secondary-fixed-dim": "#d3c3bf",
+                "surface-dim": "#dbdad7",
+                "border-subtle": "rgba(26, 18, 16, 0.09)",
+                "on-tertiary-fixed-variant": "#004e60",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#b5eaff",
+                "on-error": "#ffffff",
+                "outline-variant": "#e5bdbb",
+                "secondary": "#685c59",
+                "on-secondary-fixed-variant": "#4f4442",
+                "tertiary": "#005468",
+                "on-secondary-container": "#6e625f",
+                "on-primary-container": "#ffdad8",
+                "surface-tint": "#bf0229",
+                "secondary-fixed": "#f0dfdb"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "margin-desktop": "40px",
+                "gutter": "24px",
+                "margin-mobile": "16px",
+                "unit": "8px",
+                "container-max": "1280px"
+            },
+            "fontFamily": {
+                "display-xl-mobile": ["Instrument Serif"],
+                "headline-lg": ["Instrument Serif"],
+                "body-md": ["Dm Sans"],
+                "label-sm": ["Dm Sans"],
+                "body-lg": ["Dm Sans"],
+                "label-md": ["Dm Sans"],
+                "display-xl": ["Instrument Serif"],
+                "headline-md": ["Dm Sans"]
+            },
+            "fontSize": {
+                "display-xl-mobile": ["60px", {"lineHeight": "54px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                "display-xl": ["100px", {"lineHeight": "90px", "letterSpacing": "-0.04em", "fontWeight": "400"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>body {
+    font-family: "Dm Sans", sans-serif;
+    background-color: #faf8f5;
+    color: #1b1c1a;
+    position: relative
+    }
+.grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.05;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuC9nDyojKFf284OHGXaSdguWH1QC_nbzhRZF6DwoVrA9RUDCEHK-iOi1DpKaxdNTn6vBaV1CCkcsXWQe6qFoz73e11aVoMW-o9bVVg6P2C93adR_AZLTA8CRoZ54YS_tSBBj9PGwYKVXo4xl0zZaixPocPqcoHgskOxPjyy-8JvTWOSgSBDh63qBicnnl0zK83dwOaV0N2jngm7pGr4sd827Xl1-nOBnKdnjMJ1JsB6IFPbqN7C7Gsa)
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.primary-spring:active {
+    transform: scale(0.95);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)
+    }
+.nav-item-spring:active {
+    transform: scale(1.05);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)
+    }</style>
+</head>
+<body class="bg-bone-bg min-h-screen pb-24">
+<div class="grain-overlay"></div>
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-bone-bg border-b border-border-subtle flex items-center justify-between px-margin-mobile py-4">
+<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">Profile</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="max-w-md mx-auto px-margin-mobile pt-8 space-y-10">
+<!-- Identity Section -->
+<section class="space-y-6">
+<div class="flex items-end justify-between border-b border-outline-variant pb-2">
+<h2 class="font-headline-lg text-headline-lg-mobile text-primary italic">Identity</h2>
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-widest">Section 01</span>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Full Name</label>
+<input class="w-full bg-white border border-border-subtle rounded-lg px-4 py-3 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all" placeholder="Enter your full name" type="text" value="Aarav Sharma">
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Age</label>
+<input class="w-full bg-white border border-border-subtle rounded-lg px-4 py-3 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all" type="number" value="28">
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Gender</label>
+<select class="w-full bg-white border border-border-subtle rounded-lg px-4 py-3 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all appearance-none">
+<option>Male</option>
+<option>Female</option>
+<option>Non-binary</option>
+<option>Prefer not to say</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+<!-- Geography Section -->
+<section class="space-y-6">
+<div class="flex items-end justify-between border-b border-outline-variant pb-2">
+<h2 class="font-headline-lg text-headline-lg-mobile text-primary italic">Geography</h2>
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-widest">Section 02</span>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">City</label>
+<input class="w-full bg-white border border-border-subtle rounded-lg px-4 py-3 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all" type="text" value="New Delhi">
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Pincode</label>
+<input class="w-full bg-white border border-border-subtle rounded-lg px-4 py-3 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all" type="text" value="110001">
+</div>
+</div>
+</section>
+<!-- Medical Section -->
+<section class="space-y-6">
+<div class="flex items-end justify-between border-b border-outline-variant pb-2">
+<h2 class="font-headline-lg text-headline-lg-mobile text-primary italic">Medical</h2>
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-widest">Section 03</span>
+</div>
+<!-- Blood Group Highlight Card -->
+<div class="bg-primary/5 border border-primary/10 rounded-xl p-5 relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-8xl text-primary" style="font-variation-settings: 'FILL' 1;">bloodtype</span>
+</div>
+<div class="relative z-10 flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Verified Blood Type</span>
+<div class="flex items-center gap-3">
+<span class="font-display-xl-mobile text-display-xl-mobile text-primary leading-none">O+</span>
+<span class="bg-primary text-white rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">Positive</span>
+</div>
+<p class="font-body-md text-xs text-on-surface-variant mt-2 flex items-start gap-2">
+<span class="material-symbols-outlined text-sm mt-0.5">info</span>
+                        This field is locked. Changing blood group requires medical verification from a certified center.
+                    </p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Weight (kg)</label>
+<input class="w-full bg-white border border-border-subtle rounded-lg px-4 py-3 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all" type="number" value="74">
+</div>
+<div class="flex items-center justify-between bg-white border border-border-subtle rounded-lg p-4">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Chronic Illness</span>
+<span class="text-xs text-text-muted">Do you have any existing conditions?</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value="">
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Form Actions -->
+<div class="flex flex-col gap-3 pt-6 pb-12">
+<button class="w-full bg-primary text-on-primary font-label-md py-4 rounded-full primary-spring hover:opacity-90 shadow-xl shadow-primary/20 transition-all">
+                Save Changes
+            </button>
+<button class="w-full bg-transparent text-on-surface-variant font-label-md py-3 rounded-full hover:bg-surface-container-low transition-colors">
+                Cancel
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-charcoal-card flex justify-around items-center px-4 py-3 h-20 shadow-xl">
+<button class="flex flex-col items-center justify-center text-text-muted px-4 py-1 hover:text-primary-fixed-dim transition-colors nav-item-spring">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-muted px-4 py-1 hover:text-primary-fixed-dim transition-colors nav-item-spring">
+<span class="material-symbols-outlined">bloodtype</span>
+<span class="font-label-sm text-label-sm">Requests</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-muted px-4 py-1 hover:text-primary-fixed-dim transition-colors nav-item-spring">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-sm text-label-sm">Map</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full px-4 py-1 nav-item-spring">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for input fields focus
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label')?.classList.add('text-primary');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('label')?.classList.remove('text-primary');
+            });
+        });
+    </script>
+</body></html>

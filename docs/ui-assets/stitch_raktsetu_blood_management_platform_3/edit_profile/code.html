@@ -1,0 +1,287 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Dm+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "bone-bg": "#faf8f5",
+                "background": "#fbf9f6",
+                "primary-fixed": "#ffdad8",
+                "inverse-surface": "#30312f",
+                "surface-dim": "#dbdad7",
+                "secondary-fixed": "#f0dfdb",
+                "on-error-container": "#93000a",
+                "surface-container-highest": "#e4e2df",
+                "on-secondary-fixed": "#221a17",
+                "primary-container": "#c8102e",
+                "on-surface": "#1b1c1a",
+                "text-muted": "#737373",
+                "tertiary-container": "#296c81",
+                "surface-container-high": "#eae8e5",
+                "surface-tint": "#bf0229",
+                "surface-container-lowest": "#ffffff",
+                "on-primary-fixed": "#410007",
+                "secondary": "#685c59",
+                "on-secondary-fixed-variant": "#4f4442",
+                "inverse-on-surface": "#f2f0ed",
+                "surface": "#fbf9f6",
+                "tertiary-fixed": "#b6eaff",
+                "on-primary-fixed-variant": "#92001c",
+                "on-secondary": "#ffffff",
+                "on-surface-variant": "#5c403f",
+                "surface-bright": "#fbf9f6",
+                "on-tertiary-fixed-variant": "#004e60",
+                "inverse-primary": "#ffb3b1",
+                "tertiary-fixed-dim": "#91d0e7",
+                "on-secondary-container": "#6e625f",
+                "crimson-accent": "#c8102e",
+                "outline": "#906f6e",
+                "surface-container-low": "#f5f3f0",
+                "charcoal-card": "#1a1210",
+                "surface-variant": "#e4e2df",
+                "secondary-fixed-dim": "#d3c3bf",
+                "secondary-container": "#f0dfdb",
+                "tertiary": "#005468",
+                "outline-variant": "#e5bdbb",
+                "on-tertiary": "#ffffff",
+                "border-subtle": "rgba(26, 18, 16, 0.09)",
+                "on-primary-container": "#ffdad8",
+                "error": "#ba1a1a",
+                "surface-container": "#efeeeb",
+                "primary-fixed-dim": "#ffb3b1",
+                "primary": "#9e001f",
+                "on-background": "#1b1c1a",
+                "on-tertiary-fixed": "#001f28",
+                "on-primary": "#ffffff",
+                "on-tertiary-container": "#b5eaff",
+                "error-container": "#ffdad6",
+                "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+              },
+              "spacing": {
+                "container-max": "1280px",
+                "margin-mobile": "16px",
+                "margin-desktop": "40px",
+                "gutter": "24px",
+                "unit": "8px"
+              },
+              "fontFamily": {
+                "display-xl-mobile": ["Instrument Serif"],
+                "display-xl": ["Instrument Serif"],
+                "headline-md": ["Dm Sans"],
+                "body-md": ["Dm Sans"],
+                "label-sm": ["Dm Sans"],
+                "label-md": ["Dm Sans"],
+                "body-lg": ["Dm Sans"],
+                "headline-lg": ["Instrument Serif"]
+              },
+              "fontSize": {
+                "display-xl-mobile": ["60px", {"lineHeight": "54px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                "display-xl": ["100px", {"lineHeight": "90px", "letterSpacing": "-0.04em", "fontWeight": "400"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url("https://www.transparenttextures.com/patterns/stardust.png");
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .grainy-bg {
+            background-color: #faf8f5;
+        }
+        .custom-bezier {
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #c8102e;
+            box-shadow: 0 0 0 4px rgba(200, 16, 46, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-bone-bg font-body-md text-on-surface selection:bg-primary-fixed">
+<div class="noise-overlay"></div>
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full bg-bone-bg dark:bg-inverse-surface border-b border-border-subtle dark:border-white/10 z-50">
+<div class="flex justify-between items-center h-20 px-margin-desktop max-w-container-max mx-auto">
+<div class="font-headline-lg text-headline-lg text-crimson-accent dark:text-primary-fixed-dim italic">RaktSetu</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-crimson-accent transition-colors" href="#">Find Camps</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-crimson-accent transition-colors" href="#">My Impact</a>
+<a class="text-crimson-accent dark:text-primary-fixed-dim font-bold border-b-2 border-crimson-accent pb-1" href="#">Profile</a>
+</div>
+<div class="flex items-center space-x-4">
+<button class="bg-charcoal-card text-white px-6 py-2.5 rounded-full font-label-md hover:scale-105 transition-transform custom-bezier">Emergency Request</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="pt-32 pb-32 px-margin-mobile md:px-margin-desktop max-w-4xl mx-auto">
+<header class="mb-12">
+<h1 class="font-display-xl-mobile md:font-display-xl text-display-xl-mobile md:text-display-xl italic mb-4">Edit Profile</h1>
+<p class="text-text-muted font-body-lg max-w-xl">Maintain your medical logistics profile to ensure accurate donor matching and clinical readiness during emergencies.</p>
+</header>
+<section class="bg-white border border-border-subtle p-8 md:p-12 shadow-sm rounded-lg">
+<form class="space-y-12">
+<!-- Profile Image & Header -->
+<div class="flex flex-col md:flex-row items-center pb-12 border-b border-border-subtle justify-center text-center">
+
+<div>
+<h2 class="font-headline-lg text-headline-lg italic">Donor Credentials</h2>
+<p class="text-text-muted font-label-md uppercase tracking-wider">Patient ID: RS-2024-8892</p>
+</div>
+</div>
+<!-- Identity Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12">
+<div class="md:col-span-4">
+<h3 class="font-headline-md text-headline-md italic text-crimson-accent">Identity</h3>
+<p class="text-text-muted font-label-sm mt-1">Official donor identification details.</p>
+</div>
+<div class="md:col-span-8 space-y-6">
+<div class="space-y-2">
+<label class="font-label-md text-secondary">Full Name</label>
+<input class="w-full bg-bone-bg border border-border-subtle p-4 font-body-md focus:ring-2 focus:ring-primary-container/10 transition-all" type="text" value="Arjun Malhotra">
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-secondary">Age</label>
+<input class="w-full bg-bone-bg border border-border-subtle p-4 font-body-md" type="number" value="29">
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-secondary">Gender</label>
+<select class="w-full bg-bone-bg border border-border-subtle p-4 font-body-md">
+<option>Male</option>
+<option>Female</option>
+<option>Non-binary</option>
+<option>Prefer not to say</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+<!-- Geography Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-border-subtle/50">
+<div class="md:col-span-4">
+<h3 class="font-headline-md text-headline-md italic text-crimson-accent">Geography</h3>
+<p class="text-text-muted font-label-sm mt-1">Logistics optimization parameters.</p>
+</div>
+<div class="md:col-span-8 grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-secondary">City</label>
+<input class="w-full bg-bone-bg border border-border-subtle p-4 font-body-md" type="text" value="New Delhi">
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-secondary">Pincode</label>
+<input class="w-full bg-bone-bg border border-border-subtle p-4 font-body-md" type="text" value="110001">
+</div>
+</div>
+</div>
+<!-- Medical Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-y-8 gap-x-12 pt-8 border-t border-border-subtle/50">
+<div class="md:col-span-4">
+<h3 class="font-headline-md text-headline-md italic text-crimson-accent">Medical</h3>
+<p class="text-text-muted font-label-sm mt-1">Clinical data for safe extraction.</p>
+</div>
+<div class="md:col-span-8 space-y-8">
+<div class="flex items-center justify-between p-6 bg-primary-fixed/30 border border-primary-fixed rounded-lg">
+<div>
+<h4 class="font-label-md text-on-primary-fixed-variant">Blood Group</h4>
+<p class="text-text-muted font-label-sm">Requires verification to change</p>
+</div>
+<span class="text-3xl font-bold text-crimson-accent">O-Positive</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-secondary">Weight (kg)</label>
+<input class="w-full bg-bone-bg border border-border-subtle p-4 font-body-md" type="number" value="78">
+</div>
+<div class="flex items-center justify-between p-4 border border-border-subtle bg-bone-bg">
+<span class="font-label-md text-secondary">Chronic Illness</span>
+<button class="w-12 h-6 bg-surface-container-highest rounded-full relative transition-colors duration-200 focus:outline-none" onclick="this.classList.toggle('bg-crimson-accent')" type="button">
+<span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 transform translate-x-0" onclick="event.stopPropagation(); this.parentElement.classList.toggle('bg-crimson-accent'); this.classList.toggle('translate-x-6')"></span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="pt-12 flex flex-col md:flex-row items-center justify-end gap-4 border-t border-border-subtle">
+<button class="w-full md:w-auto px-8 py-4 font-label-md text-secondary hover:text-on-surface transition-colors" type="button">Cancel</button>
+<button class="w-full md:w-auto bg-crimson-accent text-white px-12 py-4 rounded-full font-label-md custom-bezier hover:scale-105 shadow-lg active:scale-95 transition-all" type="submit">Save Changes</button>
+</div>
+</form>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-charcoal-card dark:bg-black border-t border-white/10 w-full py-32">
+<div class="flex flex-col md:flex-row justify-between items-start px-margin-desktop max-w-container-max mx-auto gap-16 md:gap-0">
+<div class="space-y-6">
+<div class="font-display-xl text-display-xl-mobile text-white dark:text-white/90 italic">RaktSetu</div>
+<p class="text-text-muted font-body-md max-w-xs">© 2024 RaktSetu. Clinical Excellence in Blood Logistics.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
+<a class="text-text-muted hover:text-white transition-colors font-body-md" href="#">Privacy Policy</a>
+<a class="text-text-muted hover:text-white transition-colors font-body-md" href="#">Terms of Service</a>
+<a class="text-text-muted hover:text-white transition-colors font-body-md" href="#">Donor Guidelines</a>
+<a class="text-text-muted hover:text-white transition-colors font-body-md" href="#">Contact Medical Team</a>
+</div>
+<div class="space-y-4">
+<div class="text-white font-label-md uppercase tracking-widest opacity-50">Operational Status</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+<span class="text-white font-body-md">Live Logistics Network</span>
+</div>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for form inputs
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label')?.classList.add('text-crimson-accent');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('label')?.classList.remove('text-crimson-accent');
+            });
+        });
+
+        // Toggle Switch functionality
+        function toggleSwitch(btn) {
+            const circle = btn.querySelector('span');
+            if (btn.classList.contains('bg-crimson-accent')) {
+                btn.classList.remove('bg-crimson-accent');
+                btn.classList.add('bg-surface-container-highest');
+                circle.classList.remove('translate-x-6');
+            } else {
+                btn.classList.remove('bg-surface-container-highest');
+                btn.classList.add('bg-crimson-accent');
+                circle.classList.add('translate-x-6');
+            }
+        }
+    </script>
+</body></html>
