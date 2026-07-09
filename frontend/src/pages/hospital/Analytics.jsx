@@ -158,7 +158,7 @@ export const Analytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Main Line Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-[#EDE7E1] shadow-sm lg:col-span-2">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#EDE7E1] shadow-sm lg:col-span-2">
           <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-6">Supply vs Usage Trends</h3>
           <div className="h-[300px] w-full">
             <Line data={lineChartData} options={lineChartOptions} />
@@ -166,7 +166,7 @@ export const Analytics = () => {
         </div>
 
         {/* Doughnut Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-[#EDE7E1] shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#EDE7E1] shadow-sm">
           <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-6">Peer Transfer Success</h3>
           <div className="h-[300px] w-full relative">
             <Doughnut data={doughnutData} options={doughnutOptions} />
@@ -178,7 +178,7 @@ export const Analytics = () => {
         </div>
 
         {/* Bar Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-[#EDE7E1] shadow-sm lg:col-span-3">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#EDE7E1] shadow-sm lg:col-span-3">
           <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-6">Blood Demand by Group</h3>
           <div className="h-[300px] w-full">
             <Bar data={barChartData} options={barChartOptions} />

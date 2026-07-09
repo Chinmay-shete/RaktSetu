@@ -40,13 +40,21 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
 
   const content = (
     <div className="flex flex-col h-full bg-[#FFFFFF]/90 border-r border-[#EDE7E1] backdrop-blur-xl p-6 select-none">
-      <div className="mb-8 px-2">
-        <span className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0 block" style={{ fontFeatureSettings: '"liga" 0' }}>
-          RaktSetu
-        </span>
-        <span className="block text-[10px] text-[#7A5F5F] uppercase font-bold tracking-wider mt-1">
-          Hospital Staff
-        </span>
+      <div className="mb-8 px-2 flex justify-between items-start">
+        <div>
+          <span className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0 block" style={{ fontFeatureSettings: '"liga" 0' }}>
+            RaktSetu
+          </span>
+          <span className="block text-[10px] text-[#7A5F5F] uppercase font-bold tracking-wider mt-1">
+            Hospital Staff
+          </span>
+        </div>
+        <button
+          onClick={onClose}
+          className="lg:hidden p-1.5 rounded-xl hover:bg-[#F0EBE5] text-[#5A5A5A] cursor-pointer transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       <nav className="flex-grow flex flex-col gap-1.5 overflow-y-auto pr-1">
@@ -143,12 +151,6 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
         className="lg:hidden fixed left-0 top-0 h-screen w-72 z-50 shadow-2xl"
       >
         {content}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-[-45px] p-2 rounded-xl bg-white border border-[#EDE7E1] shadow-md text-[#5A5A5A] cursor-pointer"
-        >
-          <X className="h-4 w-4" />
-        </button>
       </motion.aside>
     </>
   );

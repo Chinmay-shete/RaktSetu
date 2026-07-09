@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -14,7 +15,7 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
     };
   }, [isOpen]);
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
@@ -33,7 +34,7 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: "spring", duration: 0.4 }}
-            className="relative w-full max-w-lg glass-panel rounded-3xl overflow-hidden shadow-2xl z-[1001] flex flex-col max-h-[90vh]"
+            className="relative w-full max-w-lg bg-[#FFFFFF] border border-[#EDE7E1] rounded-3xl overflow-hidden shadow-2xl z-[1001] flex flex-col max-h-[90vh]"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/40 flex-shrink-0">
@@ -57,4 +58,6 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };

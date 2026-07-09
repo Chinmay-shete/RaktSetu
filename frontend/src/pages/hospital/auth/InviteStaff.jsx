@@ -67,7 +67,7 @@ export const InviteStaff = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
         {/* Left Column: Form */}
-        <div className="bg-white border border-[#EDE7E1] p-8 rounded-2xl shadow-sm flex flex-col gap-6">
+        <div className="bg-white border border-[#EDE7E1] p-5 sm:p-8 rounded-2xl shadow-sm flex flex-col gap-6">
           <div>
             <h2 className="text-[20px] font-medium text-[#1A1210] font-serif">Staff Details</h2>
             <p className="text-xs text-[#5A5A5A] mt-1">

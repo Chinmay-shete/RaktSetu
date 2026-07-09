@@ -90,7 +90,7 @@ export const UpdateStock = () => {
         </p>
       </div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#EDE7E1]">
+      <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-[#EDE7E1]">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           {/* Blood Group & Units */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

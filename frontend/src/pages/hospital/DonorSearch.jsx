@@ -253,7 +253,7 @@ export const DonorSearch = () => {
             <form onSubmit={handleContactSubmit} className="flex flex-col gap-4">
               <div className="bg-[#FAF8F5] p-4 rounded-2xl border border-[#EDE7E1] space-y-2">
                 <h4 className="text-[13px] font-bold text-[#1A1210]">Donor Details</h4>
-                <div className="grid grid-cols-2 gap-y-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
                     <span className="text-[#7A5F5F] block text-xxs uppercase tracking-wider">Full Name</span>
                     <span className="font-semibold text-[#1A1210]">{selectedDonor.name}</span>
@@ -270,7 +270,7 @@ export const DonorSearch = () => {
                   </div>
                   <div>
                     <span className="text-[#7A5F5F] block text-xxs uppercase tracking-wider">Email Address</span>
-                    <span className="font-semibold text-[#1A1210] flex items-center gap-1 truncate max-w-[150px]">
+                    <span className="font-semibold text-[#1A1210] flex items-center gap-1 truncate sm:max-w-[150px]">
                       <Mail className="w-3.5 h-3.5 text-[#7A5F5F]" /> {selectedDonor.email || 'N/A'}
                     </span>
                   </div>

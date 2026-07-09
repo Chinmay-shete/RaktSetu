@@ -115,50 +115,50 @@ export const Dashboard = () => {
     <div className="flex flex-col gap-8 w-full animate-fade-in select-none">
       
       {/* Editorial Header Section */}
-      <section className="mb-16">
-        <h1 className="font-serif text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em] text-[#1A1210]">
+      <section className="mb-8 md:mb-16">
+        <h1 className="font-serif text-[32px] sm:text-[60px] md:text-[100px] italic leading-none mb-4 tracking-[-0.04em] text-[#1A1210]">
           Welcome back, <span className="text-[#c8102e]">{user?.name?.split(' ')[0]}.</span>
         </h1>
-        <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
+        <p className="text-sm sm:text-[18px] text-[#737373] max-w-2xl leading-[28px]">
           Hospital command console. Real-time blood inventory tracking, cold storage expiration alarms, and P2P peer transfers are managed from this terminal.
         </p>
       </section>
 
       {/* Core Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
-          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#c8102e]/5 select-none transition-transform group-hover:scale-110">01</span>
+        <div className="bg-white p-6 sm:p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[80px] sm:text-[120px] text-[#c8102e]/5 select-none transition-transform group-hover:scale-110">01</span>
           <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Total Blood Units</p>
           <div className="flex items-end gap-2">
-            <h2 className="font-serif text-[60px] leading-[54px] text-[#c8102e]">{totalUnits}</h2>
-            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
+            <h2 className="font-serif text-[40px] sm:text-[60px] leading-none text-[#c8102e]">{totalUnits}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-1 sm:mb-4 italic">Units</span>
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
-          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#22A06B]/5 select-none transition-transform group-hover:scale-110">02</span>
+        <div className="bg-white p-6 sm:p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[80px] sm:text-[120px] text-[#22A06B]/5 select-none transition-transform group-hover:scale-110">02</span>
           <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Available Units</p>
           <div className="flex items-end gap-2">
-            <h2 className="font-serif text-[60px] leading-[54px] text-[#22A06B]">{availableUnits}</h2>
-            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
+            <h2 className="font-serif text-[40px] sm:text-[60px] leading-none text-[#22A06B]">{availableUnits}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-1 sm:mb-4 italic">Units</span>
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
-          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-[#E07B00]/5 select-none transition-transform group-hover:scale-110">03</span>
+        <div className="bg-white p-6 sm:p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[80px] sm:text-[120px] text-[#E07B00]/5 select-none transition-transform group-hover:scale-110">03</span>
           <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Expiring Soon</p>
           <div className="flex items-end gap-2">
-            <h2 className="font-serif text-[60px] leading-[54px] text-[#E07B00]">{expiringSoonCount}</h2>
-            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Units</span>
+            <h2 className="font-serif text-[40px] sm:text-[60px] leading-none text-[#E07B00]">{expiringSoonCount}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-1 sm:mb-4 italic">Units</span>
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
-          <span className="absolute -bottom-4 -right-2 font-serif text-[120px] text-blue-600/5 select-none transition-transform group-hover:scale-110">04</span>
+        <div className="bg-white p-6 sm:p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden group">
+          <span className="absolute -bottom-4 -right-2 font-serif text-[80px] sm:text-[120px] text-blue-600/5 select-none transition-transform group-hover:scale-110">04</span>
           <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-4">Transfer Requests</p>
           <div className="flex items-end gap-2">
-            <h2 className="font-serif text-[60px] leading-[54px] text-blue-600">{pendingTransfersCount}</h2>
-            <span className="text-[14px] font-[500] text-[#737373] mb-4 italic">Pending</span>
+            <h2 className="font-serif text-[40px] sm:text-[60px] leading-none text-blue-600">{pendingTransfersCount}</h2>
+            <span className="text-[14px] font-[500] text-[#737373] mb-1 sm:mb-4 italic">Pending</span>
           </div>
         </div>
       </div>

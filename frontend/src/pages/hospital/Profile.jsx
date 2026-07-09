@@ -92,7 +92,7 @@ export const Profile = () => {
         <div className="lg:col-span-7 space-y-6">
           
           {/* Personal Details */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-[#EDE7E1] space-y-6">
+          <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-[#EDE7E1] space-y-6 font-sans">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#7A5F5F] flex items-center gap-2 pb-3 border-b border-[#EDE7E1]">
               <User className="h-4 w-4 text-[#BE1F2E]" />
               Personal Details
@@ -118,7 +118,7 @@ export const Profile = () => {
           </div>
 
           {/* Hospital Affiliation */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-[#EDE7E1] space-y-6">
+          <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-[#EDE7E1] space-y-6 font-sans">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#7A5F5F] flex items-center gap-2 pb-3 border-b border-[#EDE7E1]">
               <Building className="h-4 w-4 text-[#BE1F2E]" />
               Hospital Affiliation
@@ -170,7 +170,7 @@ export const Profile = () => {
 
         {/* Right Hand: Change password card */}
         <div className="lg:col-span-5">
-          <form onSubmit={handlePasswordChange} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-[#EDE7E1] space-y-6">
+          <form onSubmit={handlePasswordChange} className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-[#EDE7E1] space-y-6 font-sans">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#7A5F5F] flex items-center gap-2 pb-3 border-b border-[#EDE7E1]">
               <Lock className="h-4 w-4 text-[#BE1F2E]" />
               Rotate Credentials

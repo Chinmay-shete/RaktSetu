@@ -104,7 +104,7 @@ export const SurgicalSchedule = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-[#EDE7E1]">
+          <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-[#EDE7E1]">
             <h3 className="text-[18px] font-[600] text-[#1A1210] mb-6">Log New Surgery</h3>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">

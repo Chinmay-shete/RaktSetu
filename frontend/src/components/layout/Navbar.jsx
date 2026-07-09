@@ -148,7 +148,7 @@ export const Navbar = ({ onMenuOpen }) => {
           <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-[#BE1F2E]" : ""}`} />
         </button>
 
-        <div className="relative" ref={notifRef}>
+        <div className="static sm:relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
             className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all relative active:scale-95"
@@ -165,7 +165,7 @@ export const Navbar = ({ onMenuOpen }) => {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-3 w-80 bg-[#FFFFFF] rounded-3xl shadow-2xl overflow-hidden z-50 border border-[#EDE7E1]"
+                className="absolute right-6 sm:right-0 mt-3 w-[calc(100vw-48px)] sm:w-80 bg-[#FFFFFF] rounded-3xl shadow-2xl overflow-hidden z-50 border border-[#EDE7E1]"
               >
                 <div className="flex items-center justify-between p-4 border-b border-[#EDE7E1]">
                   <span className="text-sm font-bold text-[#1A1210]">
