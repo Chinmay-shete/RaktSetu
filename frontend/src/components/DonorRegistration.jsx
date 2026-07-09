@@ -134,7 +134,7 @@ const DonorRegistration = () => {
     } else {
       // ── EMAIL OTP (SIMULATED VIA BACKEND) ──
       try {
-        const response = await api.post('/auth/request-email-otp', {
+        const response = await api.post('/auth/send-otp', {
           email: inputVal.toLowerCase().trim()
         });
         
@@ -175,7 +175,7 @@ const DonorRegistration = () => {
       }
     } else {
       try {
-        await api.post('/auth/request-email-otp', {
+        await api.post('/auth/send-otp', {
           email: inputVal.toLowerCase().trim()
         });
         setOtpSuccess(false);
@@ -223,12 +223,12 @@ const DonorRegistration = () => {
     } else {
       // Verify Email code via backend
       try {
-        const response = await api.post('/auth/verify-email-otp', {
+        const response = await api.post('/auth/verify-otp', {
           email: inputVal.toLowerCase().trim(),
           otp: code
         });
         
-        const { token } = response.data;
+        const token = response.data.verification_token || response.data.token;
         setEmailVerificationToken(token);
         
         setOtpSuccess(true);

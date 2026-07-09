@@ -2,10 +2,10 @@
    SYSTEM ADMIN — Styling & Custom Badges
 ───────────────────────────────────────────── */
 :root {
-  --sysadmin: #475569;
-  --sysadmin-hover: #334155;
-  --sysadmin-light: rgba(71, 85, 105, 0.08);
-  --sysadmin-border: rgba(71, 85, 105, 0.2);
+  --sysadmin: #BE1F2E;
+  --sysadmin-hover: #991B1B;
+  --sysadmin-light: rgba(190, 31, 46, 0.08);
+  --sysadmin-border: rgba(190, 31, 46, 0.2);
 }
 
 .badge-sysadmin {

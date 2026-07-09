@@ -38,7 +38,7 @@ const AdminLayout = ({ children }) => {
 
   const handleLogout = () => {
     logoutAdmin();
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   const currentHospitalName = appState.hospitalDetails?.hospitalName || "Apex City Hospital";

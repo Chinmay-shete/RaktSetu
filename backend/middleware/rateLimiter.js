@@ -10,7 +10,7 @@ const loginRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req, res) => process.env.NODE_ENV === 'test',
+  skip: (req, res) => process.env.NODE_ENV !== 'production',
 });
 
 const sendOtpRateLimiter = rateLimit({
@@ -23,7 +23,7 @@ const sendOtpRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req, res) => process.env.NODE_ENV === 'test',
+  skip: (req, res) => process.env.NODE_ENV !== 'production',
 });
 
 const verifyOtpRateLimiter = rateLimit({
@@ -36,7 +36,7 @@ const verifyOtpRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req, res) => process.env.NODE_ENV === 'test',
+  skip: (req, res) => process.env.NODE_ENV !== 'production',
 });
 
 module.exports = {

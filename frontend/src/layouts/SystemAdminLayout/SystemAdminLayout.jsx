@@ -33,7 +33,7 @@ const SystemAdminLayout = ({ children }) => {
 
   const handleLogout = () => {
     logoutAdmin();
-    navigate('/systemadmin/login');
+    navigate('/login');
   };
 
   const adminName = adminState.adminDetails?.name || 'Vikram Malhotra';
@@ -42,7 +42,7 @@ const SystemAdminLayout = ({ children }) => {
   const warningLogs = adminState.auditLogs?.filter(log => log.severity === 'Warning') || [];
 
   return (
-    <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] flex flex-col font-sans relative overflow-x-hidden selection:bg-[#475569] selection:text-white">
+    <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] flex flex-col font-sans relative overflow-x-hidden selection:bg-[#BE1F2E] selection:text-white">
       {/* Noise filter */}
       <div className="noise-filter" />
 
@@ -51,7 +51,7 @@ const SystemAdminLayout = ({ children }) => {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden text-[#5A5A5A] hover:text-[#475569] focus:outline-none"
+            className="lg:hidden text-[#5A5A5A] hover:text-[#BE1F2E] focus:outline-none"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -60,7 +60,7 @@ const SystemAdminLayout = ({ children }) => {
             <span className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight">
               Rakt<span className="italic">Setu</span>
             </span>
-            <span className="hidden sm:inline-block bg-[rgba(71,85,105,0.06)] border border-[rgba(71,85,105,0.15)] text-[#475569] text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+            <span className="hidden sm:inline-block bg-[rgba(190,31,46,0.06)] border border-[rgba(190,31,46,0.15)] text-[#BE1F2E] text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
               System Admin
             </span>
           </Link>
@@ -71,7 +71,7 @@ const SystemAdminLayout = ({ children }) => {
           <div className="relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-full hover:bg-[rgba(71,85,105,0.06)] text-[#5A5A5A] hover:text-[#475569] transition-colors relative"
+              className="p-2 rounded-full hover:bg-[rgba(190,31,46,0.06)] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors relative"
             >
               <Bell size={20} />
               {warningLogs.length > 0 && (
@@ -112,7 +112,7 @@ const SystemAdminLayout = ({ children }) => {
 
           {/* User Profile */}
           <div className="flex items-center gap-3 bg-white border border-[#E0DAD4] rounded-full pl-3 pr-4 py-1.5 shadow-sm">
-            <div className="w-7 h-7 rounded-full bg-[#475569] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-7 h-7 rounded-full bg-[#BE1F2E] flex items-center justify-center text-white font-bold text-sm">
               {adminName.charAt(0).toUpperCase()}
             </div>
             <span className="hidden md:inline text-xs font-bold text-[#1A1A1A] max-w-[150px] truncate">
@@ -123,7 +123,7 @@ const SystemAdminLayout = ({ children }) => {
           {/* Logout button (Desktop) */}
           <button 
             onClick={handleLogout}
-            className="hidden sm:flex items-center gap-2 text-[#5A5A5A] hover:text-[#475569] text-xs font-bold transition-colors uppercase tracking-wider"
+            className="hidden sm:flex items-center gap-2 text-[#5A5A5A] hover:text-[#BE1F2E] text-xs font-bold transition-colors uppercase tracking-wider"
           >
             <LogOut size={16} />
             <span>Logout</span>
@@ -144,8 +144,8 @@ const SystemAdminLayout = ({ children }) => {
                   to={item.path}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     isActive 
-                      ? 'bg-[#475569] text-white shadow-md shadow-[#475569]/20' 
-                      : 'text-[#5A5A5A] hover:text-[#475569] hover:bg-[rgba(71,85,105,0.04)]'
+                      ? 'bg-[#BE1F2E] text-white shadow-md shadow-[#BE1F2E]/20' 
+                      : 'text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)]'
                   }`}
                 >
                   <Icon size={18} />
@@ -157,7 +157,7 @@ const SystemAdminLayout = ({ children }) => {
           
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#475569] hover:bg-[rgba(71,85,105,0.04)] transition-colors w-full mt-auto"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)] transition-colors w-full mt-auto"
           >
             <LogOut size={18} />
             <span>Logout</span>
@@ -184,7 +184,7 @@ const SystemAdminLayout = ({ children }) => {
               >
                 <div className="flex items-center justify-between mb-8">
                   <span className="font-serif text-lg font-bold text-[#1a1a1a]">Navigation</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[#475569]">
+                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[#BE1F2E]">
                     <X size={20} />
                   </button>
                 </div>
@@ -200,8 +200,8 @@ const SystemAdminLayout = ({ children }) => {
                         onClick={() => setMobileMenuOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                           isActive 
-                            ? 'bg-[#475569] text-white shadow-md shadow-[#475569]/20' 
-                            : 'text-[#5A5A5A] hover:text-[#475569] hover:bg-[rgba(71,85,105,0.04)]'
+                            ? 'bg-[#BE1F2E] text-white shadow-md shadow-[#BE1F2E]/20' 
+                            : 'text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)]'
                         }`}
                       >
                         <Icon size={18} />
@@ -213,7 +213,7 @@ const SystemAdminLayout = ({ children }) => {
 
                 <button
                   onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#475569] hover:bg-[rgba(71,85,105,0.04)] transition-colors w-full mt-auto"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)] transition-colors w-full mt-auto"
                 >
                   <LogOut size={18} />
                   <span>Logout</span>

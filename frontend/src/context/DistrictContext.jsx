@@ -31,6 +31,23 @@ export const DistrictProvider = ({ children }) => {
     localStorage.setItem('raktsetu_district_state', JSON.stringify(appState));
   }, [appState]);
 
+  // Sync state from localStorage in case user logged in via a different page (e.g. shared Login.jsx)
+  useEffect(() => {
+    if (appState.status === 'idle') {
+      const saved = localStorage.getItem('raktsetu_district_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.status === 'logged_in') {
+            setAppState(prev => ({ ...prev, ...parsed }));
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+  }, [appState.status]);
+
   const fetchDistrictData = useCallback(async () => {
     if (appState.status !== 'logged_in') return;
     setIsLoading(true);

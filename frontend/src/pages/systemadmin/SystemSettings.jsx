@@ -16,7 +16,7 @@ export const SystemSettings = () => {
     testIntegration 
   } = useSystemAdmin();
 
-  const flags = adminState.featureFlags;
+  const flags = adminState.featureFlags || {};
 
   const flagDescriptions = {
     emergencyRouting: 'Enables dynamic shortest-path emergency transit calculations for urgent blood transfers.',
@@ -65,7 +65,7 @@ export const SystemSettings = () => {
                   className="text-slate-400 hover:text-slate-700 transition-colors focus:outline-none"
                 >
                   {val ? (
-                    <ToggleRight size={40} className="text-[#BE1F2E]" />
+                     <ToggleRight size={40} className="text-[#BE1F2E]" />
                   ) : (
                     <ToggleLeft size={40} className="text-slate-300" />
                   )}
@@ -83,7 +83,7 @@ export const SystemSettings = () => {
           </div>
 
           <div className="space-y-4">
-            {Object.entries(adminState.systemHealth.integrations).map(([key, status]) => (
+            {Object.entries(adminState.systemHealth?.integrations || {}).map(([key, status]) => (
               <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-[#fbf9f6] border border-[#E0DAD4]">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-white border border-[#E0DAD4] flex items-center justify-center text-slate-500">
@@ -121,7 +121,7 @@ export const SystemSettings = () => {
           </div>
           <button 
             onClick={triggerBackup}
-            className="btn-primary bg-[#475569] hover:bg-[#334155] flex items-center gap-2 py-3 px-6 shadow-sm hover:shadow-lg"
+            className="btn-primary bg-[#BE1F2E] hover:bg-[#991B1B] flex items-center gap-2 py-3 px-6 shadow-sm hover:shadow-lg"
           >
             <Download size={16} />
             <span>Generate Backup Snapshot</span>

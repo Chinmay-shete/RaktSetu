@@ -8,13 +8,15 @@ export const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
 
-  const users = adminState.users;
+  const users = adminState.users || [];
 
   // Filter users based on query and role
   const filteredUsers = users.filter(user => {
+    const name = user.name || '';
+    const email = user.email || '';
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      email.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
 

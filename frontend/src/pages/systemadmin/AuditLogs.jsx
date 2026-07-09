@@ -8,14 +8,18 @@ export const AuditLogs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSeverity, setSelectedSeverity] = useState('all');
 
-  const logs = adminState.auditLogs;
+  const logs = adminState.auditLogs || [];
 
   // Filter logs
   const filteredLogs = logs.filter(log => {
+    const actor = log.actor || '';
+    const action = log.action || '';
+    const ip = log.ipAddress || '';
+    
     const matchesSearch = 
-      log.actor.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      log.action.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      log.ipAddress.toLowerCase().includes(searchQuery.toLowerCase());
+      actor.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      action.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      ip.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesSeverity = selectedSeverity === 'all' || log.severity === selectedSeverity;
 

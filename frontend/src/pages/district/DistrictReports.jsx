@@ -70,7 +70,132 @@ const DistrictReports = () => {
     setDownloadedId(report.id);
     setTimeout(() => {
       setDownloadedId(null);
-      window.alert(`✅ "${report.title}" has been generated and downloaded as ${report.format}.`);
+      
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        window.alert('Popup blocker is active. Please allow popups to view the report.');
+        return;
+      }
+
+      let tableContent = '';
+      if (report.id === 1) {
+        tableContent = `
+          <table>
+            <thead>
+              <tr><th>Metric</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Total Bags Stocked</td><td>1,284 units</td></tr>
+              <tr><td>Units Transfused</td><td>928 units</td></tr>
+              <tr><td>Waste Rate</td><td>6.2%</td></tr>
+              <tr><td>Critical Shortage Alerts</td><td>4 events</td></tr>
+              <tr><td>District Ranking</td><td>4th / 15</td></tr>
+            </tbody>
+          </table>
+        `;
+      } else if (report.id === 2) {
+        tableContent = `
+          <table>
+            <thead>
+              <tr><th>Blood Group</th><th>Forecast Demand</th><th>Available Supply</th><th>Risk Level</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>O-</td><td>25 units</td><td>4 units</td><td><span class="badge badge-critical">Critical</span></td></tr>
+              <tr><td>AB-</td><td>12 units</td><td>2 units</td><td><span class="badge badge-critical">Critical</span></td></tr>
+              <tr><td>B-</td><td>18 units</td><td>8 units</td><td><span class="badge badge-warning">High</span></td></tr>
+              <tr><td>O+</td><td>110 units</td><td>135 units</td><td><span class="badge badge-success">Healthy</span></td></tr>
+            </tbody>
+          </table>
+        `;
+      } else if (report.id === 5) {
+        tableContent = `
+          <table>
+            <thead>
+              <tr><th>Hospital Name</th><th>Reporting Frequency</th><th>Last Sync Time</th><th>Compliance Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Koregaon Park City Life</td><td>Real-Time</td><td>5 mins ago</td><td><span class="badge badge-success">Compliant</span></td></tr>
+              <tr><td>Pune Life Care</td><td>Hourly</td><td>20 mins ago</td><td><span class="badge badge-success">Compliant</span></td></tr>
+              <tr><td>Mumbai General</td><td>Delayed (>24h)</td><td>Yesterday</td><td><span class="badge badge-critical">Non-Compliant</span></td></tr>
+            </tbody>
+          </table>
+        `;
+      } else if (report.id === 6) {
+        tableContent = `
+          <table>
+            <thead>
+              <tr><th>From District</th><th>To District</th><th>Blood Group</th><th>Units</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Pune</td><td>Latur</td><td>O-</td><td>15 units</td><td>Completed</td></tr>
+              <tr><td>Nagpur</td><td>Akola</td><td>O+</td><td>12 units</td><td>Completed</td></tr>
+              <tr><td>Mumbai</td><td>Pune</td><td>AB-</td><td>5 units</td><td>In Transit</td></tr>
+            </tbody>
+          </table>
+        `;
+      } else {
+        tableContent = `
+          <p><strong>Raw data export (CSV format):</strong></p>
+          <pre style="background: #f5f3f0; padding: 15px; border-radius: 8px; font-family: monospace;">
+id,title,value,date
+1,Active Donors,8432,2026-06-10
+2,Pincodes Covered,47,2026-06-10
+3,Rare Blood Donors,312,2026-06-10
+          </pre>
+        `;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${report.title} - RaktSetu</title>
+            <style>
+              body { font-family: 'Georgia', serif; padding: 40px; color: #1a1210; background: #fff; line-height: 1.6; }
+              .header { border-bottom: 2px solid #BE1F2E; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+              .title { font-size: 28px; font-weight: bold; margin: 0; color: #BE1F2E; }
+              .subtitle { font-size: 14px; color: #737373; margin: 5px 0 0 0; }
+              .meta { font-size: 12px; text-align: right; color: #737373; }
+              .desc { font-style: italic; color: #5A5A5A; margin-bottom: 30px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 30px; }
+              th, td { padding: 12px 15px; border-bottom: 1px solid #EDE7E1; text-align: left; font-size: 14px; }
+              th { background: #fbf9f6; font-weight: bold; color: #1a1210; }
+              .badge { font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
+              .badge-critical { background: #ffdad6; color: #93000a; }
+              .badge-warning { background: #FEF3C7; color: #92400E; }
+              .badge-success { background: #d1fae5; color: #065f46; }
+              .footer { border-top: 1px solid #EDE7E1; padding-top: 20px; font-size: 11px; color: #9A9A9A; text-align: center; margin-top: 50px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <h1 class="title">RaktSetu</h1>
+                <p class="subtitle">Official Government of Maharashtra Blood Logistics Report</p>
+              </div>
+              <div class="meta">
+                <p><strong>Report:</strong> ${report.title}</p>
+                <p><strong>Generated:</strong> ${report.lastGenerated}</p>
+                <p><strong>Format:</strong> ${report.format}</p>
+              </div>
+            </div>
+            
+            <p class="desc">Description: ${report.desc}</p>
+            
+            ${tableContent}
+            
+            <div class="footer">
+              This is a system-generated document authorized by the National Health Mission & NBTC. RaktSetu © 2026.
+            </div>
+            
+            <script>
+              window.onload = function() {
+                window.print();
+              }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     }, 1200);
   };
 

@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { createRecaptchaVerifier, sendFirebaseOtp } from '../services/firebaseConfig';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { syncAuth } = useAuth();
   const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'mobile'
   
   // Email Login States
@@ -157,6 +159,46 @@ const Login = () => {
     otpRefs.current[lastFilled]?.focus();
   };
 
+  const handleRoleRedirect = (user, token, refreshToken, refresh_token) => {
+    // Clear any previous role flags first to prevent session mixups
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_') && key !== 'raktsetu_hospital_email') {
+        localStorage.removeItem(key);
+      }
+    });
+
+    localStorage.setItem('raktsetu_auth_token', token);
+    if (refreshToken || refresh_token) {
+      localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
+    }
+
+    if (user.role === 'state') {
+      localStorage.setItem('raktsetu_state_admin', JSON.stringify({ status: 'logged_in', user }));
+      navigate('/state/dashboard');
+    } else if (user.role === 'district') {
+      localStorage.setItem('raktsetu_district_state', JSON.stringify({ status: 'logged_in', user }));
+      navigate('/district/dashboard');
+    } else if (user.role === 'sysadmin') {
+      localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify({ status: 'logged_in', user }));
+      navigate('/systemadmin/dashboard');
+    } else if (user.role === 'admin') {
+      localStorage.setItem('raktsetu_admin_app_state', JSON.stringify({ status: 'logged_in', user }));
+      syncAuth();
+      navigate('/admin/dashboard');
+    } else if (user.role === 'staff') {
+      localStorage.setItem('raktsetu_hospital_authenticated', 'true');
+      localStorage.setItem('raktsetu_hospital_profile', JSON.stringify(user));
+      syncAuth();
+      navigate('/staff/dashboard');
+    } else {
+      // Default to donor role
+      localStorage.setItem('raktsetu_donor_authenticated', 'true');
+      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
+      syncAuth();
+      navigate('/dashboard');
+    }
+  };
+
   // ── EMAIL SUBMIT ──────────────────────────────────────────────────
   const handleEmailSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -169,16 +211,8 @@ const Login = () => {
         password: password
       });
       const { token, refreshToken, refresh_token, user } = response.data;
-      
-      localStorage.setItem('raktsetu_auth_token', token);
-      if (refreshToken || refresh_token) {
-        localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
-      }
-      localStorage.setItem('raktsetu_donor_authenticated', 'true');
-      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
-
       setButtonState('default');
-      navigate('/dashboard');
+      handleRoleRedirect(user, token, refreshToken, refresh_token);
     } catch (err) {
       console.error('[Email Login] Error:', err);
       setButtonState('default');
@@ -206,17 +240,9 @@ const Login = () => {
         mobile: mobile
       });
       const { token, refreshToken, refresh_token, user } = response.data;
-      
-      localStorage.setItem('raktsetu_auth_token', token);
-      if (refreshToken || refresh_token) {
-        localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
-      }
-      localStorage.setItem('raktsetu_donor_authenticated', 'true');
-      localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
-
       setButtonState('default');
       setTimeout(() => {
-        navigate('/dashboard');
+        handleRoleRedirect(user, token, refreshToken, refresh_token);
       }, 800);
     } catch (err) {
       console.error('[Firebase OTP] Verify error:', err);

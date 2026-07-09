@@ -85,7 +85,7 @@ const SystemAdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] flex flex-col font-sans relative overflow-y-auto selection:bg-[#475569] selection:text-white">
+    <div className="min-h-screen bg-[#F5F0EB] flex flex-col font-sans relative overflow-y-auto selection:bg-[#BE1F2E] selection:text-white">
       <div className="noise-filter" />
 
       {/* Auth Navbar */}
@@ -163,7 +163,7 @@ const SystemAdminLogin = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-primary w-full bg-[#475569] hover:bg-[#334155] hover:shadow-[0_8px_24px_rgba(71,85,105,0.35)]"
+                    className="btn-primary w-full bg-[#BE1F2E] hover:bg-[#991B1B] hover:shadow-[0_8px_24px_rgba(190,31,46,0.35)]"
                     style={{ minHeight: 52 }}
                   >
                     {isLoading ? 'Verifying Admin Credentials…' : 'Authenticate Session'}

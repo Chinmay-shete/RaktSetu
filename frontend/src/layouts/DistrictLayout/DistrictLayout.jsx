@@ -35,7 +35,7 @@ const DistrictLayout = ({ children }) => {
 
   const handleLogout = () => {
     logoutOfficer();
-    navigate('/district/login');
+    navigate('/login');
   };
 
   const officerName = appState.officerDetails?.name || 'Rajesh Patil';

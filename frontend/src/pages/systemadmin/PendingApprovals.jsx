@@ -13,8 +13,8 @@ export const PendingApprovals = () => {
 
   const [activeTab, setActiveTab] = useState('hospitals');
 
-  const pendingHospitals = adminState.pendingHospitals;
-  const pendingOfficers = adminState.pendingOfficers;
+  const pendingHospitals = adminState.pendingHospitals || [];
+  const pendingOfficers = adminState.pendingOfficers || [];
 
   return (
     <div className="space-y-10 animate-page-enter">
@@ -35,7 +35,7 @@ export const PendingApprovals = () => {
           onClick={() => setActiveTab('hospitals')}
           className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 ${
             activeTab === 'hospitals'
-              ? 'border-[#475569] text-[#475569]'
+              ? 'border-[#BE1F2E] text-[#BE1F2E]'
               : 'border-transparent text-[#9A9A9A] hover:text-[#5A5A5A]'
           }`}
         >
@@ -46,7 +46,7 @@ export const PendingApprovals = () => {
           onClick={() => setActiveTab('officers')}
           className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 ${
             activeTab === 'officers'
-              ? 'border-[#475569] text-[#475569]'
+              ? 'border-[#BE1F2E] text-[#BE1F2E]'
               : 'border-transparent text-[#9A9A9A] hover:text-[#5A5A5A]'
           }`}
         >

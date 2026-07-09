@@ -88,8 +88,18 @@ export const AuthProvider = ({ children }) => {
       });
   };
 
+  const syncAuth = () => {
+    const saved = localStorage.getItem('raktsetu_hospital_profile');
+    if (saved) {
+      try {
+        setUser(JSON.parse(saved));
+        setIsAuthenticated(localStorage.getItem('raktsetu_hospital_authenticated') === 'true');
+      } catch (e) {}
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateProfile, validateInviteToken, setupPassword }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateProfile, validateInviteToken, setupPassword, syncAuth }}>
       {children}
     </AuthContext.Provider>
   );

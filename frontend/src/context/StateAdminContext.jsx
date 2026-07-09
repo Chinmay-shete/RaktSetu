@@ -33,6 +33,23 @@ export const StateAdminProvider = ({ children }) => {
     localStorage.setItem('raktsetu_state_admin', JSON.stringify(appState));
   }, [appState]);
 
+  // Sync state from localStorage in case user logged in via a different page (e.g. shared Login.jsx)
+  useEffect(() => {
+    if (appState.status === 'idle') {
+      const saved = localStorage.getItem('raktsetu_state_admin');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.status === 'logged_in') {
+            setAppState(prev => ({ ...prev, ...parsed }));
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+  }, [appState.status]);
+
   const fetchStateData = useCallback(async () => {
     if (appState.status !== 'logged_in') return;
     setIsLoading(true);
@@ -58,13 +75,13 @@ export const StateAdminProvider = ({ children }) => {
 
       const mappedTransfers = (transfersRes.data || []).map(t => ({
         id: t.id,
-        from: t.from_district_name || 'Mumbai',
-        to: t.to_district_name || 'Solapur',
-        bloodGroup: t.blood_group,
+        from: t.fromDistrictName || 'Mumbai',
+        to: t.toDistrictName || 'Solapur',
+        bloodGroup: t.bloodGroup || t.blood_group,
         units: t.units,
         status: t.status === 'pending' ? 'Pending Approval' : t.status === 'approved' ? 'Approved' : t.status,
         initiatedBy: t.initiatedBy || 'District Officer',
-        date: t.created_at ? t.created_at.substring(0, 10) : '2026-06-24',
+        date: t.date || '2026-06-24',
         reason: t.reason || 'Critical shortage alert'
       }));
 

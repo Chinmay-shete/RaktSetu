@@ -34,7 +34,7 @@ router.post('/hospital/upload-license', upload.single('license'), (req, res, nex
 const hospitalStaffRoles = requireRole(['staff', 'admin']);
 
 // Staff creation (B1)
-router.post('/hospital/staff', requireRole('admin'), validateRequest(createStaffSchema), hospitalController.createStaff);
+router.post('/hospital/staff', hospitalStaffRoles, validateRequest(createStaffSchema), hospitalController.createStaff);
 
 // Inventory
 router.get('/hospital/inventory', hospitalStaffRoles, hospitalController.getInventory);

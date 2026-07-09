@@ -40,7 +40,7 @@ async function seed() {
     await connection.query(`
       INSERT INTO hospitals (id, name, district_id, type, lat, lng, location, license_no, address, city, state, pincode, contact, verification_status) VALUES
       (1, 'Koregaon Park City Life Hospital', 1, 'Private', 18.5362, 73.8940, ST_GeomFromText('POINT(73.8940 18.5362)', 4326), 'LIC-99998', 'Koregaon Park Lane 1', 'Pune', 'Maharashtra', '411001', '+9120223344', 'verified'),
-      (2, 'Pune Life Care Hospital', 1, 'Private', 18.5204, 73.8567, ST_GeomFromText('POINT(73.8567 18.5204)', 4326), 'LIC-99997', '456, MG Road, Camp', 'Pune', 'Maharashtra', '411001', '9876543210', 'verified'),
+      (2, 'Pune Life Care Hospital', 1, 'Government', 18.5204, 73.8567, ST_GeomFromText('POINT(73.8567 18.5204)', 4326), 'LIC-99997', '456, MG Road, Camp', 'Pune', 'Maharashtra', '411001', '9876543210', 'verified'),
       (3, 'Mumbai General Hospital', 2, 'Government', 19.0760, 72.8777, ST_GeomFromText('POINT(72.8777 19.0760)', 4326), 'LIC-99995', 'Dharavi Main Road', 'Mumbai', 'Maharashtra', '400017', '+9122334455', 'pending'),
       (4, 'Surat Municipal Hospital', 3, 'Government', 21.1702, 72.8311, ST_GeomFromText('POINT(72.8311 21.1702)', 4326), 'LIC-99994', 'Surat Ring Road', 'Surat', 'Gujarat', '395003', '+91261223344', 'verified')
     `);

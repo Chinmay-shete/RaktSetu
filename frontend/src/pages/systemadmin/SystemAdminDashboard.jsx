@@ -109,7 +109,7 @@ export const SystemAdminDashboard = () => {
 
         {/* Stat 4: Pending Approvals */}
         <Link to="/systemadmin/approvals" className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group block">
-          <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[rgba(71,85,105,0.06)] group-hover:bg-[rgba(71,85,105,0.12)] flex items-center justify-center text-[#475569] transition-colors">
+          <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[rgba(190,31,46,0.06)] group-hover:bg-[rgba(190,31,46,0.12)] flex items-center justify-center text-[#BE1F2E] transition-colors">
             <ArrowRight size={20} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
           <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] mb-1">Pending Registrations</p>
@@ -147,7 +147,7 @@ export const SystemAdminDashboard = () => {
                 <Line 
                   type="monotone" 
                   dataKey="latency" 
-                  stroke="#475569" 
+                  stroke="#BE1F2E" 
                   strokeWidth={2.5} 
                   dot={{ r: 4, strokeWidth: 1.5, fill: '#fff' }} 
                   activeDot={{ r: 6 }} 

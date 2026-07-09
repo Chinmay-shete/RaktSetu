@@ -35,7 +35,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/staff/login');
+    navigate('/login');
   };
 
   const content = (

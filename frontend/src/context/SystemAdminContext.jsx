@@ -48,6 +48,23 @@ export const SystemAdminProvider = ({ children }) => {
     localStorage.setItem('raktsetu_sysadmin_state', JSON.stringify(adminState));
   }, [adminState]);
 
+  // Sync state from localStorage in case user logged in via a different page (e.g. shared Login.jsx)
+  useEffect(() => {
+    if (adminState.status === 'idle') {
+      const saved = localStorage.getItem('raktsetu_sysadmin_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.status === 'logged_in') {
+            setAdminState(prev => ({ ...prev, ...parsed }));
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+  }, [adminState.status]);
+
   const fetchAdminData = useCallback(async () => {
     if (adminState.status !== 'logged_in') return;
     setIsLoading(true);

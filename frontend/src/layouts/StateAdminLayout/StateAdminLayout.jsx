@@ -32,7 +32,7 @@ const StateAdminLayout = ({ children }) => {
 
   const handleLogout = () => {
     logoutStateAdmin();
-    navigate('/state/login');
+    navigate('/login');
   };
 
   const officialName = appState.officialDetails?.name || 'Dr. Anita Deshmukh';
