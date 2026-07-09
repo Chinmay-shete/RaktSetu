@@ -87,6 +87,38 @@ const LandingPage = () => {
 
           {/* Nav Links */}
           <div className="hidden md:flex items-center gap-10 ml-12">
+            <div className="relative group">
+              <button className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer py-2 border-none bg-transparent">
+                <span>Services</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform duration-300">keyboard_arrow_down</span>
+              </button>
+              
+              {/* Dropdown menu */}
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#EDE7E1] rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 p-2 text-left">
+                <button
+                  onClick={() => navigate('/services?service=Blood+Stock+Availability')}
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1210] hover:text-[#BE1F2E] flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent"
+                >
+                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">database</span>
+                  Blood Stock Availability
+                </button>
+                <button
+                  onClick={() => navigate('/services?service=Camp+Schedule')}
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1210] hover:text-[#BE1F2E] flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent"
+                >
+                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">calendar_month</span>
+                  Camp Schedule
+                </button>
+                <button
+                  onClick={() => navigate('/services?service=Blood+Center+Directory')}
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1210] hover:text-[#BE1F2E] flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent"
+                >
+                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">home_health</span>
+                  Blood Center Directory
+                </button>
+              </div>
+            </div>
+
             {[
               { label: 'Features', href: '#features' },
               { label: 'How it works', href: '#process' },

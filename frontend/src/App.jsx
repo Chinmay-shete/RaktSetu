@@ -17,6 +17,7 @@ import Unauthorized from './components/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
 import DonorGuidelines from './components/DonorGuidelines';
 import ContactMedicalTeam from './components/ContactMedicalTeam';
+import { PortalServices } from './components/PortalServices';
 
 // -- Staff/Hospital Imports --
 import { AuthProvider } from './context/AuthContext';
@@ -124,6 +125,7 @@ function App() {
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/donor-guidelines" element={<DonorGuidelines />} />
                 <Route path="/contact" element={<ContactMedicalTeam />} />
+                <Route path="/services" element={<PortalServices />} />
 
                 {/* --------------------------- */}
                 {/* 2. STAFF / HOSPITAL ROUTES  */}
