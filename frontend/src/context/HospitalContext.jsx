@@ -55,10 +55,16 @@ export const HospitalProvider = ({ children }) => {
     }));
   };
 
-  const loginAdmin = () => {
+  const loginAdmin = (user) => {
     setAppState(prev => ({
       ...prev,
-      status: 'logged_in'
+      status: 'logged_in',
+      hospitalDetails: user ? {
+        hospitalName: user.hospitalName || user.hospital_name || 'Apex City Hospital',
+        city: user.city || 'Pune',
+        email: user.email,
+        id: user.hospitalId || user.hospital_id
+      } : null
     }));
   };
 

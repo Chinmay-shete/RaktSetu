@@ -42,8 +42,9 @@ export const TransferRequests = () => {
       setRejectId(null);
       setRejectionRemarks('');
     },
-    onError: () => {
-      toast.error("Failed to update transfer request.");
+    onError: (err) => {
+      const msg = err.response?.data?.message || "Failed to update transfer request.";
+      toast.error(msg);
     }
   });
 
@@ -79,7 +80,9 @@ export const TransferRequests = () => {
   if (isLoading) return <Loader message="Fetching transfer registry..." />;
   if (isError) return <ErrorState message="Could not load transfer request database." onRetry={refetch} />;
 
-  const filteredTransfers = transfers.filter(t => t.type === activeTab);
+  const filteredTransfers = transfers.filter(t => 
+    t.type?.toLowerCase() === activeTab.toLowerCase()
+  );
 
   const handleApprove = (id) => {
     updateStatusMutation.mutate({ id, status: 'accepted' });
@@ -112,14 +115,17 @@ export const TransferRequests = () => {
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Approved':
+    const s = status?.toLowerCase();
+    switch (s) {
+      case 'approved':
+      case 'accepted':
         return (
           <span className="inline-flex items-center gap-1 text-xs font-bold text-[#22A06B]">
             <CheckCircle2 className="h-4 w-4" /> Approved
           </span>
         );
-      case 'Rejected':
+      case 'rejected':
+      case 'declined':
         return (
           <span className="inline-flex items-center gap-1 text-xs font-bold text-[#7A5F5F]">
             <XCircle className="h-4 w-4" /> Rejected
@@ -192,85 +198,71 @@ export const TransferRequests = () => {
           icon={ArrowLeftRight}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <AnimatePresence mode="popLayout">
-            {filteredTransfers.map((req) => (
-              <motion.div
-                key={req.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white p-5 rounded-2xl flex flex-col justify-between gap-4 shadow-sm border border-[#EDE7E1] relative overflow-hidden"
-              >
-                {/* Status accent top bar */}
-                <div className={`absolute top-0 left-0 right-0 h-0.5 ${
-                  req.status === 'Approved' ? 'bg-[#22A06B]' : req.status === 'Rejected' ? 'bg-[#7A5F5F]' : 'bg-[#E07B00]'
-                }`} />
-
-                <div>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-bold text-sm text-[#1A1210] truncate max-w-[180px]">
-                        {req.hospitalName}
-                      </h4>
-                      <p className="text-[10px] text-[#7A5F5F] flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-3 w-3" /> {req.distance} km away
-                      </p>
-                    </div>
-
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${getPriorityStyle(req.priority)}`}>
-                      {req.priority}
-                    </span>
-                  </div>
-
-                  {/* Core details bento */}
-                  <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#EDE7E1] flex items-center justify-between mt-3.5">
-                    <div>
-                      <span className="text-[10px] text-[#7A5F5F] uppercase tracking-wider block font-bold">Required Type</span>
-                      <span className="text-xl font-extrabold text-[#BE1F2E] font-serif">{req.bloodGroup}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-[#7A5F5F] uppercase tracking-wider block font-bold">Bags Required</span>
-                      <span className="text-base font-bold text-[#1A1210]">{req.unitsRequired} Units</span>
-                    </div>
-                  </div>
-
-                  {req.message && (
-                    <p className="text-[10px] text-[#5A5A5A] italic mt-3 bg-[#FAF8F5] p-2.5 rounded-xl border border-[#EDE7E1]">
-                      "{req.message}"
-                    </p>
-                  )}
-                </div>
-
-                {/* Status and Action Buttons */}
-                <div className="flex items-center justify-between border-t border-[#EDE7E1] pt-4 mt-1">
-                  <div>{getStatusBadge(req.status)}</div>
-
-                  {req.status === 'Pending' && activeTab === 'Incoming' && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setRejectId(req.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
-                      >
-                        <ThumbsDown className="h-3.5 w-3.5" /> Decline
-                      </button>
-                      <button
-                        onClick={() => handleApprove(req.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#22A06B] hover:bg-[#1B8459] text-white text-xs font-bold cursor-pointer transition-colors"
-                      >
-                        <ThumbsUp className="h-3.5 w-3.5" /> Approve
-                      </button>
-                    </div>
-                  )}
-
-                  {req.status === 'Pending' && activeTab === 'Outgoing' && (
-                    <span className="text-[10px] text-[#7A5F5F] font-semibold italic">Broadcast active...</span>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EDE7E1] overflow-hidden">
+          <div className="overflow-x-auto p-2">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[#EDE7E1]">
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Hospital</th>
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Blood Group</th>
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Bags</th>
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Distance</th>
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Priority</th>
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Status</th>
+                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransfers.map(req => (
+                  <tr key={req.id} className="border-b border-[#EDE7E1] hover:bg-[#FAF8F5] transition-colors text-[13px]">
+                    <td className="px-4 py-4">
+                      <div>
+                        <p className="font-[600] text-[#1A1210]">{req.hospitalName}</p>
+                        {req.message && <p className="text-[10px] text-[#7A5F5F] italic mt-0.5">"{req.message}"</p>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 bg-[#BE1F2E]/10 text-[#BE1F2E] text-[11px] font-[700] rounded uppercase tracking-wider">
+                        {req.bloodGroup}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-[#5A5A5A] font-semibold">{req.unitsRequired} Units</td>
+                    <td className="px-4 py-4 text-[#5A5A5A]">{req.distance} km</td>
+                    <td className="px-4 py-4">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${getPriorityStyle(req.priority)}`}>
+                        {req.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">{getStatusBadge(req.status)}</td>
+                    <td className="px-4 py-4 text-right">
+                      {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'incoming' && (
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => setRejectId(req.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full border border-[#EDE7E1] text-[11px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
+                          >
+                            <ThumbsDown className="h-3 w-3" /> Decline
+                          </button>
+                          <button
+                            onClick={() => handleApprove(req.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full bg-[#22A06B] hover:bg-[#1B8459] text-white text-[11px] font-bold cursor-pointer transition-colors"
+                          >
+                            <ThumbsUp className="h-3 w-3" /> Approve
+                          </button>
+                        </div>
+                      )}
+                      {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'outgoing' && (
+                        <span className="text-[11px] text-[#7A5F5F] font-semibold italic">Broadcast active...</span>
+                      )}
+                      {req.status?.toLowerCase() !== 'pending' && (
+                        <span className="text-[11px] text-[#9A9A9A]">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

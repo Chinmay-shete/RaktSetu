@@ -47,8 +47,13 @@ router.get('/hospital/expiry-alerts', hospitalStaffRoles, hospitalController.get
 router.get('/hospital/surgical-schedule', hospitalStaffRoles, hospitalController.listSurgicalSchedules);
 router.post('/hospital/surgical-schedule', hospitalStaffRoles, validateRequest(surgicalScheduleSchema), hospitalController.createSurgicalSchedule);
 
-// Donor Search
+// Hospital profile & staff listing
+router.get('/hospital/profile', hospitalStaffRoles, hospitalController.getHospitalProfile);
+router.get('/hospital/staff', hospitalStaffRoles, hospitalController.listStaff);
+
+// Donor Search & Contact
 router.get('/hospital/donors/search', hospitalStaffRoles, hospitalController.searchDonors);
+router.post('/hospital/donors/:id/contact', hospitalStaffRoles, hospitalController.contactDonor);
 
 // Emergency Routing
 router.get('/hospital/emergencies', hospitalStaffRoles, hospitalController.listEmergencies);

@@ -10,10 +10,11 @@ import {
   LogOut, 
   Bell, 
   Menu, 
-  X,
-  Activity,
-  Tent,
-  Settings
+  X, 
+  Activity, 
+  Tent, 
+  Settings,
+  Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,6 +29,7 @@ const AdminLayout = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Staff List', path: '/admin/staff-list', icon: Users },
     { name: 'Camp Creation', path: '/admin/camp-creation', icon: Tent },
     { name: 'Invite Staff', path: '/admin/invite-staff', icon: UserPlus },
     { name: 'AI Demand Forecast', path: '/admin/forecast', icon: LineChart },

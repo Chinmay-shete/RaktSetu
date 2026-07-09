@@ -112,6 +112,7 @@ export const SurgicalSchedule = () => {
                 <div className="relative">
                   <input
                     type="date"
+                    min={new Date().toISOString().split('T')[0]}
                     {...register("surgeryDate", {
                       required: "Surgery date is required",
                       validate: val => new Date(val) >= new Date(new Date().setHours(0,0,0,0)) || "Cannot schedule in the past"

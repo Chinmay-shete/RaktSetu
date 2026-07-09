@@ -23,6 +23,8 @@ function serializeUser(user) {
     role: user.role,
     hospitalId: user.hospital_id,
     hospital_id: user.hospital_id,
+    hospitalName: user.hospital_name || null,
+    hospital_name: user.hospital_name || null,
     districtId: user.district_id,
     district_id: user.district_id,
     createdAt: user.created_at,
@@ -30,7 +32,9 @@ function serializeUser(user) {
     lastLogin: user.last_login,
     last_login: user.last_login,
     mustChangePassword: !!user.must_change_password,
-    must_change_password: !!user.must_change_password
+    must_change_password: !!user.must_change_password,
+    name: user.full_name || user.email,
+    designation: user.designation || 'Staff'
   };
 }
 
@@ -252,7 +256,13 @@ async function login(req, res, next) {
 
     if (email) {
       // Email + Password Login
-      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email.toLowerCase()]);
+      const [rows] = await pool.query(
+        `SELECT u.*, h.name AS hospital_name 
+         FROM users u 
+         LEFT JOIN hospitals h ON u.hospital_id = h.id 
+         WHERE u.email = ?`,
+        [email.toLowerCase()]
+      );
       if (rows.length === 0) {
         throw new ApiError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
       }
@@ -477,7 +487,13 @@ async function refresh(req, res, next) {
       throw new ApiError('Refresh token expired', 401, 'TOKEN_EXPIRED');
     }
 
-    const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    const [userRows] = await pool.query(
+      `SELECT u.*, h.name AS hospital_name 
+       FROM users u 
+       LEFT JOIN hospitals h ON u.hospital_id = h.id 
+       WHERE u.id = ?`,
+      [userId]
+    );
     if (userRows.length === 0) {
       throw new ApiError('User not found', 404, 'USER_NOT_FOUND');
     }

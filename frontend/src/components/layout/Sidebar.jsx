@@ -103,8 +103,11 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
             <span className="block text-xs font-bold text-[#1A1210] truncate">
               {user?.name}
             </span>
+            <span className="block text-[10px] text-[#7A5F5F] truncate font-semibold">
+              {user?.hospitalName || user?.hospital_name || 'No Hospital Associated'}
+            </span>
             <span className="block text-[10px] text-[#7A5F5F] truncate">
-              ID: {user?.bloodBankId}
+              Staff ID: {user?.id}
             </span>
           </div>
         </div>

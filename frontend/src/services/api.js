@@ -95,6 +95,9 @@ export const hospitalApi = {
   getSurgicalSchedules: () => api.get('/hospital/surgical-schedule').then(res => res.data),
   createSurgicalSchedule: (data) => api.post('/hospital/surgical-schedule', data).then(res => res.data),
   getForecast: () => api.get('/admin/forecast').then(res => res.data),
+  getHospitalProfile: () => api.get('/hospital/profile').then(res => res.data),
+  getStaffList: () => api.get('/hospital/staff').then(res => res.data),
+  contactDonor: (id, data) => api.post(`/hospital/donors/${id}/contact`, data).then(res => res.data),
 };
 
 export default api;

@@ -31,6 +31,7 @@ import { TransferRequests as TransferRequest } from './pages/hospital/requests/T
 import { Analytics } from './pages/hospital/Analytics';
 import { SurgicalSchedule } from './pages/hospital/SurgicalSchedule';
 import { DonorSearch } from './pages/hospital/DonorSearch';
+import { Profile } from './pages/hospital/Profile';
 import { Login } from './pages/hospital/auth/Login';
 import { InviteStaff as InviteStaffHospital } from './pages/hospital/auth/InviteStaff';
 
@@ -42,6 +43,7 @@ import PendingReview from './pages/admin/PendingReview';
 import ApprovalEmail from './pages/admin/ApprovalEmail';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import { StaffList } from './pages/admin/StaffList';
 import InviteStaffAdmin from './pages/admin/InviteStaff';
 import AIDemandForecast from './pages/admin/AIDemandForecast';
 import WasteAnalytics from './pages/admin/WasteAnalytics';
@@ -143,6 +145,7 @@ function App() {
                   <Route path="invite" element={<InviteStaffHospital />} />
                   <Route path="surgical-schedule" element={<SurgicalSchedule />} />
                   <Route path="donor-search" element={<DonorSearch />} />
+                  <Route path="profile" element={<Profile />} />
                 </Route>
 
                 {/* --------------------------- */}
@@ -155,6 +158,7 @@ function App() {
                 <Route path="/admin/login" element={<AdminLogin />} />
 
                 <Route path="/admin/dashboard" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/staff-list" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><StaffList /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/invite-staff" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><InviteStaffAdmin /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/forecast" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><AIDemandForecast /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/waste" element={<ProtectedRoute storageKey="raktsetu_admin_app_state" redirectPath="/admin/login"><AdminLayout><WasteAnalytics /></AdminLayout></ProtectedRoute>} />

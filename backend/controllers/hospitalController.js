@@ -334,6 +334,12 @@ async function createSurgicalSchedule(req, res, next) {
 
     const { surgeryDate, surgeryType, bloodGroup, units } = req.body;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(surgeryDate) < today) {
+      throw new ApiError('Surgery date cannot be in the past', 400, 'INVALID_DATE');
+    }
+
     const [result] = await pool.query(
       `INSERT INTO surgical_schedules (
         hospital_id, surgery_date, surgery_type, blood_group, units
@@ -372,16 +378,21 @@ async function searchDonors(req, res, next) {
 
     const { bloodGroup, location } = req.query;
 
-    let query = `SELECT id, full_name, blood_group, city, pincode, last_donated_date FROM donors WHERE 1=1`;
+    let query = `
+      SELECT d.id, d.user_id, d.full_name, d.blood_group, d.city, d.pincode, d.last_donated_date, u.phone, u.email 
+      FROM donors d 
+      LEFT JOIN users u ON d.user_id = u.id 
+      WHERE 1=1
+    `;
     const params = [];
 
     if (bloodGroup) {
-      query += ` AND blood_group = ?`;
+      query += ` AND d.blood_group = ?`;
       params.push(bloodGroup);
     }
 
     if (location) {
-      query += ` AND (city LIKE ? OR pincode = ?)`;
+      query += ` AND (d.city LIKE ? OR d.pincode = ?)`;
       params.push(`%${location}%`, location);
     }
 
@@ -405,6 +416,8 @@ async function searchDonors(req, res, next) {
         bloodGroup: row.blood_group,
         location: `${row.city}, ${row.pincode}`,
         lastDonated: row.last_donated_date ? new Date(row.last_donated_date).toISOString().split('T')[0] : null,
+        phone: row.phone,
+        email: row.email,
         status
       };
     });
@@ -684,9 +697,9 @@ async function listTransfers(req, res, next) {
     );
 
     const serialized = rows.map(row => {
-      const isIncoming = row.to_hospital === hospitalId;
-      const hospitalName = isIncoming ? row.from_hospital_name : row.to_hospital_name;
-      const type = isIncoming ? 'incoming' : 'outgoing';
+      const isRecipient = row.to_hospital === hospitalId;
+      const hospitalName = isRecipient ? row.from_hospital_name : row.to_hospital_name;
+      const type = isRecipient ? 'outgoing' : 'incoming';
 
       return {
         id: row.id,
@@ -1141,6 +1154,128 @@ async function createStaff(req, res, next) {
   }
 }
 
+/**
+ * GET /hospital/profile
+ */
+async function getHospitalProfile(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+    const [rows] = await pool.query(
+      `SELECT id, name, district_id, type, lat, lng, license_no, address, city, state, pincode, contact, verification_status 
+       FROM hospitals WHERE id = ?`,
+      [hospitalId]
+    );
+    if (rows.length === 0) {
+      throw new ApiError('Hospital not found', 404, 'NOT_FOUND');
+    }
+    return res.status(200).json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /hospital/staff
+ */
+async function listStaff(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const [rows] = await pool.query(
+      `SELECT id, email, phone, role, status, full_name AS name, designation, last_login, created_at 
+       FROM users 
+       WHERE hospital_id = ? AND role = 'staff'`,
+      [hospitalId]
+    );
+
+    return res.status(200).json(rows);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /hospital/donors/:id/contact
+ */
+const emailService = require('../services/emailService');
+async function contactDonor(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+    const { id } = req.params;
+    const { message, subject } = req.body;
+
+    if (!message) {
+      throw new ApiError('Contact message is required', 400, 'MESSAGE_REQUIRED');
+    }
+
+    // Get donor info
+    const [donorRows] = await pool.query(
+      `SELECT d.user_id, d.full_name, u.email, u.phone 
+       FROM donors d 
+       LEFT JOIN users u ON d.user_id = u.id 
+       WHERE d.id = ?`,
+      [id]
+    );
+
+    if (donorRows.length === 0) {
+      throw new ApiError('Donor not found', 404, 'NOT_FOUND');
+    }
+
+    const donor = donorRows[0];
+
+    // Get hospital name
+    const [hospRows] = await pool.query('SELECT name FROM hospitals WHERE id = ?', [hospitalId]);
+    const hospitalName = hospRows.length > 0 ? hospRows[0].name : 'RaktSetu Hospital';
+
+    // Insert database notification
+    await pool.query(
+      `INSERT INTO notifications (user_id, hospital_id, title, message, type) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [donor.user_id, hospitalId, `Urgent Blood Need - ${hospitalName}`, message, 'emergency']
+    );
+
+    // Send email via Resend
+    if (donor.email) {
+      try {
+        await emailService.sendEmail({
+          to: donor.email,
+          subject: subject || `Urgent Blood Donation Outreach - ${hospitalName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #EDE7E1; border-radius: 12px;">
+              <h2 style="color: #BE1F2E; border-bottom: 2px solid #BE1F2E; padding-bottom: 10px; font-family: Georgia, serif;">Urgent Outreach</h2>
+              <p>Dear ${donor.full_name},</p>
+              <p>You have received an urgent message from <strong>${hospitalName}</strong> regarding critical blood donation needs:</p>
+              <blockquote style="background-color: #FAF8F5; border-left: 4px solid #BE1F2E; padding: 15px; margin: 20px 0; font-style: italic;">
+                "${message}"
+              </blockquote>
+              <p>If you are available to donate, please visit us or contact the hospital immediately.</p>
+              <p>Thank you for saving lives.</p>
+              <p style="font-size: 11px; color: #9A9A9A; border-top: 1px solid #EDE7E1; padding-top: 10px; margin-top: 30px;">
+                This outreach was dispatched securely via RaktSetu.
+              </p>
+            </div>
+          `
+        });
+      } catch (emailErr) {
+        console.error('Failed to send outreach email, fallback to in-app only:', emailErr);
+      }
+    }
+
+    return res.status(200).json({ success: true, message: 'Donor successfully contacted.' });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getInventory,
   addInventory,
@@ -1163,6 +1298,9 @@ module.exports = {
   getWasteAnalyticsGateway,
   getThresholds,
   updateThresholds,
-  createStaff
+  createStaff,
+  getHospitalProfile,
+  listStaff,
+  contactDonor
 };
 

@@ -90,7 +90,7 @@ export const Dashboard = () => {
   const totalUnits = safeInventory.reduce((sum, item) => sum + item.units, 0);
   const availableUnits = safeInventory.reduce((sum, item) => sum + Math.max(0, item.units - item.reservedUnits), 0);
   const expiringSoonCount = safeInventory.filter(item => item.status === 'Expiring Soon').length;
-  const pendingTransfersCount = safeTransfers.filter(t => t.status === 'Pending').length;
+  const pendingTransfersCount = safeTransfers.filter(t => t.status?.toLowerCase() === 'pending').length;
 
   const criticalGroups = safeInventory
     .filter(item => (item.units - item.reservedUnits) <= 3 && item.status !== 'Expired')

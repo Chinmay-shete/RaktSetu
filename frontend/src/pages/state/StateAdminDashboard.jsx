@@ -31,6 +31,10 @@ const StateAdminDashboard = () => {
   const navigate = useNavigate();
   const { appState, isLoading, error, refetchData } = useStateAdmin();
 
+  useEffect(() => {
+    refetchData();
+  }, [refetchData]);
+
   const districts = appState.districts || [];
   const policyAlerts = appState.policyAlerts || [];
   const escalations = appState.escalationReports || [];

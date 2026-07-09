@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
+import { hospitalApi } from '../../services/api';
+import { Loader } from '../../components/ui/Loader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Activity, 
@@ -41,70 +43,98 @@ const AdminDashboard = () => {
   const hospitalName = appState.hospitalDetails?.hospitalName || "Apex City Hospital";
   const city = appState.hospitalDetails?.city || "Pune";
 
-  // Blood Inventory State (Mocked real-time counts)
+  // State for fetched data
   const [inventory, setInventory] = useState([
-    { group: 'O+', units: 85, status: 'Optimal', color: '#BE1F2E' },
-    { group: 'O-', units: 9, status: 'Critical', color: '#BE1F2E' },
-    { group: 'A+', units: 64, status: 'Optimal', color: '#BE1F2E' },
-    { group: 'A-', units: 14, status: 'Critical', color: '#BE1F2E' },
-    { group: 'B+', units: 72, status: 'Optimal', color: '#BE1F2E' },
-    { group: 'B-', units: 22, status: 'Optimal', color: '#BE1F2E' },
-    { group: 'AB+', units: 48, status: 'Optimal', color: '#BE1F2E' },
-    { group: 'AB-', units: 6, status: 'Critical', color: '#BE1F2E' },
+    { group: 'O+', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'O-', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'A+', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'A-', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'B+', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'B-', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'AB+', units: 0, status: 'Optimal', color: '#BE1F2E' },
+    { group: 'AB-', units: 0, status: 'Optimal', color: '#BE1F2E' }
   ]);
+  const [requests, setRequests] = useState([]);
+  const [movements, setMovements] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Active Emergency Patient Requests (Emergency Queue)
-  const [requests, setRequests] = useState([
-    { id: 1, patient: 'Suresh Deshmukh', type: 'O-', units: 3, priority: 'Critical', status: 'Pending', progress: 15 },
-    { id: 2, patient: 'Priya Sharma', type: 'AB-', units: 2, priority: 'Critical', status: 'Pending', progress: 30 },
-    { id: 3, patient: 'Aniket Patil', type: 'A+', units: 4, priority: 'High', status: 'Approved', progress: 100 },
-  ]);
+  const fetchLiveData = async () => {
+    try {
+      setIsLoading(true);
+      const [invData, reqData, transData] = await Promise.all([
+        hospitalApi.getInventory(),
+        hospitalApi.getEmergencyRequests(),
+        hospitalApi.getTransferRequests()
+      ]);
 
-  // Recent Stock Movements
-  const [movements, setMovements] = useState([
-    { id: 1, date: 'Today', type: 'Issue', group: 'O+', units: 4, status: 'Completed', loc: 'Emergency Ward' },
-    { id: 2, date: 'Today', type: 'Receive', group: 'B+', units: 12, status: 'Completed', loc: 'Camp #14' },
-    { id: 3, date: 'Yesterday', type: 'Issue', group: 'A-', units: 2, status: 'Completed', loc: 'ICU Cardiac' },
-  ]);
+      // Group live inventory by blood group
+      const groups = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+      const groupedInv = groups.map(g => {
+        const batches = Array.isArray(invData) ? invData.filter(b => b.bloodGroup === g) : [];
+        const units = batches.reduce((sum, b) => sum + b.units, 0);
+        const reserved = batches.reduce((sum, b) => sum + b.reservedUnits, 0);
+        const available = Math.max(0, units - reserved);
+        return {
+          group: g,
+          units: available,
+          status: available < 10 ? 'Critical' : 'Optimal',
+          color: '#BE1F2E'
+        };
+      });
+      setInventory(groupedInv);
+
+      // Map pending/fulfilled emergency requests
+      const mappedReqs = (Array.isArray(reqData) ? reqData : []).slice(0, 4).map(req => ({
+        id: req.id,
+        patient: req.patientName || `Emergency Patient #${req.id}`,
+        type: req.bloodGroup,
+        units: req.unitsRequired || req.units,
+        priority: req.priority || 'Critical',
+        status: req.status,
+        progress: req.status === 'Accepted' || req.status === 'fulfilled' ? 100 : 30
+      }));
+      setRequests(mappedReqs);
+
+      // Map transfers/movements
+      const mappedMovements = (Array.isArray(transData) ? transData : []).slice(0, 5).map(t => ({
+        id: t.id,
+        date: t.date || 'Recent',
+        type: t.type === 'incoming' ? 'Receive' : 'Issue',
+        group: t.bloodGroup,
+        units: t.unitsRequired || t.units,
+        status: t.status,
+        loc: t.hospitalName
+      }));
+      setMovements(mappedMovements);
+    } catch (err) {
+      console.error("Failed to load admin live data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveData();
+  }, []);
 
   // Countup stats matching donor dashboard feel
   const totalBags = useCountUp(inventory.reduce((acc, curr) => acc + curr.units, 0));
   const criticalCategories = useCountUp(inventory.filter(i => i.units < 15).length);
 
   // Approve pending request function
-  const handleApproveRequest = (id) => {
-    setRequests(prev => prev.map(req => {
-      if (req.id === id) {
-        // Decrease corresponding inventory units
-        setInventory(inv => inv.map(i => {
-          if (i.group === req.type) {
-            return { ...i, units: Math.max(0, i.units - req.units), status: i.units - req.units < 15 ? 'Critical' : 'Optimal' };
-          }
-          return i;
-        }));
-        // Update request status
-        return { ...req, status: 'Approved', progress: 100 };
-      }
-      return req;
-    }));
-
-    // Add to movements table
-    const req = requests.find(r => r.id === id);
-    if (req) {
-      setMovements(prev => [
-        {
-          id: Date.now(),
-          date: 'Just now',
-          type: 'Issue',
-          group: req.type,
-          units: req.units,
-          status: 'Completed',
-          loc: `Patient ${req.patient.split(' ')[0]}`
-        },
-        ...prev
-      ]);
+  const handleApproveRequest = async (id) => {
+    try {
+      await hospitalApi.updateEmergencyStatus(id, 'Accepted');
+      await fetchLiveData();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to authorize dispatch.');
     }
   };
+
+  if (isLoading) {
+    return <Loader message="Fetching hospital admin live statistics..." />;
+  }
 
   return (
     <div className="space-y-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -148,67 +178,53 @@ const AdminDashboard = () => {
             </div>
 
             {/* Emergency Alert Switch Card */}
-            <div className="bg-[#1a1210] p-8 rounded-lg relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] relative overflow-hidden flex flex-col justify-between">
               <div>
-                <p className="text-[12px] font-[600] tracking-[0.05em] text-white/60 uppercase mb-4">Siren Broadcaster</p>
-                <h2 className="text-[20px] font-[500] leading-[26px] text-white flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${emergencyStatus ? 'bg-[#BE1F2E] animate-pulse' : 'bg-slate-500'}`} />
-                  <span>{emergencyStatus ? 'Active & Ready' : 'Broadcasting Paused'}</span>
-                </h2>
+                <p className="text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase mb-1">SOS Alert System</p>
+                <h4 className="text-[18px] font-bold text-[#1A0A0A]">
+                  {emergencyStatus ? 'Active & Monitoring' : 'Muted'}
+                </h4>
               </div>
-              <div className="mt-6 flex items-center justify-between">
-                <span className="text-[13px] text-white/60">Toggle intake status</span>
-                <button
+              <div className="flex justify-between items-center mt-6">
+                <span className="text-xs text-[#9A9A9A]">Receive regional requests</span>
+                <button 
                   onClick={() => setEmergencyStatus(!emergencyStatus)}
-                  className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-all ${
-                    emergencyStatus ? 'bg-[#BE1F2E]' : 'bg-[#3D2B2B]'
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 focus:outline-none ${
+                    emergencyStatus ? 'bg-[#BE1F2E]' : 'bg-slate-200'
                   }`}
                 >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                      emergencyStatus ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
+                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                    emergencyStatus ? 'translate-x-6' : 'translate-x-0'
+                  }`} />
                 </button>
               </div>
             </div>
+
           </div>
 
-          {/* Blood Stock Chart (Light-themed Recharts) */}
-          <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)]">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          {/* Recharts Bar Chart (Inventory metrics by type) */}
+          <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)] shadow-sm">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="text-[24px] font-[500] italic">Inventory Stock levels</h3>
-                <p className="text-[13px] text-[#737373] mt-0.5">Real-time units stocked in the central blood vault.</p>
+                <h3 className="font-serif text-[24px] italic">Blood Bank Stock levels</h3>
+                <p className="text-xs text-[#737373] mt-1">Current available bags across all registered blood groups.</p>
               </div>
-              <div className="flex items-center gap-4 text-xs font-[600] text-[#5a5a5a]">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded bg-[#BE1F2E]" />
-                  <span>Optimal</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded bg-[#8B0A1E]" />
-                  <span>Critical (&lt;15 Bags)</span>
-                </div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#737373]">
+                <span className="w-2.5 h-2.5 bg-[#BE1F2E] rounded-full inline-block" />
+                <span>Available Units</span>
               </div>
             </div>
 
-            <div className="h-[280px] w-full">
+            <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={inventory} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eae8e5" />
-                  <XAxis dataKey="group" stroke="#737373" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#737373" fontSize={11} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#E0DAD4', borderRadius: '8px' }}
-                    labelStyle={{ color: '#1a1a1a', fontWeight: 'bold' }}
-                  />
-                  <Bar dataKey="units" radius={[4, 4, 0, 0]}>
+                <BarChart data={inventory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E0DAD4" />
+                  <XAxis dataKey="group" tickLine={false} axisLine={false} tick={{ fill: '#737373', fontSize: 12, fontWeight: 600 }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: '#737373', fontSize: 12 }} />
+                  <Tooltip cursor={{ fill: 'rgba(190,31,46,0.02)' }} contentStyle={{ background: '#FFFFFF', border: '1px solid #E0DAD4', borderRadius: 8, fontFamily: 'DM Sans' }} />
+                  <Bar dataKey="units" fill="#BE1F2E" radius={[4, 4, 0, 0]} maxBarSize={45}>
                     {inventory.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.units < 15 ? '#8B0A1E' : '#BE1F2E'} 
-                      />
+                      <Cell key={`cell-${index}`} fill={entry.units < 15 ? '#BE1F2E' : '#7A5F5F'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -216,42 +232,59 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Stock Movements Table (matching donor table) */}
-          <div className="bg-white rounded-lg border border-[rgba(26,18,16,0.09)] overflow-hidden">
-            <div className="p-6 border-b border-[rgba(26,18,16,0.09)] flex justify-between items-center">
-              <h3 className="text-[24px] font-[500] italic">Recent Movements</h3>
+          {/* Recent Stock Movements Table */}
+          <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-lg p-8 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#BE1F2E]">history</span>
+                <h3 className="text-[24px] font-[500] italic">Recent Movements</h3>
+              </div>
               <button 
-                onClick={() => navigate('/admin/waste')}
-                className="text-[14px] font-[500] text-[#BE1F2E] hover:underline"
+                onClick={() => navigate('/admin/forecast')}
+                className="text-[12px] font-bold text-[#BE1F2E] uppercase hover:underline tracking-wider"
               >
-                View Discard Analytics
+                View Analytics
               </button>
             </div>
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-[#f5f3f0]">
-                  <tr>
-                    <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Date</th>
-                    <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Logistics Operation</th>
-                    <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Blood Group</th>
-                    <th className="px-6 py-4 text-[12px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Volume</th>
+              <table className="w-full text-left border-collapse text-[14px]">
+                <thead>
+                  <tr className="border-b border-[#E0DAD4] text-[11px] font-[600] uppercase tracking-wider text-[#9A9A9A] pb-3">
+                    <th className="pb-3 pr-4">Timestamp</th>
+                    <th className="pb-3 px-4">Operation</th>
+                    <th className="pb-3 px-4">Type</th>
+                    <th className="pb-3 px-4">Entity / Source</th>
+                    <th className="pb-3 pl-4 text-right">Volume</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[rgba(26,18,16,0.09)]">
-                  {movements.map(mov => (
-                    <tr key={mov.id} className="hover:bg-[#faf8f5] transition-colors">
-                      <td className="px-6 py-4 text-[14px] font-[500] text-[#1A1A1A]">{mov.date}</td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59]">
-                        <span className="font-[600] text-[#1A1A1A]">{mov.type}</span> to {mov.loc}
+                <tbody className="divide-y divide-[rgba(26,18,16,0.05)] text-[#5A5A5A]">
+                  {movements.map((mov) => (
+                    <tr key={mov.id} className="hover:bg-[#fbf9f6]/40 transition-colors">
+                      <td className="py-4 pr-4 text-xs font-[600] text-[#9A9A9A]">{mov.date}</td>
+                      <td className="py-4 px-4 font-semibold text-[#1a1a1a]">
+                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                          mov.type === 'Receive' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-[#BE1F2E]'
+                        }`}>
+                          {mov.type === 'Receive' ? 'Inward Transfer' : 'Outward Transfer'}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-[16px] text-[#685c59] font-bold">{mov.group}</td>
-                      <td className="px-6 py-4">
-                        <span className="bg-[rgba(190,31,46,0.08)] text-[#BE1F2E] px-3 py-1 rounded-full text-[12px] font-[600] uppercase">
+                      <td className="py-4 px-4 font-bold text-xs">{mov.group}</td>
+                      <td className="py-4 px-4 font-medium text-[#737373] truncate max-w-[180px]">{mov.loc || 'Peer Hospital'}</td>
+                      <td className="py-4 pl-4 text-right">
+                        <span className="font-[600] text-[#1a1a1a]">
                           {mov.units} Bags
                         </span>
                       </td>
                     </tr>
                   ))}
+                  {movements.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center text-xs text-[#9A9A9A]">
+                        No stock transfers have been logged yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -266,7 +299,7 @@ const AdminDashboard = () => {
                 <p className="text-white/80 text-[16px] mt-2">Broadcast a critical alert to matches inside the district.</p>
               </div>
               <button 
-                onClick={() => alert("🚨 Siren alert sent to 184 O- and AB- registered neighborhood donors.")}
+                onClick={() => alert(`🚨 Siren alert sent to eligible donors matching hospital groups.`)}
                 className="bg-white text-[#BE1F2E] px-10 py-4 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400 whitespace-nowrap"
               >
                 Broadcast Siren Alert
@@ -292,7 +325,7 @@ const AdminDashboard = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${
-                        req.priority === 'Critical' ? 'bg-[#ffdad6] text-[#93000a]' : 'bg-[#eae8e5] text-[#685c59]'
+                        req.priority === 'Critical' || req.priority === 'critical' ? 'bg-[#ffdad6] text-[#93000a]' : 'bg-[#eae8e5] text-[#685c59]'
                       }`}>
                         {req.priority}
                       </span>
@@ -311,7 +344,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
-                  {req.status === 'Pending' ? (
+                  {req.status === 'Pending' || req.status === 'pending' ? (
                     <button 
                       onClick={() => handleApproveRequest(req.id)}
                       className="w-full bg-[#1a1210] text-white py-3 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400"
@@ -326,6 +359,11 @@ const AdminDashboard = () => {
                   )}
                 </div>
               ))}
+              {requests.length === 0 && (
+                <div className="text-center py-6 text-xs text-[#9A9A9A]">
+                  No active emergency requests pending.
+                </div>
+              )}
             </div>
           </div>
 

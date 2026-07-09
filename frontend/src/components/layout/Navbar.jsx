@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
@@ -21,6 +21,7 @@ export const Navbar = ({ onMenuOpen }) => {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const toast = useToast();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -147,8 +148,6 @@ export const Navbar = ({ onMenuOpen }) => {
           <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-[#BE1F2E]" : ""}`} />
         </button>
 
-
-
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -183,16 +182,16 @@ export const Navbar = ({ onMenuOpen }) => {
                   )}
                 </div>
 
-                <div className="max-h-60 overflow-y-auto divide-y divide-[#EDE7E1]">
+                <div className="max-h-80 overflow-y-auto divide-y divide-[#EDE7E1]">
                   {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#7A5F5F]">
-                      No notifications active
+                    <div className="p-8 text-center text-xs text-[#7A5F5F]">
+                      No new notifications
                     </div>
                   ) : (
-                    notifications.map((notif) => (
+                    notifications.map(notif => (
                       <div
                         key={notif.id}
-                        className={`flex gap-3 p-3.5 text-xs transition-colors hover:bg-red-50/20 ${!notif.read ? 'bg-red-50/10' : ''}`}
+                        className={`flex gap-3 p-3.5 text-xs transition-colors hover:bg-red-50/20 ${notif.read ? 'bg-red-50/10' : ''}`}
                       >
                         <div className="flex-shrink-0 mt-0.5">{getNotifIcon(notif.type)}</div>
                         <div className="flex-grow">
@@ -226,13 +225,20 @@ export const Navbar = ({ onMenuOpen }) => {
           </AnimatePresence>
         </div>
 
-        <div className="flex items-center gap-2 select-none">
-          {user?.logo && (
+        <div 
+          className="w-9 h-9 rounded-2xl overflow-hidden border border-[#BE1F2E]/20 bg-[#FAF8F5] flex items-center justify-center cursor-pointer shrink-0 hover:scale-105 transition-all shadow-sm"
+          onClick={() => navigate('/staff/profile')}
+        >
+          {user?.logo ? (
             <img
               src={user.logo}
-              alt={user.name}
-              className="w-9 h-9 rounded-2xl object-cover border border-[#EDE7E1] hover:scale-105 transition-all shadow-sm"
+              alt={user?.name || 'Staff'}
+              className="w-full h-full object-cover"
             />
+          ) : (
+            <span className="text-[13px] font-bold text-[#BE1F2E]">
+              {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'ST'}
+            </span>
           )}
         </div>
       </div>

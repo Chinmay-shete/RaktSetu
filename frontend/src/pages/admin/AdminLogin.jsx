@@ -50,7 +50,7 @@ const AdminLogin = () => {
       localStorage.setItem('raktsetu_auth_token', token);
       localStorage.setItem('raktsetu_admin_app_state', JSON.stringify({ status: 'logged_in', user }));
 
-      loginAdmin();
+      loginAdmin(user);
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Invalid email or password.');
