@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
-import { Clock, CheckCircle2, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
+import { Clock, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const PendingReview = () => {
   const navigate = useNavigate();
-  const { appState, approveApplication } = useHospital();
+  const { approveApplication } = useHospital();
   const [progress, setProgress] = useState(35);
 
   useEffect(() => {
@@ -37,37 +37,47 @@ const PendingReview = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center justify-center font-sans py-12 px-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1210] flex flex-col items-center justify-center font-sans py-12 px-4 relative overflow-hidden select-none">
+      {/* Noise filter */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+        style={{ 
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%\' height=\'100%\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' 
+        }} 
+      />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-[#BE1F2E]/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#E07B00]/5 rounded-full blur-[100px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-xl w-full bg-slate-900/60 border border-white/10 backdrop-blur-md rounded-2xl p-8 sm:p-10 shadow-2xl relative z-10"
+        transition={{ duration: 0.4 }}
+        className="max-w-xl w-full bg-white border border-[#EDE7E1] rounded-3xl p-8 sm:p-10 shadow-lg relative z-10"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-full bg-red-600/10 border border-red-500/20 text-red-500 mb-4 animate-pulse">
+          <div className="inline-flex p-3 rounded-full bg-[#BE1F2E]/10 border border-[#BE1F2E]/20 text-[#BE1F2E] mb-4 animate-pulse">
             <Clock size={28} />
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Application Under Review</h1>
-          <p className="text-slate-400 text-sm mt-2">
-            Verification usually takes around <span className="text-red-400 font-semibold">48 Hours</span>.
+          <h1 className="font-serif text-[32px] sm:text-[40px] italic leading-none tracking-[-0.03em] text-[#1A1210]">
+            Application Under Review
+          </h1>
+          <p className="text-[#737373] text-sm mt-3 font-medium">
+            Verification usually takes around <span className="text-[#BE1F2E] font-bold">48 Hours</span>.
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-10">
-          <div className="flex justify-between text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+          <div className="flex justify-between text-xs text-[#7A5F5F] font-bold mb-2 uppercase tracking-widest">
             <span>Overall Verification</span>
             <span>{progress}%</span>
           </div>
-          <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-white/5 p-[1px]">
+          <div className="w-full bg-[#FAF8F5] h-3 rounded-full overflow-hidden border border-[#EDE7E1] p-[1px]">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 1 }}
-              className="h-full bg-gradient-to-r from-red-600 to-red-500 rounded-full"
+              className="h-full bg-gradient-to-r from-[#BE1F2E] to-[#E07B00] rounded-full"
             />
           </div>
         </div>
@@ -77,20 +87,20 @@ const PendingReview = () => {
           {steps.map((step, index) => (
             <div key={index} className="flex gap-4 relative">
               {index !== steps.length - 1 && (
-                <div className="absolute left-3 top-7 bottom-0 w-[2px] bg-slate-800" />
+                <div className="absolute left-3 top-7 bottom-0 w-[2px] bg-[#EDE7E1]" />
               )}
               
               <div className="z-10 mt-1">
                 {step.status === 'completed' ? (
-                  <div className="w-6 h-6 rounded-full bg-red-600/20 border border-red-500 text-red-500 flex items-center justify-center">
-                    <CheckCircle2 size={14} className="fill-red-600/10" />
+                  <div className="w-6 h-6 rounded-full bg-[#BE1F2E]/10 border border-[#BE1F2E] text-[#BE1F2E] flex items-center justify-center">
+                    <CheckCircle2 size={14} className="fill-[#BE1F2E]/10" />
                   </div>
                 ) : step.status === 'current' ? (
-                  <div className="w-6 h-6 rounded-full bg-red-600/20 border border-red-500 text-red-500 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-[#BE1F2E]/10 border border-[#BE1F2E] text-[#BE1F2E] flex items-center justify-center">
                     <Loader2 size={12} className="animate-spin" />
                   </div>
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-slate-950 border border-white/10 text-slate-600 flex items-center justify-center text-xs font-bold">
+                  <div className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#EDE7E1] text-[#A8A0A0] flex items-center justify-center text-xs font-extrabold">
                     {index + 1}
                   </div>
                 )}
@@ -98,12 +108,12 @@ const PendingReview = () => {
 
               <div>
                 <h3 className={`text-sm font-bold ${
-                  step.status === 'completed' ? 'text-white' : 
-                  step.status === 'current' ? 'text-red-400' : 'text-slate-400'
+                  step.status === 'completed' ? 'text-[#1A1210]' : 
+                  step.status === 'current' ? 'text-[#BE1F2E]' : 'text-[#A8A0A0]'
                 }`}>
                   {step.title}
                 </h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                <p className="text-xs text-[#737373] mt-1 leading-relaxed">
                   {step.desc}
                 </p>
               </div>
@@ -112,15 +122,15 @@ const PendingReview = () => {
         </div>
 
         {/* Debug Approval Trigger */}
-        <div className="pt-6 border-t border-white/5 flex flex-col items-center gap-3">
-          <p className="text-xs text-slate-500 text-center">
+        <div className="pt-6 border-t border-[#EDE7E1] flex flex-col items-center gap-3">
+          <p className="text-xs text-[#7A5F5F] text-center font-medium leading-normal max-w-sm">
             For evaluation purposes, click below to simulate instant registry approval.
           </p>
           <button
             onClick={handleMockApprove}
-            className="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-white/10 hover:border-white/20 transition-all text-sm flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-[#BE1F2E] hover:bg-[#9E1825] text-white font-bold rounded-full transition-all text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:-translate-y-0.5 active:translate-y-0"
           >
-            <ShieldCheck className="text-red-500" size={16} />
+            <ShieldCheck size={16} />
             <span>Simulate Approval</span>
           </button>
         </div>
