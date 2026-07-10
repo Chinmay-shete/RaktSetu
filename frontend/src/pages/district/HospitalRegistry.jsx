@@ -76,14 +76,14 @@ const HospitalRegistry = () => {
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex-1 min-w-[220px] relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9A9A] text-[18px]">search</span>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search hospital, area, or license…" className="input-field !pl-10 text-[14px]" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search hospital, area, or license…" className="input-field !pl-10 text-[14px]" aria-label="Search hospitals" />
         </div>
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">
+        <select aria-label="Filter by type" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">
           <option value="All">All Types</option>
           <option value="Government">Government</option>
           <option value="Private">Private</option>
         </select>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[180px]">
+        <select aria-label="Sort hospitals" value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[180px]">
           <option value="name">Sort by Name</option>
           <option value="area">Sort by Area</option>
           <option value="stock">Sort by Stock (Low → High)</option>
@@ -145,7 +145,7 @@ const HospitalRegistry = () => {
                         >
                           <span className="material-symbols-outlined text-[16px]">call</span>
                         </a>
-                        <button
+                        <button type="button"
                           onClick={() => handleNotify(hospital)}
                           disabled={notifyId === hospital.id}
                           className="p-2 rounded-xl bg-[#f5f3f0] hover:bg-[rgba(190,31,46,0.06)] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors"
@@ -172,7 +172,7 @@ const HospitalRegistry = () => {
               <h3 className="text-[24px] font-[500] italic text-[#1a1a1a]">{selected.name}</h3>
               <p className="text-[13px] text-[#737373]">{selected.area} · {selected.contact} · {selected.licenseNo}</p>
             </div>
-            <button onClick={() => setSelectedId(null)} className="text-[#9A9A9A] hover:text-[#BE1F2E] text-sm transition-colors">
+            <button type="button" onClick={() => setSelectedId(null)} className="text-[#9A9A9A] hover:text-[#BE1F2E] text-sm transition-colors">
               Close ✕
             </button>
           </div>

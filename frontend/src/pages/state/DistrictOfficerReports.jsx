@@ -68,7 +68,7 @@ const DistrictOfficerReports = () => {
               style={{ borderColor: getBorderColor(report.status) }}
             >
               {/* Accordion Header */}
-              <button
+              <button type="button"
                 className="w-full p-6 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#faf8f5] transition-colors"
                 onClick={() => setActiveReport(isOpen ? null : report.id)}
               >
@@ -105,13 +105,13 @@ const DistrictOfficerReports = () => {
 
                   {report.status !== 'Action Taken' && (
                     <div className="flex flex-wrap gap-3">
-                      <button
+                      <button type="button"
                         onClick={() => updateEscalationStatus(report.id, 'In Review')}
                         className="px-5 py-2 rounded-full text-[13px] font-[600] bg-[#f5f3f0] text-[#5A5A5A] hover:text-[#1A1A1A] hover:bg-[#eae8e5] transition-colors"
                       >
                         Mark In Review
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => updateEscalationStatus(report.id, 'Action Taken')}
                         className="btn-state text-[13px]"
                         style={{ minHeight: 38, padding: '8px 20px', minWidth: 'auto' }}

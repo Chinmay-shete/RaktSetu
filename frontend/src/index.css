@@ -563,3 +563,21 @@ button, [role="button"], a, select, label[for], input[type="checkbox"], input[ty
   transition: border-bottom-color 0.15s;
 }
 .text-link:hover { border-bottom-color: #BE1F2E; }
+
+/* ── Accessibility: prefers-reduced-motion (WCAG 2.3.3) ──────────────────
+   Users who enable "Reduce Motion" in their OS settings have vestibular
+   disorders or motion sensitivity. Without this block, Framer Motion
+   animations still run at full speed for them, which can cause nausea or
+   seizures. This is a legal accessibility requirement in many regions.
+   All CSS transitions and animations are disabled; Framer Motion also
+   reads this media query via its internal MotionConfig. ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

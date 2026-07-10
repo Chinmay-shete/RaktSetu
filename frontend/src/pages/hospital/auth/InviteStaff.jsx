@@ -83,10 +83,10 @@ export const InviteStaff = () => {
               </div>
             )}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                Full Name
-              </label>
-              <input
+              <label htmlFor="full-name-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Full Name
+                </label>
+              <input id="full-name-1"
                 type="text"
                 placeholder="Dr. Rajesh Kumar"
                 {...register("name", { required: "Full name is required" })}
@@ -100,10 +100,10 @@ export const InviteStaff = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                Staff Email Address
-              </label>
-              <input
+              <label htmlFor="staff-email-address-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Staff Email Address
+                </label>
+              <input id="staff-email-address-2"
                 type="email"
                 placeholder="doctor@hospital.org"
                 {...register("email", { 
@@ -123,10 +123,10 @@ export const InviteStaff = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                Role Assignment
-              </label>
-              <select
+              <label htmlFor="role-assignment-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Role Assignment
+                </label>
+              <select id="role-assignment-3"
                 {...register("role", { required: "Role is required" })}
                 className="input-field select-field"
               >

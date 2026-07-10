@@ -266,12 +266,12 @@ const LocationPage = () => {
                       <p className="text-[14px] font-[600] text-[#1A1A1A]">Have you donated before?</p>
                       <p className="text-[13px] text-[#9A9A9A] mt-0.5">Helps us determine eligibility windows.</p>
                     </div>
-                    <button
-                      type="button"
+                    <button type="button"
                       className={`toggle-track ${donatedBefore ? 'on' : ''}`}
                       onClick={() => setDonatedBefore(!donatedBefore)}
                       role="switch"
                       aria-checked={donatedBefore}
+                      aria-label="Have you donated before?"
                     >
                       <span className="toggle-thumb" />
                     </button>
@@ -283,8 +283,8 @@ const LocationPage = () => {
                   >
                     <div className="bg-[#F5F0EB] border border-[#E0DAD4] rounded-xl p-5 space-y-5">
                       <div>
-                        <label className="text-[13px] font-[600] text-[#5A5A5A] mb-1.5 block">Approx. how many times?</label>
-                        <input
+                        <label htmlFor="approx-how-many-times-1" className="text-[13px] font-[600] text-[#5A5A5A] mb-1.5 block">Approx. how many times?</label>
+                        <input id="approx-how-many-times-1"
                           type="number"
                           min="1"
                           value={donationTimes}
@@ -308,10 +308,10 @@ const LocationPage = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="text-[13px] font-[600] text-[#5A5A5A] mb-2 block">Type of donation</label>
+                        <label htmlFor="type-of-donation-2" className="text-[13px] font-[600] text-[#5A5A5A] mb-2 block">Type of donation</label>
                         <div className="flex flex-wrap gap-2">
                           {donationTypes.map((dt) => (
-                            <button
+                            <button type="button"
                               key={dt.id}
                               type="button"
                               onClick={() => setDonationType(dt.id)}
@@ -342,14 +342,15 @@ const LocationPage = () => {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-4">
-                      <label className="text-[14px] font-[600] text-[#1A1A1A] leading-tight cursor-pointer">
+                      <label htmlFor="gps-toggle-btn" className="text-[14px] font-[600] text-[#1A1A1A] leading-tight cursor-pointer">
                         Enable live location for emergency alerts
                       </label>
-                      <button
-                        type="button"
+                      <button type="button"
+                        id="gps-toggle-btn"
                         onClick={handleGpsToggle}
                         disabled={gpsLoading}
                         className={`toggle-track ${gpsEnabled ? 'on' : ''} ${gpsLoading ? 'opacity-50 cursor-wait' : ''}`}
+                        aria-label="Enable live location for emergency alerts"
                       >
                         <span className="toggle-thumb" />
                       </button>
@@ -374,15 +375,15 @@ const LocationPage = () => {
                 </div>
 
                 <div className="flex items-center justify-between gap-4 pt-2">
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={() => navigate(-1)}
                     className="text-[15px] font-[500] text-[#5A5A5A] hover:text-[#1A1A1A] transition-colors flex items-center gap-1.5"
                   >
                     ← Back
                   </button>
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={handleNext}
                     className="btn-primary btn-arrow-hover"
                     style={{ padding: '14px 28px', minHeight: 52, fontSize: 15 }}
@@ -407,7 +408,7 @@ const LocationPage = () => {
         <div className="bg-[#faf8f5] min-h-screen flex flex-col">
           {/* TopAppBar */}
           <header className="w-full top-0 sticky z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center justify-between px-4 py-4 shrink-0">
-            <button
+            <button type="button"
               onClick={() => navigate(-1)}
               className="text-[#9e001f] active:scale-95 transition-transform"
             >
@@ -433,8 +434,8 @@ const LocationPage = () => {
               {/* City and Pincode */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2 relative">
-                  <label className="text-[14px] font-medium text-[#5c403f]">City</label>
-                  <input
+                  <label htmlFor="city-3" className="text-[14px] font-medium text-[#5c403f]">City</label>
+                  <input id="city-3"
                     type="text"
                     value={city}
                     onChange={(e) => { setCity(e.target.value); setShowSuggestions(true); }}
@@ -462,8 +463,8 @@ const LocationPage = () => {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-[14px] font-medium text-[#5c403f]">Pincode</label>
-                  <input
+                  <label htmlFor="pincode-4" className="text-[14px] font-medium text-[#5c403f]">Pincode</label>
+                  <input id="pincode-4"
                     type="text"
                     value={pincode}
                     onChange={(e) => handlePincodeChange(e.target.value)}
@@ -491,7 +492,7 @@ const LocationPage = () => {
                 <div className="flex-grow min-w-0">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[14px] font-semibold text-[#1b1c1a] leading-snug">GPS Live Verification</span>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <label aria-label="Toggle GPS Live Verification" className="relative inline-flex items-center cursor-pointer shrink-0">
                       <input
                         type="checkbox"
                         checked={gpsEnabled}
@@ -516,7 +517,7 @@ const LocationPage = () => {
                     <span className="text-[15px] font-semibold text-[#1b1c1a]">Donated before?</span>
                     <span className="text-[12px] text-[#737373]">Determines matching eligibility windows.</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <label aria-label="Toggle past donation history" className="relative inline-flex items-center cursor-pointer shrink-0">
                     <input
                       type="checkbox"
                       checked={donatedBefore}
@@ -534,8 +535,8 @@ const LocationPage = () => {
                 >
                   <div className="pt-4 border-t border-[rgba(26,18,16,0.05)] space-y-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#5c403f]">How many times?</label>
-                      <input
+                      <label htmlFor="how-many-times-5" className="text-[13px] font-medium text-[#5c403f]">How many times?</label>
+                      <input id="how-many-times-5"
                         type="number"
                         min="1"
                         value={donationTimes}
@@ -545,8 +546,8 @@ const LocationPage = () => {
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#5c403f]">Date of last donation</label>
-                      <input
+                      <label htmlFor="date-of-last-donation-6" className="text-[13px] font-medium text-[#5c403f]">Date of last donation</label>
+                      <input id="date-of-last-donation-6"
                         type="date"
                         value={lastDonation}
                         onChange={(e) => setLastDonation(e.target.value)}
@@ -554,10 +555,10 @@ const LocationPage = () => {
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#5c403f]">Type of last donation</label>
+                      <label htmlFor="type-of-last-donation-7" className="text-[13px] font-medium text-[#5c403f]">Type of last donation</label>
                       <div className="flex gap-2">
                         {donationTypes.map((dt) => (
-                          <button
+                          <button type="button"
                             key={dt.id}
                             type="button"
                             onClick={() => setDonationType(dt.id)}
@@ -578,13 +579,13 @@ const LocationPage = () => {
 
               {/* Submit Buttons */}
               <div className="flex flex-col gap-3 pt-6">
-                <button
+                <button type="button"
                   onClick={handleNext}
                   className="w-full bg-[#9e001f] text-white font-semibold py-4 rounded-full active:scale-95 hover:opacity-90 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-2"
                 >
                   Go to Dashboard <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
-                <button
+                <button type="button"
                   onClick={() => navigate(-1)}
                   className="w-full bg-transparent text-[#5c403f] font-semibold py-3 rounded-full hover:bg-[#f5f3f0] transition-colors text-center"
                 >

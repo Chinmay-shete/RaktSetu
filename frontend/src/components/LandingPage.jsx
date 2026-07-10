@@ -146,7 +146,7 @@ const LandingPage = () => {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
-            <button
+            <button type="button"
               onClick={() => navigate('/login')}
               className="px-4 py-2 text-[13px] font-[600] rounded-full transition-all"
               style={{ color: '#C8102E' }}
@@ -155,7 +155,7 @@ const LandingPage = () => {
             >
               Login
             </button>
-            <button
+            <button type="button"
               onClick={() => navigate('/register-donor')}
               className="px-5 py-2.5 text-[13px] font-[700] rounded-full transition-all"
               style={{ background: '#C8102E', color: '#ffffff' }}
@@ -168,7 +168,7 @@ const LandingPage = () => {
 
           {/* Mobile: Hamburger */}
           <div className="flex md:hidden items-center gap-2">
-            <button
+            <button type="button"
               className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer border"
               style={{ borderColor: 'rgba(26,18,16,0.09)', background: 'transparent', color: '#1B1C1A' }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -196,7 +196,7 @@ const LandingPage = () => {
 
             <div className="px-5 pt-4 pb-5 flex flex-col gap-1">
               {/* Services accordion */}
-              <button
+              <button type="button"
                 className="flex justify-between items-center w-full py-3 text-[15px] font-[600] border-none bg-transparent cursor-pointer"
                 style={{ color: '#1B1C1A' }}
                 onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
@@ -210,7 +210,7 @@ const LandingPage = () => {
               {mobileServicesOpen && (
                 <div className="pl-2 mb-2 space-y-1 rounded-2xl p-3" style={{ background: '#FAF8F5' }}>
                   {services.map(({ label, sublabel, icon, path }) => (
-                    <button
+                    <button type="button"
                       key={label}
                       onClick={() => { navigate(path); setMobileMenuOpen(false); }}
                       className="w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 cursor-pointer transition-all border-none bg-transparent"
@@ -241,14 +241,14 @@ const LandingPage = () => {
               ))}
 
               <div className="pt-4 mt-2 grid grid-cols-2 gap-3" style={{ borderTop: '1px solid rgba(26,18,16,0.09)' }}>
-                <button
+                <button type="button"
                   onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
                   className="py-3 text-[13px] font-[700] rounded-2xl transition-all cursor-pointer border"
                   style={{ color: '#C8102E', borderColor: '#C8102E', background: 'transparent' }}
                 >
                   Hospital Login
                 </button>
-                <button
+                <button type="button"
                   onClick={() => { navigate('/register-donor'); setMobileMenuOpen(false); }}
                   className="py-3 text-[13px] font-[700] rounded-2xl transition-all cursor-pointer"
                   style={{ background: '#C8102E', color: '#ffffff', border: 'none' }}
@@ -322,7 +322,7 @@ const LandingPage = () => {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center mb-12 sm:mb-16 px-4 sm:px-0">
-              <button
+              <button type="button"
                 onClick={() => navigate('/register-donor')}
                 className="group flex items-center justify-center gap-2.5 rounded-full transition-all"
                 style={{
@@ -341,7 +341,7 @@ const LandingPage = () => {
                 Register as Donor
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => navigate('/services?service=Blood+Stock+Availability')}
                 className="flex items-center justify-center gap-2 rounded-full font-[600] transition-all"
                 style={{
@@ -363,7 +363,7 @@ const LandingPage = () => {
             {/* Quick Service Tiles */}
             <div className="grid grid-cols-3 gap-3 max-w-xl mx-auto px-2 sm:px-0">
               {services.map(({ label, sublabel, icon, path }) => (
-                <button
+                <button type="button"
                   key={label}
                   onClick={() => navigate(path)}
                   className="group rounded-2xl p-3 sm:p-4 flex flex-col items-center gap-2 transition-all cursor-pointer text-center border"
@@ -412,7 +412,7 @@ const LandingPage = () => {
                 <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Last updated: Today at 6:00 AM IST</p>
               </div>
             </div>
-            <button
+            <button type="button"
               onClick={() => navigate('/register-donor')}
               className="shrink-0 px-4 py-2 text-[12px] font-[700] rounded-full transition-all cursor-pointer whitespace-nowrap"
               style={{ background: '#C8102E', color: '#ffffff', border: 'none' }}
@@ -503,7 +503,7 @@ const LandingPage = () => {
               <p className="text-[11px] font-[700] uppercase tracking-widest mb-4" style={{ color: '#906F6E' }}>Select Blood Group</p>
               <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 mb-6">
                 {bloodGroups.map((bg) => (
-                  <button
+                  <button type="button"
                     key={bg}
                     onClick={() => setActiveBloodGroup(bg)}
                     className="h-12 rounded-xl text-[13px] font-[800] border transition-all cursor-pointer"
@@ -519,7 +519,7 @@ const LandingPage = () => {
                   </button>
                 ))}
               </div>
-              <button
+              <button type="button"
                 onClick={() => navigate(`/services?service=Blood+Stock+Availability&group=${activeBloodGroup}`)}
                 className="w-full h-12 sm:h-14 rounded-2xl font-[700] transition-all cursor-pointer flex items-center justify-center gap-2.5 border-none"
                 style={{ background: '#C8102E', color: '#ffffff', fontSize: 15 }}
@@ -533,7 +533,7 @@ const LandingPage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {services.map(({ label, sublabel, icon, path }) => (
-                <button
+                <button type="button"
                   key={label}
                   onClick={() => navigate(path)}
                   className="group rounded-2xl p-4 sm:p-5 flex items-center sm:flex-col sm:items-start gap-3 text-left transition-all cursor-pointer border"
@@ -629,7 +629,7 @@ const LandingPage = () => {
           </div>
 
           <div className="text-center mt-8 sm:mt-10">
-            <button
+            <button type="button"
               onClick={() => navigate('/register-donor')}
               className="inline-flex items-center gap-2 px-6 py-3.5 text-[14px] font-[700] rounded-full transition-all cursor-pointer border-none"
               style={{ background: '#C8102E', color: '#ffffff' }}
@@ -755,7 +755,7 @@ const LandingPage = () => {
                 ))}
               </ul>
               <div className="flex gap-3 flex-wrap">
-                <button
+                <button type="button"
                   onClick={() => navigate('/admin/register')}
                   className="px-5 py-3 text-[13px] font-[700] rounded-full transition-all cursor-pointer border-none"
                   style={{ background: '#C8102E', color: '#ffffff' }}
@@ -764,7 +764,7 @@ const LandingPage = () => {
                 >
                   Register Hospital
                 </button>
-                <button
+                <button type="button"
                   onClick={() => navigate('/login')}
                   className="px-5 py-3 text-[13px] font-[600] rounded-full transition-all cursor-pointer border"
                   style={{ background: 'transparent', color: '#1B1C1A', borderColor: 'rgba(26,18,16,0.15)' }}
@@ -1089,7 +1089,7 @@ const LandingPage = () => {
           <span className="material-symbols-outlined text-[20px]" style={{ color: '#C8102E' }}>call</span>
           <span className="text-[9px] font-[700] uppercase tracking-wider text-center" style={{ color: '#C8102E' }}>Emergency</span>
         </a>
-        <button
+        <button type="button"
           onClick={() => navigate('/services?service=Blood+Stock+Availability')}
           className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid cursor-pointer transition-all active:scale-95"
           style={{ background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)' }}
@@ -1097,7 +1097,7 @@ const LandingPage = () => {
           <span className="material-symbols-outlined text-[20px]" style={{ color: '#5C403F' }}>search</span>
           <span className="text-[9px] font-[700] uppercase tracking-wider text-center leading-tight" style={{ color: '#5C403F' }}>Find Blood</span>
         </button>
-        <button
+        <button type="button"
           onClick={() => navigate('/services?service=Camp+Schedule')}
           className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid cursor-pointer transition-all active:scale-95"
           style={{ background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)' }}
@@ -1105,7 +1105,7 @@ const LandingPage = () => {
           <span className="material-symbols-outlined text-[20px]" style={{ color: '#5C403F' }}>calendar_month</span>
           <span className="text-[9px] font-[700] uppercase tracking-wider text-center text-center" style={{ color: '#5C403F' }}>Camps</span>
         </button>
-        <button
+        <button type="button"
           onClick={() => navigate('/register-donor')}
           className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid cursor-pointer transition-all active:scale-95"
           style={{ background: '#C8102E', borderColor: '#C8102E' }}

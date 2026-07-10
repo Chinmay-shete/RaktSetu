@@ -68,7 +68,7 @@ const DistrictLayout = ({ children }) => {
         <div className="flex items-center gap-4">
           {/* Notifications */}
           <div className="relative">
-            <button 
+            <button aria-label="Notifications" type="button" 
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-2 rounded-full hover:bg-[rgba(190,31,46,0.06)] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors relative"
             >
@@ -120,7 +120,7 @@ const DistrictLayout = ({ children }) => {
           </div>
 
           {/* Logout button */}
-          <button 
+          <button type="button" 
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
           >
@@ -159,7 +159,7 @@ const DistrictLayout = ({ children }) => {
             })}
           </nav>
           
-          <button
+          <button type="button"
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)] transition-colors w-full mt-auto"
           >
@@ -188,7 +188,7 @@ const DistrictLayout = ({ children }) => {
               >
                 <div className="flex items-center justify-between mb-8">
                   <span className="font-serif text-lg font-bold text-[#1a1a1a]">Navigation</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[#BE1F2E]">
+                  <button aria-label="Close" type="button" onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[#BE1F2E]">
                     <X size={20} />
                   </button>
                 </div>
@@ -215,7 +215,7 @@ const DistrictLayout = ({ children }) => {
                   })}
                 </nav>
 
-                <button
+                <button type="button"
                   onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)] transition-colors w-full mt-auto"
                 >

@@ -97,8 +97,8 @@ export const DonorSearch = () => {
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-[#EDE7E1]">
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
           <div className="md:col-span-4 flex flex-col gap-1.5">
-            <label className={fieldLabel}>Blood Group</label>
-            <select
+            <label htmlFor="blood-group-1" className={fieldLabel}>Blood Group</label>
+            <select id="blood-group-1"
               {...register("bloodGroup")}
               className="input-field custom-select"
             >
@@ -110,9 +110,9 @@ export const DonorSearch = () => {
           </div>
 
           <div className="md:col-span-5 flex flex-col gap-1.5">
-            <label className={fieldLabel}>Location (City / District)</label>
+            <label htmlFor="location-city-district-2" className={fieldLabel}>Location (City / District)</label>
             <div className="relative">
-              <input
+              <input id="location-city-district-2"
                 type="text"
                 placeholder="e.g. New Delhi"
                 {...register("location")}
@@ -158,7 +158,7 @@ export const DonorSearch = () => {
                   <h3 className="text-[18px] font-[600] text-[#1A1210]">Search Results</h3>
                   <p className="text-[13px] text-[#7A5F5F] mt-1">Found {searchResults.length} matching donors.</p>
                 </div>
-                <button className="text-[13px] font-[600] text-[#BE1F2E] flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-[rgba(190,31,46,0.06)] transition-colors border border-[#BE1F2E]/20">
+                <button type="button" className="text-[13px] font-[600] text-[#BE1F2E] flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-[rgba(190,31,46,0.06)] transition-colors border border-[#BE1F2E]/20">
                   <Filter className="w-3.5 h-3.5" /> Filter
                 </button>
               </div>
@@ -209,7 +209,7 @@ export const DonorSearch = () => {
                           )}
                         </td>
                         <td className="px-4 py-4 text-right">
-                          <button
+                          <button type="button"
                             onClick={() => handleOpenContact(donor)}
                             className="text-[13px] font-[600] text-[#BE1F2E] hover:underline"
                             disabled={donor.status !== 'Eligible'}
@@ -278,8 +278,8 @@ export const DonorSearch = () => {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>Outreach Notification Message</label>
-                <textarea
+                <label htmlFor="outreach-notification-message-3" className={fieldLabel}>Outreach Notification Message</label>
+                <textarea id="outreach-notification-message-3"
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
                   rows="5"
@@ -290,8 +290,8 @@ export const DonorSearch = () => {
               </div>
 
               <div className="flex gap-3 border-t border-[#EDE7E1] pt-4 mt-2">
-                <button
-                  type="button"
+                <button type="button"
+                  
                   onClick={() => setSelectedDonor(null)}
                   className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
                 >

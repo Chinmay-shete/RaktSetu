@@ -65,7 +65,7 @@ const registerSchema = z.union([
     role: z.literal('admin'),
     email: z.string().email('Invalid email address'),
     phone: z.string().min(10).max(15),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: z.string().min(8, 'Password must be at least 8 characters').optional(),
     hospitalName: z.string().min(2, 'Hospital name must be at least 2 characters'),
     hospitalType: z.enum(['Government', 'Private', 'Trust', 'Semi-Govt']),
     license_no: z.string().min(1, 'License number is required'),
@@ -77,6 +77,17 @@ const registerSchema = z.union([
     lng: z.union([z.number(), z.string().transform(Number)]),
     licenseDocument: z.string().optional(),
     license_document: z.string().optional()
+  }),
+
+  // District Officer Registration Schema
+  z.object({
+    role: z.literal('district'),
+    email: z.string().email('Invalid email address'),
+    phone: z.string().min(10).max(15),
+    fullName: z.string().min(2, 'Name must be at least 2 characters'),
+    designation: z.string().min(2, 'Designation must be at least 2 characters'),
+    districtName: z.string().min(2, 'District name must be at least 2 characters'),
+    state: z.string().min(2, 'State must be at least 2 characters')
   })
 ]);
 

@@ -48,7 +48,7 @@ const CrossDistrictTransfers = () => {
       <div className="bg-white rounded-lg border border-[rgba(26,18,16,0.09)] overflow-hidden">
         <div className="p-5 border-b border-[rgba(26,18,16,0.09)] flex flex-wrap gap-2">
           {statuses.map(s => (
-            <button
+            <button type="button"
               key={s}
               onClick={() => setFilter(s)}
               className={`px-4 py-1.5 rounded-full text-[12px] font-[600] transition-all ${
@@ -92,7 +92,7 @@ const CrossDistrictTransfers = () => {
               </div>
 
               {t.status === 'Pending Approval' && (
-                <button
+                <button type="button"
                   onClick={() => approveTransfer(t.id)}
                   className="shrink-0 btn-state text-[13px]"
                   style={{ minHeight: 38, padding: '8px 20px', minWidth: 'auto' }}

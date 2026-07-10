@@ -29,7 +29,7 @@ const Unauthorized = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button 
+          <button type="button" 
             onClick={() => navigate(-1)}
             className="w-full sm:w-auto px-6 py-3 rounded-full border border-[#EDE7E1] text-[14px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] transition-colors flex items-center justify-center gap-2"
           >

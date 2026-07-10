@@ -191,13 +191,13 @@ const FundingRecommendations = () => {
                     <p className="font-serif text-[28px] leading-none" style={{ color: 'var(--state)' }}>₹{rec.budgetINR}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <button type="button"
                       onClick={() => toggleDismiss(rec.id)}
                       className="px-4 py-2 rounded-full text-[12px] font-[600] border border-[#E0DAD4] text-[#5A5A5A] hover:bg-[#f5f3f0] transition-colors"
                     >
                       Dismiss
                     </button>
-                    <button
+                    <button type="button"
                       onClick={() => toggleApprove(rec.id)}
                       className="px-5 py-2 rounded-full text-[12px] font-[600] text-white transition-all"
                       style={{ 

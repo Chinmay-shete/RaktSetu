@@ -461,10 +461,10 @@ export const PortalServices = () => {
             
             {/* Services Dropdown */}
             <div className="md:col-span-3 flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                Select Service
-              </label>
-              <select
+              <label htmlFor="select-service-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Select Service
+                </label>
+              <select id="select-service-1"
                 value={activeService}
                 onChange={(e) => {
                   setActiveService(e.target.value);
@@ -480,10 +480,10 @@ export const PortalServices = () => {
 
             {/* State Dropdown */}
             <div className="md:col-span-2 flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                Select State
-              </label>
-              <select
+              <label htmlFor="select-state-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Select State
+                </label>
+              <select id="select-state-2"
                 value={selectedState}
                 onChange={(e) => {
                   setSelectedState(e.target.value);
@@ -500,10 +500,10 @@ export const PortalServices = () => {
 
             {/* District Dropdown */}
             <div className="md:col-span-2 flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                Select District
-              </label>
-              <select
+              <label htmlFor="select-district-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Select District
+                </label>
+              <select id="select-district-3"
                 value={selectedDistrict}
                 onChange={(e) => setSelectedDistrict(e.target.value)}
                 disabled={selectedState === 'Select State'}
@@ -520,10 +520,10 @@ export const PortalServices = () => {
             {activeService === 'Camp Schedule' && (
               <>
                 <div className="md:col-span-2 flex flex-col gap-1.5">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                    Start Date
-                  </label>
-                  <input
+                  <label htmlFor="start-date-4" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  Start Date
+                </label>
+                  <input id="start-date-4"
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
@@ -531,10 +531,10 @@ export const PortalServices = () => {
                   />
                 </div>
                 <div className="md:col-span-2 flex flex-col gap-1.5">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
-                    To Date
-                  </label>
-                  <input
+                  <label htmlFor="to-date-5" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                  To Date
+                </label>
+                  <input id="to-date-5"
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -546,10 +546,10 @@ export const PortalServices = () => {
 
             {activeService === 'Blood Stock Availability' && (
               <div className="md:col-span-4 flex flex-col gap-1.5">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                <label htmlFor="blood-group-6" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
                   Blood Group
                 </label>
-                <select
+                <select id="blood-group-6"
                   value={bloodGroup}
                   onChange={(e) => setBloodGroup(e.target.value)}
                   className="input-field custom-select text-xs h-11"
@@ -564,10 +564,10 @@ export const PortalServices = () => {
 
             {activeService === 'Blood Center Directory' && (
               <div className="md:col-span-4 flex flex-col gap-1.5">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
+                <label htmlFor="search-keyword-7" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">
                   Search Keyword
                 </label>
-                <input
+                <input id="search-keyword-7"
                   type="text"
                   placeholder="e.g. Life Care Hospital"
                   value={searchKeyword}
@@ -715,7 +715,7 @@ export const PortalServices = () => {
                           <td className="px-6 py-4">{row.organizer || 'Blood Bank'}</td>
                           <td className="px-6 py-4 font-bold text-[#1A1210] whitespace-nowrap">{row.time || '08:00 - 20:00'}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <button
+                            <button type="button"
                               onClick={() => setSelectedCampForRegister(row)}
                               className="text-[#BE1F2E] hover:text-[#9E1825] hover:underline font-bold bg-transparent border-none cursor-pointer p-0"
                             >
@@ -801,7 +801,7 @@ export const PortalServices = () => {
                   {selectedCampForRegister.address}, {selectedCampForRegister.district_name || selectedCampForRegister.city}
                 </p>
               </div>
-              <button 
+              <button type="button" 
                 onClick={() => setSelectedCampForRegister(null)}
                 className="w-8 h-8 rounded-full border border-[#EDE7E1] bg-white text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors flex items-center justify-center cursor-pointer"
               >
@@ -813,13 +813,13 @@ export const PortalServices = () => {
             <form onSubmit={handleCampRegisterSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Date</label>
+                  <label htmlFor="date-1" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Date</label>
                   <div className="text-xs font-bold text-[#1A1210] bg-white border border-[#EDE7E1] rounded-xl px-3.5 py-2.5">
                     {new Date(selectedCampForRegister.camp_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Time</label>
+                  <label htmlFor="time-2" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Time</label>
                   <div className="text-xs font-bold text-[#1A1210] bg-white border border-[#EDE7E1] rounded-xl px-3.5 py-2.5">
                     {selectedCampForRegister.time || '08:00 - 20:00'}
                   </div>
@@ -827,8 +827,8 @@ export const PortalServices = () => {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Full Name *</label>
-                <input
+                <label htmlFor="full-name-3" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Full Name *</label>
+                <input id="full-name-3"
                   type="text"
                   required
                   placeholder="Enter your full name"
@@ -840,8 +840,8 @@ export const PortalServices = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Email Address *</label>
-                  <input
+                  <label htmlFor="email-address-4" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Email Address *</label>
+                  <input id="email-address-4"
                     type="email"
                     required
                     placeholder="email@example.com"
@@ -851,8 +851,8 @@ export const PortalServices = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Mobile Number *</label>
-                  <input
+                  <label htmlFor="mobile-number-5" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Mobile Number *</label>
+                  <input id="mobile-number-5"
                     type="text"
                     required
                     placeholder="10-digit number"
@@ -866,8 +866,8 @@ export const PortalServices = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Blood Group *</label>
-                  <select
+                  <label htmlFor="blood-group-6" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Blood Group *</label>
+                  <select id="blood-group-6"
                     value={registerBloodGroup}
                     onChange={(e) => setRegisterBloodGroup(e.target.value)}
                     className="input-field custom-select text-xs h-11 bg-white"
@@ -878,8 +878,8 @@ export const PortalServices = () => {
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Age *</label>
-                  <input
+                  <label htmlFor="age-7" className="text-[10px] font-bold uppercase tracking-widest text-[#7A5F5F] ml-0.5">Age *</label>
+                  <input id="age-7"
                     type="number"
                     required
                     placeholder="Min 18"

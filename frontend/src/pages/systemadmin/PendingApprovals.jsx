@@ -31,7 +31,7 @@ export const PendingApprovals = () => {
 
       {/* Tabs Row */}
       <div className="flex border-b border-[rgba(26,18,16,0.09)]">
-        <button
+        <button type="button"
           onClick={() => setActiveTab('hospitals')}
           className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
             activeTab === 'hospitals'
@@ -42,7 +42,7 @@ export const PendingApprovals = () => {
           <Building2 size={16} />
           <span>Hospitals ({pendingHospitals.length})</span>
         </button>
-        <button
+        <button type="button"
           onClick={() => setActiveTab('officers')}
           className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
             activeTab === 'officers'
@@ -84,21 +84,25 @@ export const PendingApprovals = () => {
                         <td className="py-4 pr-4 font-serif text-[15px] font-bold text-[#1A1210]">{hospital.name}</td>
                         <td className="py-4 px-4 font-semibold">{hospital.type}</td>
                         <td className="py-4 px-4 font-mono text-[11px] text-[#9A9A9A]">{hospital.licenseNo}</td>
-                        <td className="py-4 px-4">{hospital.city}, {hospital.state}</td>
+                        <td className="py-4 px-4">
+                          {hospital.city && hospital.state ? `${hospital.city}, ${hospital.state}` : hospital.area || 'N/A'}
+                        </td>
                         <td className="py-4 px-4 font-mono">{hospital.contact}</td>
                         <td className="py-4 px-4 text-[#9A9A9A]">Recent</td>
                         <td className="py-4 pl-4 text-right flex items-center justify-end gap-2">
-                          <button
+                          <button type="button"
                             onClick={() => approveHospital(hospital.id)}
                             className="p-2 bg-green-50 border border-green-100 hover:bg-green-100 text-[#22A06B] rounded-lg transition-all cursor-pointer"
                             title="Approve Hospital"
+                            aria-label={`Approve hospital: ${hospital.name}`}
                           >
                             <ThumbsUp size={14} />
                           </button>
-                          <button
+                          <button type="button"
                             onClick={() => rejectHospital(hospital.id)}
                             className="p-2 bg-red-50 border border-red-100 hover:bg-red-100 text-[#C8102E] rounded-lg transition-all cursor-pointer"
                             title="Reject Hospital"
+                            aria-label={`Reject hospital: ${hospital.name}`}
                           >
                             <ThumbsDown size={14} />
                           </button>
@@ -141,17 +145,19 @@ export const PendingApprovals = () => {
                         </td>
                         <td className="py-4 px-4 text-[#9A9A9A]">Recent</td>
                         <td className="py-4 pl-4 text-right flex items-center justify-end gap-2">
-                          <button
+                          <button type="button"
                             onClick={() => approveOfficer(officer.id)}
                             className="p-2 bg-green-50 border border-green-100 hover:bg-green-100 text-[#22A06B] rounded-lg transition-all cursor-pointer"
                             title="Approve User"
+                            aria-label={`Approve officer: ${officer.name}`}
                           >
                             <ThumbsUp size={14} />
                           </button>
-                          <button
+                          <button type="button"
                             onClick={() => rejectOfficer(officer.id)}
                             className="p-2 bg-red-50 border border-red-100 hover:bg-red-100 text-[#C8102E] rounded-lg transition-all cursor-pointer"
                             title="Suspend User"
+                            aria-label={`Reject officer: ${officer.name}`}
                           >
                             <ThumbsDown size={14} />
                           </button>

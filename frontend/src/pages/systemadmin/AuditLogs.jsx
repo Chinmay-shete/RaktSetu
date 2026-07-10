@@ -53,14 +53,16 @@ export const AuditLogs = () => {
             placeholder="Search by actor, action or IP..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search audit logs"
           />
         </div>
 
         {/* Severity Filter */}
         <div className="w-full md:w-auto flex items-center gap-2">
-          <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] whitespace-nowrap">Severity:</label>
+          <label htmlFor="severity-filter" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] whitespace-nowrap">Severity:</label>
           <div className="relative w-full md:w-48">
             <select
+              id="severity-filter"
               className="input-field custom-select"
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}

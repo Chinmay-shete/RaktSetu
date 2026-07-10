@@ -108,9 +108,9 @@ export const SurgicalSchedule = () => {
             <h3 className="text-[18px] font-[600] text-[#1A1210] mb-6">Log New Surgery</h3>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>Surgery Date</label>
+                <label htmlFor="surgery-date-1" className={fieldLabel}>Surgery Date</label>
                 <div className="relative">
-                  <input
+                  <input id="surgery-date-1"
                     type="date"
                     min={new Date().toISOString().split('T')[0]}
                     {...register("surgeryDate", {
@@ -129,9 +129,9 @@ export const SurgicalSchedule = () => {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>Surgery Type</label>
+                <label htmlFor="surgery-type-2" className={fieldLabel}>Surgery Type</label>
                 <div className="relative">
-                  <input
+                  <input id="surgery-type-2"
                     type="text"
                     placeholder="e.g. Cardiovascular"
                     {...register("surgeryType", { required: "Surgery type is required" })}
@@ -147,8 +147,8 @@ export const SurgicalSchedule = () => {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>Blood Group</label>
-                <select
+                <label htmlFor="blood-group-3" className={fieldLabel}>Blood Group</label>
+                <select id="blood-group-3"
                   {...register("bloodGroup", { required: "Blood group is required" })}
                   className="input-field custom-select"
                 >
@@ -164,9 +164,9 @@ export const SurgicalSchedule = () => {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>Expected Blood Units</label>
+                <label htmlFor="expected-blood-units-4" className={fieldLabel}>Expected Blood Units</label>
                 <div className="relative">
-                  <input
+                  <input id="expected-blood-units-4"
                     type="number"
                     placeholder="2"
                     {...register("units", {
@@ -270,13 +270,13 @@ export const SurgicalSchedule = () => {
             </div>
 
             <div className="flex gap-3 mt-4 border-t border-[#EDE7E1] pt-4">
-              <button
+              <button type="button"
                 onClick={() => setShowConfirmModal(false)}
                 className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
               >
                 Cancel
               </button>
-              <button
+              <button type="button"
                 onClick={confirmSubmit}
                 className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] text-white text-xs font-bold cursor-pointer transition-colors"
               >

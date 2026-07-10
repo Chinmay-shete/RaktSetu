@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
 import { 
@@ -17,6 +17,7 @@ import {
   Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../../services/api';
 
 const AdminLayout = ({ children }) => {
   const { appState, logoutAdmin, syncState } = useHospital();
@@ -24,12 +25,35 @@ const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
-  React.useEffect(() => {
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get('/hospital/notifications');
+      setNotifications(response.data || []);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  useEffect(() => {
     syncState();
   }, [syncState]);
 
+  useEffect(() => {
+    if (appState.status === 'logged_in') {
+      fetchNotifications();
+    }
+  }, [appState.status]);
 
+  const clearAllNotifications = async () => {
+    try {
+      await api.patch('/hospital/notifications/read-all');
+      setNotifications([]);
+    } catch (err) {
+      console.error("Failed to clear notifications", err);
+    }
+  };
 
   const navigation = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
@@ -48,6 +72,9 @@ const AdminLayout = ({ children }) => {
   };
 
   const currentHospitalName = appState.hospitalDetails?.hospitalName || "Apex City Hospital";
+  
+  const unreadNotifications = notifications.filter(n => n.is_read === 0 || !n.isRead);
+  const hasUnread = unreadNotifications.length > 0;
 
   return (
     <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] flex flex-col font-sans relative overflow-x-hidden selection:bg-[#BE1F2E] selection:text-white">
@@ -70,12 +97,12 @@ const AdminLayout = ({ children }) => {
         <div className="flex items-center gap-4">
           {/* Notifications */}
           <div className="relative">
-            <button 
+            <button aria-label="Notifications" type="button" 
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-2 rounded-full hover:bg-[rgba(190,31,46,0.06)] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors relative"
             >
               <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#BE1F2E] rounded-full" />
+              {hasUnread && <span className="absolute top-1 right-1 w-2 h-2 bg-[#BE1F2E] rounded-full animate-pulse" />}
             </button>
 
             <AnimatePresence>
@@ -89,18 +116,27 @@ const AdminLayout = ({ children }) => {
                     className="absolute right-0 mt-2 w-80 bg-white border border-[#E0DAD4] rounded-xl shadow-xl p-5 z-20 text-[#1A1A1A]"
                   >
                     <h3 className="font-bold text-sm text-[#1A1A1A] mb-3 flex items-center justify-between border-b border-[#E0DAD4] pb-2">
-                      <span>Notifications</span>
-                      <span className="text-xs text-[#BE1F2E] font-semibold cursor-pointer hover:underline">Clear All</span>
+                      <span>Notifications ({notifications.length})</span>
+                      {notifications.length > 0 && (
+                        <span 
+                          onClick={clearAllNotifications}
+                          className="text-xs text-[#BE1F2E] font-semibold cursor-pointer hover:underline"
+                        >
+                          Clear All
+                        </span>
+                      )}
                     </h3>
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-lg bg-[#fbf9f6] border border-[#E0DAD4] text-xs text-[#5A5A5A]">
-                        <p className="font-bold text-[#1A1A1A] mb-0.5">Critical Alert: O- negative low</p>
-                        <p className="text-[#9A9A9A]">Stock is below the minimum threshold.</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-[#fbf9f6] border border-[#E0DAD4] text-xs text-[#5A5A5A]">
-                        <p className="font-bold text-[#1A1A1A] mb-0.5">Staff Accepted Invitation</p>
-                        <p className="text-[#9A9A9A]">Dr. Ramesh Kumar joined the portal.</p>
-                      </div>
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <p className="text-xs text-[#9A9A9A] text-center py-4">No notifications.</p>
+                      ) : (
+                        notifications.map(n => (
+                          <div key={n.id} className="p-3 rounded-lg bg-[#fbf9f6] border border-[#E0DAD4] text-xs text-[#5A5A5A]">
+                            <p className="font-bold text-[#1A1A1A] mb-0.5">{n.title}</p>
+                            <p className="text-[#9A9A9A]">{n.message}</p>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </motion.div>
                 </>
@@ -119,7 +155,7 @@ const AdminLayout = ({ children }) => {
           </div>
 
           {/* Logout button */}
-          <button 
+          <button type="button" 
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
           >
@@ -153,7 +189,7 @@ const AdminLayout = ({ children }) => {
             })}
           </nav>
           
-          <button
+          <button type="button"
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] hover:bg-[rgba(190,31,46,0.04)] transition-colors w-full mt-auto"
           >
@@ -182,7 +218,7 @@ const AdminLayout = ({ children }) => {
               >
                 <div className="flex items-center justify-between mb-8">
                   <span className="font-serif text-lg font-bold text-[#1a1a1a]">Navigation</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[#BE1F2E]">
+                  <button aria-label="Close" type="button" onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[#BE1F2E]">
                     <X size={20} />
                   </button>
                 </div>
@@ -209,7 +245,7 @@ const AdminLayout = ({ children }) => {
                   })}
                 </nav>
 
-                <button
+                <button type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     handleLogout();

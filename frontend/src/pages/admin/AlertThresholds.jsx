@@ -56,11 +56,12 @@ const AlertThresholds = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Minimum Stock */}
             <div className="flex flex-col gap-2">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
+              <label htmlFor="min-stock" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Minimum Stock Level</span>
                 <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Trigger alerts when bags fall below this number" />
               </label>
               <input
+                id="min-stock"
                 type="number"
                 value={formData.minStock}
                 onChange={(e) => setFormData({ ...formData, minStock: parseInt(e.target.value) || 0 })}
@@ -70,11 +71,12 @@ const AlertThresholds = () => {
 
             {/* Maximum Stock */}
             <div className="flex flex-col gap-2">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
+              <label htmlFor="max-stock" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Maximum Stock Capacity</span>
                 <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Limit blood supply intake beyond this threshold" />
               </label>
               <input
+                id="max-stock"
                 type="number"
                 value={formData.maxStock}
                 onChange={(e) => setFormData({ ...formData, maxStock: parseInt(e.target.value) || 0 })}
@@ -84,11 +86,12 @@ const AlertThresholds = () => {
 
             {/* Critical Units */}
             <div className="flex flex-col gap-2">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
+              <label htmlFor="critical-units" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Critical Red Line Threshold</span>
                 <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Absolute emergency warning for low stocks" />
               </label>
               <input
+                id="critical-units"
                 type="number"
                 value={formData.criticalUnits}
                 onChange={(e) => setFormData({ ...formData, criticalUnits: parseInt(e.target.value) || 0 })}
@@ -98,11 +101,12 @@ const AlertThresholds = () => {
 
             {/* Expiry Warning days */}
             <div className="flex flex-col gap-2">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
+              <label htmlFor="expiry-days" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 flex items-center gap-1.5">
                 <span>Expiry Warning Buffer (Days)</span>
                 <HelpCircle size={12} className="text-[#9A9A9A] cursor-help" title="Mark bags as expiring soon when shelf life hits these remaining days" />
               </label>
               <input
+                id="expiry-days"
                 type="number"
                 value={formData.expiryDays}
                 onChange={(e) => setFormData({ ...formData, expiryDays: parseInt(e.target.value) || 0 })}
@@ -123,7 +127,7 @@ const AlertThresholds = () => {
               </div>
             </div>
 
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label aria-label="Toggle emergency SIREN broadcasting" className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.emergencyAlerts}
@@ -146,7 +150,7 @@ const AlertThresholds = () => {
               </div>
             </div>
 
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label aria-label="Toggle auto-transfer on expiry warning" className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.autoTransfer}

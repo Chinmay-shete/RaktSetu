@@ -114,6 +114,13 @@ def get_forecast():
         df_raw = pd.DataFrame(data)
         
         today = datetime.date.today()
+
+        # If there is absolutely no data for this hospital, return empty forecast
+        if len(df_raw) == 0:
+            return jsonify({
+                'forecast': [],
+                'bloodGroupBreakdown': {bg: 0 for bg in ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']}
+            }), 200
         
         # If there is insufficient data, generate synthetic historical data for Prophet to fit properly
         if len(df_raw) < 10:

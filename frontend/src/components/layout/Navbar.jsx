@@ -138,7 +138,7 @@ export const Navbar = ({ onMenuOpen }) => {
           />
         </div>
 
-        <button
+        <button aria-label="Refresh" type="button"
           onClick={handleSync}
           disabled={isSyncing}
           className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95 disabled:opacity-50"
@@ -147,7 +147,7 @@ export const Navbar = ({ onMenuOpen }) => {
         </button>
 
         <div className="static sm:relative" ref={notifRef}>
-          <button
+          <button aria-label="Notifications" type="button"
             onClick={() => setIsNotifOpen(!isNotifOpen)}
             className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all relative active:scale-95"
           >
@@ -170,7 +170,7 @@ export const Navbar = ({ onMenuOpen }) => {
                     Notifications ({unreadCount})
                   </span>
                   {unreadCount > 0 && (
-                    <button
+                    <button type="button"
                       onClick={markAllRead}
                       className="text-xxs text-[#BE1F2E] hover:text-[#9E1825] font-bold flex items-center gap-1 cursor-pointer"
                     >
@@ -197,7 +197,7 @@ export const Navbar = ({ onMenuOpen }) => {
                           <p className="text-[#5A5A5A] mt-0.5 leading-relaxed">{notif.message}</p>
                         </div>
                         {!notif.read && (
-                          <button
+                          <button aria-label="Close notification" type="button"
                             onClick={(e) => markRead(notif.id, e)}
                             className="flex-shrink-0 text-[#7A5F5F] hover:text-[#BE1F2E] self-center cursor-pointer p-1"
                           >
@@ -243,7 +243,7 @@ export const Navbar = ({ onMenuOpen }) => {
         </div>
 
         {/* Logout button */}
-        <button 
+        <button type="button" 
           onClick={() => {
             logout();
             navigate('/login');

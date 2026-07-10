@@ -232,15 +232,15 @@ const EditProfile = () => {
               <span>You have unsaved changes.</span>
             </span>
             <div className="flex gap-2 shrink-0">
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={() => { setProfile(initialProfile); setErrors({}); setTouched({}); }}
                 className="px-3 py-1.5 text-[12px] font-[600] border border-white rounded-full hover:bg-white hover:text-[#BE1F2E] transition-all"
               >
                 Discard
               </button>
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={handleSave}
                 disabled={saveLoading}
                 className="px-4 py-1.5 text-[12px] font-[600] bg-white text-[#BE1F2E] rounded-full hover:bg-[#ffdad8] transition-all disabled:opacity-50"
@@ -270,8 +270,8 @@ const EditProfile = () => {
               </div>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-[600] text-[#685c59]">Full Name</label>
-                  <input
+                  <label htmlFor="full-name-1" className="text-[13px] font-[600] text-[#685c59]">Full Name</label>
+                  <input id="full-name-1"
                     name="fullName"
                     value={profile.fullName}
                     onChange={handleChange}
@@ -284,8 +284,8 @@ const EditProfile = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-[600] text-[#685c59]">Age</label>
-                    <input
+                    <label htmlFor="age-2" className="text-[13px] font-[600] text-[#685c59]">Age</label>
+                    <input id="age-2"
                       name="age"
                       type="number"
                       value={profile.age}
@@ -298,8 +298,8 @@ const EditProfile = () => {
                     {errors.age && touched.age && <p className="text-[12px] text-[#BE1F2E] mt-1">{errors.age}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-[600] text-[#685c59]">Gender</label>
-                    <select
+                    <label htmlFor="gender-3" className="text-[13px] font-[600] text-[#685c59]">Gender</label>
+                    <select id="gender-3"
                       name="gender"
                       value={profile.gender}
                       onChange={handleChange}
@@ -323,8 +323,8 @@ const EditProfile = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-[600] text-[#685c59]">City</label>
-                  <input
+                  <label htmlFor="city-4" className="text-[13px] font-[600] text-[#685c59]">City</label>
+                  <input id="city-4"
                     name="city"
                     value={profile.city}
                     onChange={handleChange}
@@ -332,8 +332,8 @@ const EditProfile = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-[600] text-[#685c59]">Pincode</label>
-                  <input
+                  <label htmlFor="pincode-5" className="text-[13px] font-[600] text-[#685c59]">Pincode</label>
+                  <input id="pincode-5"
                     name="pincode"
                     value={profile.pincode}
                     onChange={handleChange}
@@ -358,8 +358,8 @@ const EditProfile = () => {
                   <span className="text-[28px] font-[800] text-[#BE1F2E]">{profile.bloodGroup}</span>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-[600] text-[#685c59]">Weight (kg)</label>
-                  <input
+                  <label htmlFor="weight-kg-6" className="text-[13px] font-[600] text-[#685c59]">Weight (kg)</label>
+                  <input id="weight-kg-6"
                     name="weight"
                     type="number"
                     value={profile.weight}
@@ -377,8 +377,8 @@ const EditProfile = () => {
                     <p className="text-[14px] font-[500] text-[#685c59]">Chronic Illness</p>
                     <p className="text-[12px] text-[#A8A0A0] mt-0.5">Existing medical conditions</p>
                   </div>
-                  <button
-                    type="button"
+                  <button type="button"
+                    aria-label="Toggle chronic illness status"
                     onClick={() => setProfile(prev => ({ ...prev, chronicIllness: !prev.chronicIllness }))}
                     className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
                       profile.chronicIllness ? 'bg-[#BE1F2E]' : 'bg-[#D8D0CA]'
@@ -393,8 +393,8 @@ const EditProfile = () => {
             </section>
 
             <div className="flex justify-end gap-3">
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={() => navigate('/dashboard')}
                 className="px-6 py-4 border border-[rgba(26,18,16,0.12)] rounded-full text-[14px] font-[600] text-[#685c59] hover:bg-[#f5f0eb]"
               >
@@ -419,7 +419,7 @@ const EditProfile = () => {
       <div className="block md:hidden">
         {/* TopAppBar */}
         <header className="w-full top-0 sticky z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center justify-between px-4 py-4">
-          <button
+          <button type="button"
             onClick={() => navigate('/dashboard')}
             className="text-[#9e001f] hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200"
           >
@@ -439,8 +439,8 @@ const EditProfile = () => {
               </div>
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
-                  <label className={`text-[14px] font-medium transition-colors ${focusedField === 'fullName' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Full Name</label>
-                  <input
+                  <label htmlFor="full-name-7" className={`text-[14px] font-medium transition-colors ${focusedField === 'fullName' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Full Name</label>
+                  <input id="full-name-7"
                     name="fullName"
                     value={profile.fullName}
                     onChange={handleChange}
@@ -462,8 +462,8 @@ const EditProfile = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
-                    <label className={`text-[14px] font-medium transition-colors ${focusedField === 'age' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Age</label>
-                    <input
+                    <label htmlFor="age-8" className={`text-[14px] font-medium transition-colors ${focusedField === 'age' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Age</label>
+                    <input id="age-8"
                       name="age"
                       type="number"
                       value={profile.age}
@@ -483,9 +483,9 @@ const EditProfile = () => {
                     )}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Gender</label>
+                    <label htmlFor="gender-9" className="text-[14px] font-medium text-[#5c403f]">Gender</label>
                     <div className="relative">
-                      <select
+                      <select id="gender-9"
                         name="gender"
                         value={profile.gender}
                         onChange={handleChange}
@@ -511,8 +511,8 @@ const EditProfile = () => {
               </div>
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
-                  <label className={`text-[14px] font-medium transition-colors ${focusedField === 'city' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>City</label>
-                  <input
+                  <label htmlFor="city-10" className={`text-[14px] font-medium transition-colors ${focusedField === 'city' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>City</label>
+                  <input id="city-10"
                     name="city"
                     value={profile.city}
                     onChange={handleChange}
@@ -523,8 +523,8 @@ const EditProfile = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className={`text-[14px] font-medium transition-colors ${focusedField === 'pincode' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Pincode</label>
-                  <input
+                  <label htmlFor="pincode-11" className={`text-[14px] font-medium transition-colors ${focusedField === 'pincode' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Pincode</label>
+                  <input id="pincode-11"
                     name="pincode"
                     value={profile.pincode}
                     onChange={handleChange}
@@ -565,10 +565,10 @@ const EditProfile = () => {
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <label className={`text-[14px] font-medium transition-colors ${focusedField === 'weight' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Weight (kg)</label>
+                    <label htmlFor="weight-kg-12" className={`text-[14px] font-medium transition-colors ${focusedField === 'weight' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Weight (kg)</label>
                     <span className="text-[10px] font-[600] text-[#A8A0A0] bg-[#f5f0eb] px-1.5 py-0.5 rounded uppercase tracking-wide">Optional</span>
                   </div>
-                  <input
+                  <input id="weight-kg-12"
                     name="weight"
                     type="number"
                     value={profile.weight}
@@ -592,7 +592,7 @@ const EditProfile = () => {
                     <span className="text-[14px] font-semibold text-[#1b1c1a]">Chronic Illness</span>
                     <span className="text-[12px] text-[#737373]">Do you have any existing conditions?</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label aria-label="Toggle chronic illness status" className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={profile.chronicIllness}
@@ -614,8 +614,8 @@ const EditProfile = () => {
               >
                 {saveLoading ? 'Saving...' : 'Save Changes'}
               </button>
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={() => navigate('/dashboard')}
                 className="w-full bg-transparent text-[#5c403f] font-semibold py-3 rounded-full hover:bg-[#f5f3f0] transition-colors text-center"
               >
@@ -643,7 +643,7 @@ const EditProfile = () => {
           ].map((item) => {
             const isActive = item.path === '/edit-profile'; // Profile is active
             return (
-              <button
+              <button type="button"
                 key={item.name}
                 onClick={() => navigate(item.path)}
                 className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all cursor-pointer"

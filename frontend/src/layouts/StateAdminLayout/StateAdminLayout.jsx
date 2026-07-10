@@ -62,7 +62,7 @@ const StateAdminLayout = ({ children }) => {
         <div className="flex items-center gap-4">
           {/* Notifications Bell */}
           <div className="relative">
-            <button
+            <button aria-label="Notifications" type="button"
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-2 rounded-full hover:bg-[var(--state-light)] text-[#5A5A5A] hover:text-[var(--state)] transition-colors relative"
             >
@@ -114,7 +114,7 @@ const StateAdminLayout = ({ children }) => {
           </div>
 
           {/* Logout button */}
-          <button 
+          <button type="button" 
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
           >
@@ -152,7 +152,7 @@ const StateAdminLayout = ({ children }) => {
             })}
           </nav>
 
-          <button
+          <button type="button"
             onClick={handleLogout}
             className="state-nav-link mt-auto w-full border-0 bg-transparent"
           >
@@ -181,7 +181,7 @@ const StateAdminLayout = ({ children }) => {
               >
                 <div className="flex items-center justify-between mb-8">
                   <span className="font-serif text-lg font-bold text-[#1a1a1a]">Navigation</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[var(--state)] transition-colors">
+                  <button aria-label="Close" type="button" onClick={() => setMobileMenuOpen(false)} className="text-[#5A5A5A] hover:text-[var(--state)] transition-colors">
                     <X size={20} />
                   </button>
                 </div>
@@ -204,7 +204,7 @@ const StateAdminLayout = ({ children }) => {
                   })}
                 </nav>
 
-                <button
+                <button type="button"
                   onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
                   className="state-nav-link mt-auto w-full border-0 bg-transparent"
                 >

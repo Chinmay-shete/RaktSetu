@@ -102,6 +102,23 @@ const HospitalApplication = () => {
 
         const uploadedFilename = uploadRes.data.filename;
 
+        // Register hospital admin user on backend
+        await api.post('/auth/register', {
+          role: 'admin',
+          email: formData.email,
+          phone: formData.phone,
+          hospitalName: formData.hospitalName,
+          hospitalType: formData.hospitalType,
+          license_no: formData.licenseNumber,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          lat: 18.5204, // Default Pune lat
+          lng: 73.8567, // Default Pune lng
+          licenseDocument: uploadedFilename
+        });
+
         submitApplication({
           ...formData,
           licenseDocument: uploadedFilename,
@@ -112,7 +129,7 @@ const HospitalApplication = () => {
         navigate('/admin/pending');
       } catch (err) {
         setIsSubmitting(false);
-        const errMsg = err.response?.data?.message || 'Failed to upload license document. Please try again.';
+        const errMsg = err.response?.data?.message || 'Failed to complete registration. Please try again.';
         setFileError(errMsg);
       }
     }
@@ -164,8 +181,8 @@ const HospitalApplication = () => {
               {/* General Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Hospital Name *</label>
-                  <input
+                  <label htmlFor="hospital-name-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Hospital Name *</label>
+                  <input id="hospital-name-1"
                     type="text"
                     name="hospitalName"
                     value={formData.hospitalName}
@@ -178,8 +195,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Hospital Type *</label>
-                  <select
+                  <label htmlFor="hospital-type-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Hospital Type *</label>
+                  <select id="hospital-type-2"
                     name="hospitalType"
                     value={formData.hospitalType}
                     onChange={handleInputChange}
@@ -196,8 +213,8 @@ const HospitalApplication = () => {
               {/* License Numbers */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Reg. Number *</label>
-                  <input
+                  <label htmlFor="reg-number-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Reg. Number *</label>
+                  <input id="reg-number-3"
                     type="text"
                     name="regNumber"
                     value={formData.regNumber}
@@ -210,8 +227,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">License Number *</label>
-                  <input
+                  <label htmlFor="license-number-4" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">License Number *</label>
+                  <input id="license-number-4"
                     type="text"
                     name="licenseNumber"
                     value={formData.licenseNumber}
@@ -224,8 +241,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">BB License *</label>
-                  <input
+                  <label htmlFor="bb-license-5" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">BB License *</label>
+                  <input id="bb-license-5"
                     type="text"
                     name="bloodBankLicense"
                     value={formData.bloodBankLicense}
@@ -240,8 +257,8 @@ const HospitalApplication = () => {
 
               {/* Address Details */}
               <div className="mb-1">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Full Address *</label>
-                <textarea
+                <label htmlFor="full-address-6" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Full Address *</label>
+                <textarea id="full-address-6"
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
@@ -255,8 +272,8 @@ const HospitalApplication = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">City *</label>
-                  <input
+                  <label htmlFor="city-7" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">City *</label>
+                  <input id="city-7"
                     type="text"
                     name="city"
                     value={formData.city}
@@ -269,8 +286,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">State *</label>
-                  <input
+                  <label htmlFor="state-8" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">State *</label>
+                  <input id="state-8"
                     type="text"
                     name="state"
                     value={formData.state}
@@ -283,8 +300,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Pincode *</label>
-                  <input
+                  <label htmlFor="pincode-9" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Pincode *</label>
+                  <input id="pincode-9"
                     type="text"
                     name="pincode"
                     value={formData.pincode}
@@ -301,8 +318,8 @@ const HospitalApplication = () => {
               {/* Contact Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Authorized Email *</label>
-                  <input
+                  <label htmlFor="authorized-email-10" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Authorized Email *</label>
+                  <input id="authorized-email-10"
                     type="email"
                     name="email"
                     value={formData.email}
@@ -315,8 +332,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Contact Phone *</label>
-                  <input
+                  <label htmlFor="contact-phone-11" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Contact Phone *</label>
+                  <input id="contact-phone-11"
                     type="text"
                     name="phone"
                     value={formData.phone}
@@ -332,9 +349,9 @@ const HospitalApplication = () => {
 
               {/* File Upload */}
               <div className="mb-4">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Upload License Document *</label>
+                <label htmlFor="upload-license-document-12" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Upload License Document *</label>
                 <div className="relative border-2 border-dashed border-[#D8D0CA] rounded-xl p-8 bg-white hover:bg-[#FDFBF9] transition-all flex flex-col items-center justify-center cursor-pointer group">
-                  <input
+                  <input id="upload-license-document-12"
                     type="file"
                     accept=".pdf, .jpg, .jpeg, .png"
                     onChange={handleFileChange}

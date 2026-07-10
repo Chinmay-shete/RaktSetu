@@ -143,14 +143,14 @@ export const BloodInventory = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={handleExport}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-[#EDE7E1] shadow-sm text-xs font-bold text-[#5A5A5A] hover:text-[#1A1210] hover:border-[#BE1F2E]/30 transition-all cursor-pointer active:scale-95"
           >
             <Download className="h-4 w-4" />
             Export CSV
           </button>
-          <button
+          <button type="button"
             onClick={() => navigate('/staff/update-stock')}
             className="btn-primary"
             style={{ minHeight: 42, minWidth: 'auto', padding: '10px 20px', fontSize: 13 }}
@@ -178,8 +178,9 @@ export const BloodInventory = () => {
         {/* Filters Grid */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A5F5F]">Status</span>
+            <label htmlFor="status-filter" className="text-[10px] uppercase font-bold tracking-wider text-[#7A5F5F]">Status</label>
             <select
+              id="status-filter"
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="input-field custom-select"
@@ -194,8 +195,9 @@ export const BloodInventory = () => {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A5F5F]">Group</span>
+            <label htmlFor="group-filter" className="text-[10px] uppercase font-bold tracking-wider text-[#7A5F5F]">Group</label>
             <select
+              id="group-filter"
               value={groupFilter}
               onChange={(e) => { setGroupFilter(e.target.value); setCurrentPage(1); }}
               className="input-field custom-select"
@@ -264,17 +266,19 @@ export const BloodInventory = () => {
                     <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
+                        <button type="button"
                           onClick={() => setSelectedBag(item)}
                           className="p-2 rounded-xl bg-[#FAF8F5] text-[#5A5A5A] hover:text-[#BE1F2E] border border-[#EDE7E1] transition-colors cursor-pointer"
                           title="View Details"
+                          aria-label="View details"
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
-                        <button
+                        <button type="button"
                           onClick={() => setDeleteId(item.id)}
                           className="p-2 rounded-xl bg-red-50 text-[#BE1F2E] hover:bg-red-100 border border-[#BE1F2E]/10 transition-colors cursor-pointer"
                           title="Delete Batch"
+                          aria-label="Delete batch"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -293,14 +297,14 @@ export const BloodInventory = () => {
                 Showing page <strong className="text-[#1A1210]">{currentPage}</strong> of <strong className="text-[#1A1210]">{totalPages}</strong> ({filteredInventory.length} items)
               </span>
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   className="px-3 py-1.5 rounded-xl border border-[#EDE7E1] bg-white disabled:opacity-50 hover:bg-[#FAF8F5] cursor-pointer transition-colors"
                 >
                   Previous
                 </button>
-                <button
+                <button type="button"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   className="px-3 py-1.5 rounded-xl border border-[#EDE7E1] bg-white disabled:opacity-50 hover:bg-[#FAF8F5] cursor-pointer transition-colors"
@@ -385,13 +389,13 @@ export const BloodInventory = () => {
             This action cannot be undone. Removing this batch will delete all recorded blood units of this lot from your available storage.
           </p>
           <div className="flex gap-3 mt-2">
-            <button
+            <button type="button"
               onClick={() => setDeleteId(null)}
               className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
             >
               Cancel
             </button>
-            <button
+            <button type="button"
               onClick={() => deleteMutation.mutate(deleteId)}
               disabled={deleteMutation.isPending}
               className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition-colors"

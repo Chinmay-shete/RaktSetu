@@ -40,7 +40,7 @@ export class ErrorBoundary extends React.Component {
                 {this.state.error.toString()}
               </pre>
             )}
-            <button
+            <button type="button"
               onClick={this.handleReset}
               className="w-full btn-primary flex items-center justify-center gap-2"
               style={{ minHeight: 48 }}

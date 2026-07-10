@@ -238,14 +238,14 @@ export const Dashboard = () => {
                         <p className="text-xs font-bold text-white mt-2">Required: <span className="text-[#BE1F2E] text-sm">{req.unitsRequired} units</span> (Distance: {req.distance}km)</p>
                       </div>
                       <div className="flex flex-row md:flex-col gap-2 shrink-0">
-                        <button 
+                        <button type="button" 
                           onClick={() => emergencyMutation.mutate({ id: req.id, status: 'Accepted' })}
                           disabled={emergencyMutation.isPending}
                           className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#BE1F2E] text-white hover:bg-[#9E1825] transition-colors rounded-lg text-xs font-bold w-full disabled:opacity-50"
                         >
                           <CheckCircle className="h-3.5 w-3.5" /> Dispatch Now
                         </button>
-                        <button 
+                        <button type="button" 
                           onClick={() => emergencyMutation.mutate({ id: req.id, status: 'Declined' })}
                           disabled={emergencyMutation.isPending}
                           className="flex items-center justify-center gap-1.5 px-4 py-2 bg-transparent border border-[#3D2B2B] text-[#A8A0A0] hover:text-white hover:bg-[#3D2B2B] transition-colors rounded-lg text-xs font-bold w-full disabled:opacity-50"

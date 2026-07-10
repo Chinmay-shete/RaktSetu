@@ -50,7 +50,7 @@ const DistrictAlerts = () => {
           </p>
         </div>
         
-        <button 
+        <button type="button" 
           onClick={() => setShowBroadcastModal(true)}
           className="btn-primary shrink-0 flex items-center gap-2 bg-[#1A1210] hover:bg-[#BE1F2E] text-white px-6 py-3.5 rounded-full font-bold shadow-lg shadow-[#1A1210]/10 transition-all hover:-translate-y-0.5"
         >
@@ -65,7 +65,7 @@ const DistrictAlerts = () => {
           {/* Tab Filter */}
           <div className="flex gap-3">
             {['Active', 'Resolved'].map(tab => (
-              <button
+              <button type="button"
                 key={tab}
                 onClick={() => setFilter(tab)}
                 className={`px-6 py-2.5 rounded-full text-[13px] font-[600] transition-all ${
@@ -126,21 +126,21 @@ const DistrictAlerts = () => {
 
                       {alert.status === 'Active' && (
                         <div className="flex flex-col gap-2 shrink-0">
-                          <button
+                          <button type="button"
                             onClick={() => handleBroadcast(alert)}
                             className="bg-[#1a1210] text-white px-5 py-2.5 rounded-full text-[13px] font-[500] hover:scale-105 active:scale-95 transition-transform whitespace-nowrap"
                           >
                             Broadcast Alert
                           </button>
                           {isCritical && (
-                            <button
+                            <button type="button"
                               onClick={() => handleEscalate(alert)}
                               className="border border-[#BE1F2E] text-[#BE1F2E] px-5 py-2.5 rounded-full text-[13px] font-[500] hover:bg-[rgba(190,31,46,0.04)] transition-colors whitespace-nowrap"
                             >
                               Escalate to State
                             </button>
                           )}
-                          <button
+                          <button type="button"
                             onClick={() => handleResolve(alert.id)}
                             className="border border-[rgba(26,18,16,0.09)] text-[#737373] px-5 py-2.5 rounded-full text-[13px] font-[500] hover:bg-[#f5f3f0] transition-colors whitespace-nowrap"
                           >
@@ -227,8 +227,8 @@ const DistrictAlerts = () => {
           </div>
           
           <div className="flex flex-col gap-1.5 mt-2">
-            <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">Broadcast Message</label>
-            <textarea 
+            <label htmlFor="broadcast-message-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block">Broadcast Message</label>
+            <textarea id="broadcast-message-1" 
               rows={4}
               placeholder="E.g., CRITICAL SHORTAGE: O- blood urgently required across district. All hospitals report immediate inventory status."
               className="input-field resize-none"
@@ -236,13 +236,13 @@ const DistrictAlerts = () => {
           </div>
 
           <div className="flex gap-3 mt-4 border-t border-[#EDE7E1] pt-4">
-            <button
+            <button type="button"
               onClick={() => setShowBroadcastModal(false)}
               className="w-1/2 px-4 py-3 rounded-full border border-[#EDE7E1] text-[13px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] transition-colors"
             >
               Cancel
             </button>
-            <button
+            <button type="button"
               onClick={handleDistrictBroadcast}
               className="w-1/2 px-4 py-3 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] text-white text-[13px] font-bold transition-colors flex items-center justify-center gap-2"
             >

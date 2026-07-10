@@ -76,9 +76,9 @@ export const CampCreation = () => {
       <div className="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-[#EDE7E1]">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Camp Name</label>
+            <label htmlFor="camp-name-1" className={fieldLabel}>Camp Name</label>
             <div className="relative">
-              <input
+              <input id="camp-name-1"
                 type="text"
                 placeholder="e.g. Mega Blood Drive at Connaught Place"
                 {...register("campName", { required: "Camp name is required" })}
@@ -95,9 +95,9 @@ export const CampCreation = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Date</label>
+              <label htmlFor="date-2" className={fieldLabel}>Date</label>
               <div className="relative">
-                <input
+                <input id="date-2"
                   type="date"
                   {...register("date", { required: "Date is required" })}
                   className={`input-field !pl-10 ${errors.date ? 'error' : ''}`}
@@ -113,9 +113,9 @@ export const CampCreation = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>Start Time</label>
+                <label htmlFor="start-time-3" className={fieldLabel}>Start Time</label>
                 <div className="relative">
-                  <input
+                  <input id="start-time-3"
                     type="time"
                     {...register("startTime", { required: "Start time required" })}
                     className={`input-field !pl-10 ${errors.startTime ? 'error' : ''}`}
@@ -124,9 +124,9 @@ export const CampCreation = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className={fieldLabel}>End Time</label>
+                <label htmlFor="end-time-4" className={fieldLabel}>End Time</label>
                 <div className="relative">
-                  <input
+                  <input id="end-time-4"
                     type="time"
                     {...register("endTime", { required: "End time required" })}
                     className={`input-field !pl-10 ${errors.endTime ? 'error' : ''}`}
@@ -139,9 +139,9 @@ export const CampCreation = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Location Address</label>
+              <label htmlFor="location-address-5" className={fieldLabel}>Location Address</label>
               <div className="relative">
-                <input
+                <input id="location-address-5"
                   type="text"
                   placeholder="Full address of the venue"
                   {...register("location", { required: "Location is required" })}
@@ -157,9 +157,9 @@ export const CampCreation = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Target Donors</label>
+              <label htmlFor="target-donors-6" className={fieldLabel}>Target Donors</label>
               <div className="relative">
-                <input
+                <input id="target-donors-6"
                   type="number"
                   placeholder="100"
                   {...register("targetDonors", { 
@@ -179,9 +179,9 @@ export const CampCreation = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Description / Instructions (Optional)</label>
+            <label htmlFor="description-instructions-optional-7" className={fieldLabel}>Description / Instructions (Optional)</label>
             <div className="relative">
-              <textarea
+              <textarea id="description-instructions-optional-7"
                 placeholder="Additional instructions for donors or volunteers..."
                 rows="4"
                 {...register("description")}
@@ -231,13 +231,13 @@ export const CampCreation = () => {
             </div>
 
             <div className="flex gap-3 mt-4 border-t border-[#EDE7E1] pt-4">
-              <button
+              <button type="button"
                 onClick={() => setShowConfirmModal(false)}
                 className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
               >
                 Cancel
               </button>
-              <button
+              <button type="button"
                 onClick={confirmSubmit}
                 className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] text-white text-xs font-bold cursor-pointer transition-colors"
               >

@@ -78,10 +78,11 @@ export const Profile = () => {
             Manage your personal credentials, view your hospital affiliation, and rotate security passwords.
           </p>
         </div>
-        <button 
+        <button type="button" 
           onClick={fetchHospitalProfile}
           className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95"
           title="Refresh Profile"
+          aria-label="Refresh Profile"
         >
           <RefreshCw className="h-4 w-4" />
         </button>
@@ -192,8 +193,8 @@ export const Profile = () => {
 
             <div className="space-y-4">
               <div>
-                <label className={fieldLabel}>Current Password</label>
-                <input
+                <label htmlFor="current-password-1" className={fieldLabel}>Current Password</label>
+                <input id="current-password-1"
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
@@ -203,8 +204,8 @@ export const Profile = () => {
                 />
               </div>
               <div>
-                <label className={fieldLabel}>New Password</label>
-                <input
+                <label htmlFor="new-password-2" className={fieldLabel}>New Password</label>
+                <input id="new-password-2"
                   type="password"
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
@@ -214,8 +215,8 @@ export const Profile = () => {
                 />
               </div>
               <div>
-                <label className={fieldLabel}>Confirm New Password</label>
-                <input
+                <label htmlFor="confirm-new-password-3" className={fieldLabel}>Confirm New Password</label>
+                <input id="confirm-new-password-3"
                   type="password"
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}

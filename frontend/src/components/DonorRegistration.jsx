@@ -381,11 +381,10 @@ const DonorRegistration = () => {
                   <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">Join thousands of users saving lives across Maharashtra.</p>
 
                   <div className="mb-5">
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Email or Mobile Number</label>
+                    <label htmlFor="email-or-mobile-number-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Email or Mobile Number</label>
                     <div className={`flex items-center h-[52px] border rounded-xl bg-white overflow-hidden transition-all ${isInputValid ? 'border-[#BE1F2E]' : 'border-[#D8D0CA]'} focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]`}>
-                      <input
+                      <input id="email-or-mobile-number-1"
                         className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] placeholder:text-[#A8A0A0] outline-none"
-                        id="authInput"
                         type="text"
                         value={inputVal}
                         onChange={handleInputChange}
@@ -402,7 +401,7 @@ const DonorRegistration = () => {
                     </div>
                   )}
 
-                  <button
+                  <button type="button"
                     className="btn-primary w-full"
                     style={{ minHeight: 52 }}
                     disabled={!isInputValid || buttonState !== 'default'}
@@ -437,6 +436,7 @@ const DonorRegistration = () => {
                         onKeyDown={(e) => handleOtpKeyDown(e, idx)}
                         onPaste={handleOtpPaste}
                         className={`otp-box flex-1 w-[52px] h-[60px] max-w-[52px] ${digit ? 'filled' : ''}`}
+                        aria-label={`OTP digit ${idx + 1}`}
                       />
                     ))}
                   </div>
@@ -458,18 +458,18 @@ const DonorRegistration = () => {
                     {resendDisabled ? (
                       <span className="text-[#9A9A9A]">Resend OTP in {timer}s</span>
                     ) : (
-                      <button onClick={handleResendOTP} className="text-link text-[13px] font-[600]">Resend OTP</button>
+                      <button type="button" onClick={handleResendOTP} className="text-link text-[13px] font-[600]">Resend OTP</button>
                     )}
                   </div>
 
                   <div className="flex gap-3 mb-6">
-                    <button
+                    <button type="button"
                       onClick={() => { setStep(1); setButtonState('default'); setOtpError(''); }}
                       className="w-1/3 h-[52px] rounded-full border border-[#D8D0CA] text-[#5A5A5A] text-[14px] font-[600] hover:bg-[#F5F0EB] transition-all cursor-pointer"
                     >
                       ← Back
                     </button>
-                    <button
+                    <button type="button"
                       onClick={handleVerifyOTP}
                       disabled={!allFilled || buttonState === 'sending'}
                       className={`btn-primary w-2/3 btn-arrow-hover ${allFilled ? 'btn-pulse' : ''}`}
@@ -494,9 +494,9 @@ const DonorRegistration = () => {
 
                   <form onSubmit={handleCreatePassword} className="space-y-5">
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                      <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
                       <div className="relative flex items-center h-[52px] border border-[#D8D0CA] rounded-xl bg-white focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)]">
-                        <input
+                        <input id="password-2"
                           className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] outline-none"
                           type={showPassword ? "text" : "password"}
                           value={password}
@@ -504,8 +504,8 @@ const DonorRegistration = () => {
                           placeholder="Min 8 chars, 1 uppercase, 1 number"
                           required
                         />
-                        <button
-                          type="button"
+                        <button type="button"
+                          
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-4 text-[#9A9A9A] hover:text-[#BE1F2E] focus:outline-none"
                         >
@@ -541,7 +541,7 @@ const DonorRegistration = () => {
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Confirm Password</label>
+                      <label htmlFor="confirm-password-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Confirm Password</label>
                       <div className={`relative flex items-center h-[52px] border rounded-xl bg-white focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)] ${
                         confirmPassword && confirmPassword !== password
                           ? 'border-[#BE1F2E]'
@@ -557,8 +557,8 @@ const DonorRegistration = () => {
                           placeholder="Repeat your password"
                           required
                         />
-                        <button
-                          type="button"
+                        <button type="button"
+                          
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-4 text-[#9A9A9A] hover:text-[#BE1F2E] focus:outline-none"
                         >
@@ -620,7 +620,7 @@ const DonorRegistration = () => {
           {/* TopAppBar */}
           <header className="w-full top-0 sticky z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center justify-between px-4 py-4 shrink-0">
             {step > 1 ? (
-              <button
+              <button type="button"
                 onClick={() => { setStep(prev => prev - 1); setButtonState('default'); setOtpError(''); }}
                 className="text-[#9e001f] active:scale-95 transition-transform"
               >
@@ -651,8 +651,8 @@ const DonorRegistration = () => {
 
                 <div className="space-y-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Email or Mobile Number</label>
-                    <input
+                    <label htmlFor="email-or-mobile-number-4" className="text-[14px] font-medium text-[#5c403f]">Email or Mobile Number</label>
+                    <input id="email-or-mobile-number-4"
                       type="text"
                       value={inputVal}
                       onChange={handleInputChange}
@@ -670,7 +670,7 @@ const DonorRegistration = () => {
                 )}
 
                 <div className="pt-4">
-                  <button
+                  <button type="button"
                     disabled={!isInputValid || buttonState !== 'default'}
                     onClick={handleSendOTP}
                     className="w-full bg-[#9e001f] text-white font-semibold py-4 rounded-full active:scale-95 hover:opacity-90 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-2"
@@ -713,6 +713,7 @@ const DonorRegistration = () => {
                       onKeyDown={(e) => handleOtpKeyDown(e, idx)}
                       onPaste={handleOtpPaste}
                       className="w-12 h-14 bg-white border border-[rgba(26,18,16,0.09)] rounded-lg text-center font-bold text-[20px] outline-none transition-all focus:border-[#9e001f] focus:ring-2 focus:ring-[#9e001f]/30"
+                      aria-label={`OTP digit ${idx + 1}`}
                     />
                   ))}
                 </div>
@@ -734,18 +735,18 @@ const DonorRegistration = () => {
                   {resendDisabled ? (
                     <span className="text-[#737373]">Resend OTP in {timer}s</span>
                   ) : (
-                    <button onClick={handleResendOTP} className="text-[#9e001f] font-semibold hover:underline">Resend OTP</button>
+                    <button type="button" onClick={handleResendOTP} className="text-[#9e001f] font-semibold hover:underline">Resend OTP</button>
                   )}
                 </div>
 
                 <div className="pt-4 flex gap-3">
-                  <button
+                  <button type="button"
                     onClick={() => { setStep(1); setButtonState('default'); setOtpError(''); }}
                     className="w-1/3 bg-transparent border border-[rgba(26,18,16,0.15)] text-[#5c403f] font-semibold py-4 rounded-full active:scale-95 transition-colors"
                   >
                     Back
                   </button>
-                  <button
+                  <button type="button"
                     onClick={handleVerifyOTP}
                     disabled={!allFilled || buttonState === 'sending'}
                     className="w-2/3 bg-[#9e001f] text-white font-semibold py-4 rounded-full active:scale-95 hover:opacity-90 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-1"
@@ -765,17 +766,17 @@ const DonorRegistration = () => {
 
                 <div className="space-y-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Password</label>
+                    <label htmlFor="password-5" className="text-[14px] font-medium text-[#5c403f]">Password</label>
                     <div className="relative">
-                      <input
+                      <input id="password-5"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Min 8 chars, 1 uppercase, 1 number"
                         className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
                       />
-                      <button
-                        type="button"
+                      <button type="button"
+                        
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[#906f6e]"
                       >
@@ -809,9 +810,9 @@ const DonorRegistration = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Confirm Password</label>
+                    <label htmlFor="confirm-password-6" className="text-[14px] font-medium text-[#5c403f]">Confirm Password</label>
                     <div className="relative">
-                      <input
+                      <input id="confirm-password-6"
                         type={showConfirmPassword ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -824,8 +825,8 @@ const DonorRegistration = () => {
                             : 'border-[rgba(26,18,16,0.09)] focus:ring-[#9e001f]/40 focus:border-[#9e001f]'
                         }`}
                       />
-                      <button
-                        type="button"
+                      <button type="button"
+                        
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[#906f6e]"
                       >

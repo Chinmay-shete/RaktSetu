@@ -10,18 +10,21 @@ import DonorFooter from './layout/DonorFooter';
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(0);
   useEffect(() => {
-    if (!target) { setValue(0); return; }
+    if (!target) return;
     let start = null;
+    let rafId;
     const step = (ts) => {
       if (!start) start = ts;
       const progress = Math.min((ts - start) / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 3);
       setValue(Math.round(ease * target));
-      if (progress < 1) requestAnimationFrame(step);
+      if (progress < 1) rafId = requestAnimationFrame(step);
     };
-    requestAnimationFrame(step);
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
   }, [target, duration]);
-  return value;
+  // When target is falsy, derive 0 directly instead of resetting via effect
+  return target ? value : 0;
 }
 
 const Dashboard = () => {
@@ -144,7 +147,7 @@ const Dashboard = () => {
                   {isAvailable ? 'Emergency alerts active' : 'Alerts paused'}
                 </p>
               </div>
-              <button
+              <button aria-label="Toggle donation availability" type="button"
                 onClick={() => setIsAvailable(!isAvailable)}
                 className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 flex shrink-0 ${
                   isAvailable ? 'bg-[#10B981]' : 'bg-[#D8D0CA]'
@@ -276,7 +279,7 @@ const Dashboard = () => {
                         </div>
                       </div>
 
-                      <button
+                      <button type="button"
                         onClick={() => handlePledge(req.id)}
                         className="w-full bg-[#BE1F2E] text-white py-3 rounded-full text-[13px] font-[600] hover:bg-[#a31825] active:scale-95 transition-all"
                       >
@@ -308,13 +311,15 @@ const Dashboard = () => {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <button className="material-symbols-outlined text-[#5c403f] hover:opacity-80 transition-opacity" onClick={() => toast.success("No new notifications.")}>notifications</button>
+            <button type="button" aria-label="Notifications" className="material-symbols-outlined text-[#5c403f] hover:opacity-80 transition-opacity" onClick={() => toast.success("No new notifications.")}>notifications</button>
             
             {/* Profile avatar */}
             <div
               className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center cursor-pointer shrink-0 shadow-sm"
               style={{ borderColor: 'rgba(200, 16, 46, 0.20)', background: '#eae8e5' }}
               onClick={() => navigate('/edit-profile')}
+              role="button"
+              aria-label="Edit Profile"
             >
               {profilePhoto ? (
                 <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
@@ -324,7 +329,7 @@ const Dashboard = () => {
             </div>
 
             {/* Logout button */}
-            <button
+            <button type="button"
               onClick={handleLogout}
               className="flex items-center justify-center p-2 rounded-xl bg-red-50/60 border border-[rgba(200, 16, 46, 0.15)] text-[#C8102E] hover:bg-red-50 cursor-pointer shadow-sm transition-all"
               title="Logout"
@@ -378,7 +383,7 @@ const Dashboard = () => {
                 <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mb-4">
                   <div className="bg-[#BE1F2E] h-full w-[85%] transition-all duration-1000"></div>
                 </div>
-                <button
+                <button type="button"
                   onClick={() => navigate('/find-camps')}
                   className="w-full py-3 bg-[#BE1F2E] text-white rounded-full text-[14px] font-[500] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
@@ -419,7 +424,7 @@ const Dashboard = () => {
                           {req.bloodGroup}
                         </div>
                       </div>
-                      <button
+                      <button type="button"
                         onClick={() => handlePledge(req.id)}
                         className="bg-[#1a1210] text-white px-4 py-2 rounded-full text-[12px] font-semibold active:scale-95 transition-all"
                       >
@@ -493,7 +498,7 @@ const Dashboard = () => {
           ].map((item) => {
             const isActive = item.path === '/dashboard'; // Home is active
             return (
-              <button
+              <button type="button"
                 key={item.name}
                 onClick={() => navigate(item.path)}
                 className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all cursor-pointer"

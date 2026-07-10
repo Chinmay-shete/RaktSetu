@@ -888,13 +888,20 @@ async function updateTransferStatus(req, res, next) {
  */
 async function getForecastGateway(req, res, next) {
   try {
+    const hospitalId = req.user.hospital_id || 'all';
     const now = Date.now();
-    if (forecastCache.forecast && forecastCache.forecastExpiry && now < forecastCache.forecastExpiry) {
-      return res.status(200).json(forecastCache.forecast);
+    const cacheKey = `forecast_${hospitalId}`;
+    
+    if (forecastCache[cacheKey] && forecastCache[`${cacheKey}_expiry`] && now < forecastCache[`${cacheKey}_expiry`]) {
+      return res.status(200).json(forecastCache[cacheKey]);
     }
 
     const aiServiceUrl = process.env.AI_SERVICE_URL;
-    const response = await fetch(`${aiServiceUrl}/api/v1/forecast`, {
+    const url = hospitalId !== 'all' 
+      ? `${aiServiceUrl}/api/v1/forecast?hospitalId=${hospitalId}`
+      : `${aiServiceUrl}/api/v1/forecast`;
+
+    const response = await fetch(url, {
       headers: {
         'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
       }
@@ -905,8 +912,8 @@ async function getForecastGateway(req, res, next) {
 
     const data = await response.json();
 
-    forecastCache.forecast = data;
-    forecastCache.forecastExpiry = now + (24 * 60 * 60 * 1000); // Cache for 24h
+    forecastCache[cacheKey] = data;
+    forecastCache[`${cacheKey}_expiry`] = now + (24 * 60 * 60 * 1000); // Cache for 24h
 
     return res.status(200).json(data);
   } catch (error) {
@@ -919,8 +926,9 @@ async function getForecastGateway(req, res, next) {
  */
 async function getWasteAnalyticsGateway(req, res, next) {
   try {
+    const hospitalId = req.user.hospital_id;
     const aiServiceUrl = process.env.AI_SERVICE_URL;
-    const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics`, {
+    const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics?hospitalId=${hospitalId}`, {
       headers: {
         'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
       }
@@ -1276,6 +1284,27 @@ async function contactDonor(req, res, next) {
   }
 }
 
+async function updateHospitalProfile(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+    const { name, address, contact, email } = req.body;
+    
+    await pool.query(
+      `UPDATE hospitals 
+       SET name = ?, address = ?, contact = ?, email = ?
+       WHERE id = ?`,
+      [name, address, contact, email, hospitalId]
+    );
+
+    return res.status(200).json({ message: 'Hospital profile updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getInventory,
   addInventory,
@@ -1300,6 +1329,7 @@ module.exports = {
   updateThresholds,
   createStaff,
   getHospitalProfile,
+  updateHospitalProfile,
   listStaff,
   contactDonor
 };

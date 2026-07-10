@@ -346,8 +346,8 @@ const FindCamps = () => {
             {/* Filters */}
             <div className="bg-white border border-[rgba(26,18,16,0.09)] shadow-sm rounded-xl p-6 mb-8 flex flex-col md:flex-row gap-4 items-end">
               <div className="w-full md:w-1/4">
-                <label className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Select State</label>
-                <select
+                <label htmlFor="select-state-1" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Select State</label>
+                <select id="select-state-1"
                   className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
                   value={selectedState}
                   onChange={(e) => {
@@ -363,8 +363,8 @@ const FindCamps = () => {
               </div>
 
               <div className="w-full md:w-1/4">
-                <label className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Select District</label>
-                <select
+                <label htmlFor="select-district-2" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Select District</label>
+                <select id="select-district-2"
                   className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
@@ -376,8 +376,8 @@ const FindCamps = () => {
               </div>
 
               <div className="w-full md:w-1/4">
-                <label className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Camp Date</label>
-                <input
+                <label htmlFor="camp-date-3" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Camp Date</label>
+                <input id="camp-date-3"
                   type="date"
                   min={todayStr}
                   value={campDate}
@@ -387,7 +387,7 @@ const FindCamps = () => {
               </div>
 
               <div className="w-full md:w-1/4">
-                <button
+                <button type="button"
                   onClick={handleSearch}
                   className="w-full bg-[#1a1210] text-white px-6 py-3.5 rounded-xl text-[14px] font-[600] hover:bg-[#BE1F2E] transition-colors flex items-center justify-center gap-2"
                 >
@@ -430,7 +430,7 @@ const FindCamps = () => {
                           <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                           {camp.date}
                         </span>
-                        <button
+                        <button type="button"
                           onClick={() => handleBookAppointment(camp)}
                           className="bg-[#1a1210] hover:bg-[#BE1F2E] text-white text-[12px] font-bold px-4 py-2 rounded-full transition-colors active:scale-95"
                         >
@@ -463,8 +463,8 @@ const FindCamps = () => {
             </div>
             {/* Mobile subheader tab selector */}
             <div className="flex bg-[#eae8e5]/60 rounded-full p-1 max-w-[200px]">
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={() => setMobileTab('requests')}
                 className={`px-3 py-1 text-[12px] font-bold rounded-full transition-all duration-200 ${
                   mobileTab === 'requests' ? 'bg-[#9e001f] text-white' : 'text-[#5c403f]'
@@ -472,8 +472,8 @@ const FindCamps = () => {
               >
                 Camps
               </button>
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={() => setMobileTab('map')}
                 className={`px-3 py-1 text-[12px] font-bold rounded-full transition-all duration-200 ${
                   mobileTab === 'map' ? 'bg-[#9e001f] text-white' : 'text-[#5c403f]'
@@ -486,6 +486,8 @@ const FindCamps = () => {
               <div
                 className="w-8 h-8 rounded-full overflow-hidden border border-[#BE1F2E]/20 bg-[#eae8e5] flex items-center justify-center cursor-pointer shrink-0"
                 onClick={() => navigate('/edit-profile')}
+                role="button"
+                aria-label="Edit Profile"
               >
                 {profilePhoto ? (
                   <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
@@ -514,9 +516,9 @@ const FindCamps = () => {
                   </div>
                   <div className="space-y-3.5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#5c403f]">Select State</label>
+                      <label htmlFor="select-state-4" className="text-[13px] font-medium text-[#5c403f]">Select State</label>
                       <div className="relative">
-                        <select
+                        <select id="select-state-4"
                           value={selectedState}
                           onChange={(e) => {
                             setSelectedState(e.target.value);
@@ -533,9 +535,9 @@ const FindCamps = () => {
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#5c403f]">Select District</label>
+                      <label htmlFor="select-district-5" className="text-[13px] font-medium text-[#5c403f]">Select District</label>
                       <div className="relative">
-                        <select
+                        <select id="select-district-5"
                           value={selectedDistrict}
                           onChange={(e) => setSelectedDistrict(e.target.value)}
                           className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] appearance-none"
@@ -548,8 +550,8 @@ const FindCamps = () => {
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#5c403f]">Camp Date</label>
-                      <input
+                      <label htmlFor="camp-date-6" className="text-[13px] font-medium text-[#5c403f]">Camp Date</label>
+                      <input id="camp-date-6"
                         type="date"
                         min={todayStr}
                         value={campDate}
@@ -557,7 +559,7 @@ const FindCamps = () => {
                         className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
                       />
                     </div>
-                    <button
+                    <button type="button"
                       onClick={handleSearch}
                       className="w-full bg-[#9e001f] text-white py-3 rounded-full font-semibold active:scale-95 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-2 mt-4"
                     >
@@ -592,7 +594,7 @@ const FindCamps = () => {
                           <span className="material-symbols-outlined text-sm">calendar_today</span>
                           {camp.date.split(',')[0]}
                         </span>
-                        <button
+                        <button type="button"
                           onClick={() => handleBookAppointment(camp)}
                           className="bg-[#1a1210] hover:bg-[#9e001f] text-white text-[12px] font-bold px-5 py-2.5 rounded-full transition-colors active:scale-95 shadow-md"
                         >
@@ -634,7 +636,7 @@ const FindCamps = () => {
             ].map((item) => {
               const isActive = item.active;
               return (
-                <button
+                <button type="button"
                   key={item.name}
                   onClick={item.action}
                   className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all cursor-pointer"
@@ -672,8 +674,8 @@ const FindCamps = () => {
             ) : (
               <form onSubmit={submitBooking} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Preferred Date</label>
-                  <input
+                  <label htmlFor="preferred-date-7" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Preferred Date</label>
+                  <input id="preferred-date-7"
                     type="date"
                     min={todayStr}
                     value={bookingDate}
@@ -683,8 +685,8 @@ const FindCamps = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Time Slot</label>
-                  <select
+                  <label htmlFor="time-slot-8" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Time Slot</label>
+                  <select id="time-slot-8"
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
                     className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
@@ -697,8 +699,8 @@ const FindCamps = () => {
                   </select>
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={() => setBookingCamp(null)}
                     className="flex-1 py-3 border border-[#D8D0CA] rounded-full text-[13px] font-[600] text-[#685c59] hover:bg-[#f5f0eb] transition-colors"
                   >

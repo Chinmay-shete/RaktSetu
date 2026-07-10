@@ -158,7 +158,13 @@ export const SystemAdminProvider = ({ children }) => {
 
   const approveHospital = async (id) => {
     try {
-      await api.patch(`/systemadmin/hospitals/${id}/approve`, { status: 'verified' });
+      const response = await api.patch(`/systemadmin/hospitals/${id}/approve`, { status: 'verified' });
+      const tempPassword = response.data?.tempPassword;
+      if (tempPassword) {
+        alert(`Hospital approved successfully!\n\nTemporary Login Password is: ${tempPassword}\n\nPlease share this password with the hospital administrator.`);
+      } else {
+        alert("Hospital approved successfully!");
+      }
       fetchAdminData();
     } catch (err) {
       console.error("Failed to approve hospital", err);
@@ -176,7 +182,13 @@ export const SystemAdminProvider = ({ children }) => {
 
   const approveOfficer = async (id) => {
     try {
-      await api.patch(`/systemadmin/users/${id}`, { status: 'Active' });
+      const response = await api.patch(`/systemadmin/users/${id}`, { status: 'Active' });
+      const tempPassword = response.data?.tempPassword;
+      if (tempPassword) {
+        alert(`District Officer approved successfully!\n\nTemporary Login Password is: ${tempPassword}\n\nPlease share this password with the officer.`);
+      } else {
+        alert("District Officer approved successfully!");
+      }
       fetchAdminData();
     } catch (err) {
       console.error("Failed to approve officer", err);

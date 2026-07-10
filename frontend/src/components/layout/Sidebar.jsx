@@ -49,7 +49,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
             Hospital Staff
           </span>
         </div>
-        <button
+        <button aria-label="Close" type="button"
           onClick={onClose}
           className="lg:hidden p-1.5 rounded-xl hover:bg-[#F0EBE5] text-[#5A5A5A] cursor-pointer transition-colors"
         >
@@ -120,7 +120,7 @@ export const Sidebar = ({ badges = {}, isOpen, onClose }) => {
           </div>
         </div>
 
-        <button
+        <button type="button"
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-semibold text-sm text-[#7A5F5F] hover:text-[#BE1F2E] hover:bg-red-50/50 transition-all cursor-pointer"
         >

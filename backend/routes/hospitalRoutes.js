@@ -49,6 +49,7 @@ router.post('/hospital/surgical-schedule', hospitalStaffRoles, validateRequest(s
 
 // Hospital profile & staff listing
 router.get('/hospital/profile', hospitalStaffRoles, hospitalController.getHospitalProfile);
+router.put('/hospital/profile', hospitalStaffRoles, hospitalController.updateHospitalProfile);
 router.get('/hospital/staff', hospitalStaffRoles, hospitalController.listStaff);
 
 // Donor Search & Contact

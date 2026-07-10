@@ -1,27 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { Trash2, TrendingDown, ShieldAlert, Award, Star } from 'lucide-react';
+import { Trash2, TrendingDown, ShieldAlert, Award, Inbox } from 'lucide-react';
+import api from '../../services/api';
 
 const WasteAnalytics = () => {
-  // Mock Wastage Data
-  const wasteByGroup = [
-    { name: 'O+', value: 8, color: '#ef4444' },
-    { name: 'A+', value: 5, color: '#3b82f6' },
-    { name: 'B+', value: 4, color: '#a855f7' },
-    { name: 'AB+', value: 6, color: '#10b981' },
-    { name: 'Others', value: 3, color: '#f59e0b' },
-  ];
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const wasteTrendData = [
-    { month: 'Jan', Expired: 12, Transfused: 120 },
-    { month: 'Feb', Expired: 9, Transfused: 140 },
-    { month: 'Mar', Expired: 14, Transfused: 130 },
-    { month: 'Apr', Expired: 6, Transfused: 165 },
-    { month: 'May', Expired: 4, Transfused: 180 },
-    { month: 'Jun', Expired: 5, Transfused: 195 },
-  ];
+  useEffect(() => {
+    const fetchWasteData = async () => {
+      try {
+        setIsLoading(true);
+        const res = await api.get('/admin/waste-analytics');
+        setData(res.data);
+      } catch (err) {
+        console.error("Failed to load waste analytics", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchWasteData();
+  }, []);
 
-  const efficiencyScore = 97.4; // Grade A+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#BE1F2E]"></div>
+      </div>
+    );
+  }
+
+  // Read data metrics
+  const totalExpired = data?.totalExpired || 0;
+  const wastageRate = data?.wastageRate || 0;
+  const totalCollected = data?.totalCollected || 0;
+  const totalAvailable = data?.totalAvailable || 0;
+  const totalReserved = data?.totalReserved || 0;
+  const expiringSoon = data?.expiringSoon || 0;
+
+  const efficiencyScore = totalCollected > 0 ? (100 - wastageRate).toFixed(1) : 100;
+  const isFifoCompliant = wastageRate < 5;
+
+  // Pie chart showing available vs reserved vs expired
+  const pieData = [
+    { name: 'Available', value: totalAvailable, color: '#3b82f6' },
+    { name: 'Reserved', value: totalReserved, color: '#f59e0b' },
+    { name: 'Expired', value: totalExpired, color: '#ef4444' }
+  ].filter(item => item.value > 0);
+
+  // If there's no data collected yet, show a clean empty state!
+  const hasNoData = totalCollected === 0;
 
   return (
     <div className="space-y-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -45,7 +73,9 @@ const WasteAnalytics = () => {
           <div>
             <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A]">Efficiency Rating</p>
             <p className="text-2xl font-extrabold text-[#1a1a1a] mt-1">{efficiencyScore}%</p>
-            <p className="text-[10px] text-[#22A06B] font-bold mt-0.5 uppercase tracking-wide">Excellent (Grade A+)</p>
+            <p className="text-[10px] text-[#22A06B] font-bold mt-0.5 uppercase tracking-wide">
+              {efficiencyScore >= 95 ? "Excellent (Grade A+)" : efficiencyScore >= 85 ? "Good (Grade B)" : "Action Required"}
+            </p>
           </div>
         </div>
 
@@ -56,9 +86,11 @@ const WasteAnalytics = () => {
             <ShieldAlert size={26} />
           </div>
           <div>
-            <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A]">Expired This Month</p>
-            <p className="text-2xl font-extrabold text-[#1a1a1a] mt-1">5 Units</p>
-            <p className="text-[10px] text-[#BE1F2E] font-bold mt-0.5 uppercase tracking-wide">-15% From last month</p>
+            <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A]">Expired Total</p>
+            <p className="text-2xl font-extrabold text-[#1a1a1a] mt-1">{totalExpired} Units</p>
+            <p className="text-[10px] text-[#BE1F2E] font-bold mt-0.5 uppercase tracking-wide">
+              {wastageRate}% Wastage Rate
+            </p>
           </div>
         </div>
 
@@ -69,108 +101,84 @@ const WasteAnalytics = () => {
             <TrendingDown size={26} />
           </div>
           <div>
-            <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A]">Rotational Compliance</p>
-            <p className="text-2xl font-extrabold text-[#1a1a1a] mt-1">FIFO Compliant</p>
-            <p className="text-[10px] text-blue-500 font-bold mt-0.5 uppercase tracking-wide">99% Freshness Index</p>
+            <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A]">Rotational Status</p>
+            <p className="text-2xl font-extrabold text-[#1a1a1a] mt-1">
+              {isFifoCompliant ? "FIFO Compliant" : "High Wastage"}
+            </p>
+            <p className="text-[10px] text-blue-500 font-bold mt-0.5 uppercase tracking-wide">
+              {expiringSoon} units expiring soon
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Charts section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Trend Bar Chart */}
-        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-8 shadow-sm">
-          <h2 className="text-[20px] font-[500] text-[#1a1a1a] mb-6 italic font-serif">Wastage vs Transfusion History</h2>
-          <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={wasteTrendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eae8e5" />
-                <XAxis dataKey="month" stroke="#737373" fontSize={11} tickLine={false} />
-                <YAxis stroke="#737373" fontSize={11} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#E0DAD4', borderRadius: '8px' }}
-                  labelStyle={{ color: '#1a1a1a', fontWeight: 'bold' }}
-                />
-                <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="Transfused" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Expired" fill="#BE1F2E" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+      {/* Main Analysis Block */}
+      {hasNoData ? (
+        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-16 text-center flex flex-col items-center justify-center max-w-4xl mx-auto shadow-sm">
+          <div className="p-4 rounded-full bg-[#FAF8F5] text-[#9A9A9A] mb-4">
+            <Inbox size={48} />
           </div>
+          <h2 className="font-serif text-[24px] text-[#1A1210] italic mb-2">No Wastage Data Found</h2>
+          <p className="text-sm text-[#737373] max-w-md leading-relaxed">
+            Since your hospital registry is new, no blood inventory batches have been added yet. Once blood donations and inventory batches are uploaded, the AI service will generate real-time waste analytics.
+          </p>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pie Distribution Chart */}
+          <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-8 shadow-sm">
+            <h2 className="text-[20px] font-[500] text-[#1a1a1a] mb-6 italic font-serif">Inventory Status Breakdown</h2>
+            <div className="h-[280px] w-full flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-        {/* Breakdown Pie Chart */}
-        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-8 shadow-sm flex flex-col justify-between">
-          <div>
-            <h2 className="text-[20px] font-[500] text-[#1a1a1a] mb-6 italic font-serif">Wastage Distribution by Group</h2>
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="h-[200px] w-[200px] shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={wasteByGroup}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      {wasteByGroup.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#ffffff', borderColor: '#E0DAD4', borderRadius: '8px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+          {/* Data details list */}
+          <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-8 shadow-sm flex flex-col justify-center">
+            <h2 className="text-[20px] font-[500] text-[#1a1a1a] mb-6 italic font-serif">Detailed Waste Metrics</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between border-b border-[#eae8e5] pb-2">
+                <span className="text-sm text-[#737373]">Total Units Collected</span>
+                <span className="text-sm font-bold text-[#1a1a1a]">{totalCollected} Bags</span>
               </div>
-
-              {/* Legends details */}
-              <div className="w-full space-y-2">
-                {wasteByGroup.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between text-xs text-[#5A5A5A] font-bold p-3.5 bg-[#fbf9f6] rounded-xl border border-[rgba(26,18,16,0.09)]">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                      <span>{entry.name} Group</span>
-                    </div>
-                    <span>{entry.value} Bags Expired</span>
-                  </div>
-                ))}
+              <div className="flex justify-between border-b border-[#eae8e5] pb-2">
+                <span className="text-sm text-[#737373]">Active/Available Stock</span>
+                <span className="text-sm font-bold text-blue-500">{totalAvailable} Bags</span>
+              </div>
+              <div className="flex justify-between border-b border-[#eae8e5] pb-2">
+                <span className="text-sm text-[#737373]">Reserved for Surgeries</span>
+                <span className="text-sm font-bold text-amber-500">{totalReserved} Bags</span>
+              </div>
+              <div className="flex justify-between border-b border-[#eae8e5] pb-2">
+                <span className="text-sm text-[#737373]">Total Expired Units</span>
+                <span className="text-sm font-bold text-red-500">{totalExpired} Bags</span>
+              </div>
+              <div className="flex justify-between pt-2">
+                <span className="text-sm text-[#737373]">Wastage Rate</span>
+                <span className="text-sm font-bold text-red-600">{wastageRate}%</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Actionable recommendations (Editorial Dark Card) */}
-      <div className="bg-[#1a1210] p-8 rounded-lg text-white relative overflow-hidden">
-        <h3 className="font-serif text-[24px] mb-6 italic text-white flex items-center gap-2">
-          <Star className="text-[#BE1F2E]" size={24} />
-          <span>Optimization Plan</span>
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-white/75">
-          <div className="p-5 rounded-xl bg-[#3D2B2B]/30 border border-white/5 space-y-2">
-            <h4 className="font-bold text-white flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#22A06B]" />
-              <span>Rotational Strategy</span>
-            </h4>
-            <p className="text-xs text-white/60 leading-relaxed">
-              Enforce FIFO (First-In, First-Out) strictly on AB+ stockpiles as they currently represent {((6/26)*100).toFixed(0)}% of total ex-date discards.
-            </p>
-          </div>
-          <div className="p-5 rounded-xl bg-[#3D2B2B]/30 border border-white/5 space-y-2">
-            <h4 className="font-bold text-white flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <span>Cross-Hospital Clearing</span>
-            </h4>
-            <p className="text-xs text-white/60 leading-relaxed">
-              Set automated notifications to transfer blood bags with under 7 days shelf-life to municipal trauma hubs where turnover is higher.
-            </p>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

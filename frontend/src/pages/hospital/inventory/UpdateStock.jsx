@@ -95,8 +95,8 @@ export const UpdateStock = () => {
           {/* Blood Group & Units */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Blood Group</label>
-              <select
+              <label htmlFor="blood-group-1" className={fieldLabel}>Blood Group</label>
+              <select id="blood-group-1"
                 {...register("bloodGroup", { required: "Blood group is required" })}
                 className="input-field custom-select"
               >
@@ -112,8 +112,8 @@ export const UpdateStock = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Quantity (Units)</label>
-              <input
+              <label htmlFor="quantity-units-2" className={fieldLabel}>Quantity (Units)</label>
+              <input id="quantity-units-2"
                 type="number"
                 placeholder="10"
                 {...register("units", {
@@ -133,9 +133,9 @@ export const UpdateStock = () => {
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Collection Date</label>
+              <label htmlFor="collection-date-3" className={fieldLabel}>Collection Date</label>
               <div className="relative">
-                <input
+                <input id="collection-date-3"
                   type="date"
                   {...register("collectionDate", {
                     required: "Collection date is required",
@@ -153,9 +153,9 @@ export const UpdateStock = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Expiry Date</label>
+              <label htmlFor="expiry-date-4" className={fieldLabel}>Expiry Date</label>
               <div className="relative">
-                <input
+                <input id="expiry-date-4"
                   type="date"
                   {...register("expiryDate", {
                     required: "Expiry date is required",
@@ -175,9 +175,9 @@ export const UpdateStock = () => {
 
           {/* Source */}
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Supply Source</label>
+            <label htmlFor="supply-source-5" className={fieldLabel}>Supply Source</label>
             <div className="relative">
-              <select
+              <select id="supply-source-5"
                 {...register("source", { required: "Supply source is required" })}
                 className="input-field custom-select !pl-10"
               >
@@ -197,9 +197,9 @@ export const UpdateStock = () => {
 
           {/* Remarks */}
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Batch Remarks (Optional)</label>
+            <label htmlFor="batch-remarks-optional-6" className={fieldLabel}>Batch Remarks (Optional)</label>
             <div className="relative">
-              <textarea
+              <textarea id="batch-remarks-optional-6"
                 placeholder="E.g., cold chain validated, screened for typical infections, unique donor reference..."
                 rows="3"
                 {...register("remarks")}
@@ -274,13 +274,13 @@ export const UpdateStock = () => {
             )}
 
             <div className="flex gap-3 mt-4 border-t border-[#EDE7E1] pt-4">
-              <button
+              <button type="button"
                 onClick={() => setShowConfirmModal(false)}
                 className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
               >
                 Cancel
               </button>
-              <button
+              <button type="button"
                 onClick={confirmSubmit}
                 disabled={addStockMutation.isPending}
                 className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition-colors"

@@ -107,8 +107,8 @@ const DistrictLogin = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="mb-4">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Government Email Address</label>
-                <input
+                <label htmlFor="government-email-address-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Government Email Address</label>
+                <input id="government-email-address-1"
                   type="email"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -119,8 +119,8 @@ const DistrictLogin = () => {
               </div>
 
               <div className="mb-6">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
-                <input
+                <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                <input id="password-2"
                   type="password"
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -142,7 +142,18 @@ const DistrictLogin = () => {
 
           </div>
 
-          <p className="text-center text-[11px] text-[#9A9A9A] leading-relaxed mt-8 px-4">
+          {/* Register link */}
+          <p className="text-center text-[13px] text-[#5A5A5A] mt-6">
+            New District Officer?{' '}
+            <Link
+              to="/district/register"
+              className="text-[#BE1F2E] font-bold hover:underline"
+            >
+              Request Portal Access
+            </Link>
+          </p>
+
+          <p className="text-center text-[11px] text-[#9A9A9A] leading-relaxed mt-4 px-4">
             Authorized use only. Unauthorized attempts will be logged and reported.
           </p>
         </div>

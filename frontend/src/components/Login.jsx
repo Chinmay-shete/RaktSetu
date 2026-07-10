@@ -295,7 +295,7 @@ const Login = () => {
 
               {mobileStep === 1 && (
                 <div className="flex border-b border-[#E0DAD4] mb-8">
-                  <button
+                  <button type="button"
                     className={`flex-1 pb-3 text-sm font-semibold border-b-2 transition-all ${
                       loginMethod === 'email'
                         ? 'border-[#BE1F2E] text-[#BE1F2E]'
@@ -305,7 +305,7 @@ const Login = () => {
                   >
                     Email Address
                   </button>
-                  <button
+                  <button type="button"
                     className={`flex-1 pb-3 text-sm font-semibold border-b-2 transition-all ${
                       loginMethod === 'mobile'
                         ? 'border-[#BE1F2E] text-[#BE1F2E]'
@@ -321,8 +321,8 @@ const Login = () => {
               {loginMethod === 'email' && (
                 <form onSubmit={handleEmailSubmit} className="space-y-5 animate-fade-in">
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Email Address</label>
-                    <input
+                    <label htmlFor="email-address-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Email Address</label>
+                    <input id="email-address-1"
                       className="input-field w-full border border-[#D8D0CA] rounded-xl px-4 py-3 bg-[#faf8f5] outline-none"
                       type="email"
                       value={email}
@@ -333,9 +333,9 @@ const Login = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Password</label>
+                    <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Password</label>
                     <div className="relative flex items-center h-[52px] border border-[#D8D0CA] rounded-xl bg-[#faf8f5] focus-within:border-[#BE1F2E]">
-                      <input
+                      <input id="password-2"
                         className="flex-grow bg-transparent border-none focus:ring-0 px-4 text-[16px] text-[#1A1A1A] outline-none"
                         type={showPassword ? "text" : "password"}
                         value={password}
@@ -343,8 +343,8 @@ const Login = () => {
                         placeholder="Enter password"
                         required
                       />
-                      <button
-                        type="button"
+                      <button type="button"
+                        
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 text-[#9A9A9A] hover:text-[#BE1F2E]"
                       >
@@ -374,10 +374,10 @@ const Login = () => {
               {loginMethod === 'mobile' && mobileStep === 1 && (
                 <div className="animate-fade-in space-y-5">
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Mobile Number</label>
+                    <label htmlFor="mobile-number-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Mobile Number</label>
                     <div className="flex items-center h-[52px] border border-[#D8D0CA] rounded-xl bg-[#faf8f5] overflow-hidden">
                       <span className="pl-4 text-[16px] text-[#9A9A9A] font-[500]">+91</span>
-                      <input
+                      <input id="mobile-number-3"
                         className="flex-grow bg-transparent border-none focus:ring-0 px-3 text-[16px] outline-none"
                         type="tel"
                         value={mobile}
@@ -395,7 +395,7 @@ const Login = () => {
                     </div>
                   )}
 
-                  <button
+                  <button type="button"
                     className="btn-primary w-full"
                     disabled={!isMobileValid || buttonState !== 'default'}
                     onClick={handleSendOTP}
@@ -420,6 +420,7 @@ const Login = () => {
                         onChange={(e) => handleOtpChange(e.target.value, idx)}
                         onKeyDown={(e) => handleOtpKeyDown(e, idx)}
                         className="w-12 h-14 bg-[#faf8f5] border border-[#D8D0CA] rounded-xl text-center font-bold text-[20px] outline-none"
+                        aria-label={`OTP digit ${idx + 1}`}
                       />
                     ))}
                   </div>
@@ -432,13 +433,13 @@ const Login = () => {
                   )}
 
                   <div className="flex gap-3 mt-6">
-                    <button
+                    <button type="button"
                       onClick={() => setMobileStep(1)}
                       className="w-1/3 h-[52px] rounded-xl border border-[#D8D0CA] text-[14px]"
                     >
                       Back
                     </button>
-                    <button
+                    <button type="button"
                       onClick={handleVerifyOTP}
                       disabled={!allFilled || buttonState === 'sending'}
                       className="btn-primary w-2/3"
@@ -466,7 +467,7 @@ const Login = () => {
           {/* TopAppBar */}
           <header className="w-full top-0 sticky z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center justify-between px-4 py-4 shrink-0">
             {mobileStep === 2 ? (
-              <button
+              <button type="button"
                 onClick={() => { setMobileStep(1); setButtonState('default'); setOtpError(''); }}
                 className="text-[#9e001f] active:scale-95 transition-transform"
               >
@@ -492,8 +493,8 @@ const Login = () => {
 
                 {/* Login tab toggle styled exactly like camps tab */}
                 <div className="flex bg-[#eae8e5]/60 rounded-full p-1 max-w-[260px] mx-auto mb-6">
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={() => setLoginMethod('email')}
                     className={`flex-1 py-1.5 text-[12px] font-bold rounded-full transition-all duration-200 ${
                       loginMethod === 'email' ? 'bg-[#9e001f] text-white' : 'text-[#5c403f]'
@@ -501,8 +502,8 @@ const Login = () => {
                   >
                     Email Address
                   </button>
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={() => setLoginMethod('mobile')}
                     className={`flex-1 py-1.5 text-[12px] font-bold rounded-full transition-all duration-200 ${
                       loginMethod === 'mobile' ? 'bg-[#9e001f] text-white' : 'text-[#5c403f]'
@@ -515,8 +516,8 @@ const Login = () => {
                 {loginMethod === 'email' ? (
                   <form onSubmit={handleEmailSubmit} className="space-y-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[14px] font-medium text-[#5c403f]">Email Address</label>
-                      <input
+                      <label htmlFor="email-address-4" className="text-[14px] font-medium text-[#5c403f]">Email Address</label>
+                      <input id="email-address-4"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -526,9 +527,9 @@ const Login = () => {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[14px] font-medium text-[#5c403f]">Password</label>
+                      <label htmlFor="password-5" className="text-[14px] font-medium text-[#5c403f]">Password</label>
                       <div className="relative">
-                        <input
+                        <input id="password-5"
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
@@ -536,8 +537,8 @@ const Login = () => {
                           className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
                           required
                         />
-                        <button
-                          type="button"
+                        <button type="button"
+                          
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-[#906f6e]"
                         >
@@ -566,10 +567,10 @@ const Login = () => {
                 ) : (
                   <div className="space-y-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[14px] font-medium text-[#5c403f]">Mobile Number</label>
+                      <label htmlFor="mobile-number-6" className="text-[14px] font-medium text-[#5c403f]">Mobile Number</label>
                       <div className="flex items-center bg-white border border-[rgba(26,18,16,0.09)] rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#9e001f]/40 focus-within:border-[#9e001f]">
                         <span className="pl-4 text-[16px] text-[#906f6e] font-semibold">+91</span>
-                        <input
+                        <input id="mobile-number-6"
                           type="tel"
                           value={mobile}
                           onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
@@ -588,7 +589,7 @@ const Login = () => {
                     )}
 
                     <div className="pt-4">
-                      <button
+                      <button type="button"
                         disabled={!isMobileValid || buttonState !== 'default'}
                         onClick={handleSendOTP}
                         className="w-full bg-[#9e001f] text-white font-semibold py-4 rounded-full active:scale-95 hover:opacity-90 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-1"
@@ -630,6 +631,7 @@ const Login = () => {
                       onKeyDown={(e) => handleOtpKeyDown(e, idx)}
                       onPaste={handleOtpPaste}
                       className="w-12 h-14 bg-white border border-[rgba(26,18,16,0.09)] rounded-lg text-center font-bold text-[20px] outline-none transition-all focus:border-[#9e001f] focus:ring-2 focus:ring-[#9e001f]/30"
+                      aria-label={`OTP digit ${idx + 1}`}
                     />
                   ))}
                 </div>
@@ -651,18 +653,18 @@ const Login = () => {
                   {resendDisabled ? (
                     <span className="text-[#737373]">Resend OTP in {timer}s</span>
                   ) : (
-                    <button onClick={handleResendOTP} className="text-[#9e001f] font-semibold hover:underline">Resend OTP</button>
+                    <button type="button" onClick={handleResendOTP} className="text-[#9e001f] font-semibold hover:underline">Resend OTP</button>
                   )}
                 </div>
 
                 <div className="pt-4 flex gap-3">
-                  <button
+                  <button type="button"
                     onClick={() => { setMobileStep(1); setButtonState('default'); setOtpError(''); }}
                     className="w-1/3 bg-transparent border border-[rgba(26,18,16,0.15)] text-[#5c403f] font-semibold py-4 rounded-full active:scale-95 transition-colors"
                   >
                     Back
                   </button>
-                  <button
+                  <button type="button"
                     onClick={handleVerifyOTP}
                     disabled={!allFilled || buttonState === 'sending'}
                     className="w-2/3 bg-[#9e001f] text-white font-semibold py-4 rounded-full active:scale-95 hover:opacity-90 shadow-xl shadow-[#9e001f]/20 transition-all flex items-center justify-center gap-1"

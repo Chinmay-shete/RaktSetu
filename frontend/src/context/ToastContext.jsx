@@ -61,7 +61,7 @@ export const ToastProvider = ({ children }) => {
                 <div className="flex-grow text-xs font-bold text-[#1A1210]">
                   {toast.message}
                 </div>
-                <button
+                <button aria-label="Close" type="button"
                   onClick={() => removeToast(toast.id)}
                   className="flex-shrink-0 text-[#7A5F5F] hover:text-[#1A1210] transition-colors cursor-pointer"
                 >

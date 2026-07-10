@@ -219,24 +219,57 @@ async function register(req, res, next) {
       );
 
       const hospitalId = hospitalResult.insertId;
-      const passwordHash = await hashPassword(password);
+      // Set temporary password hash during registration, which gets replaced on approval
+      const passwordHash = await hashPassword('PENDING_APPROVAL_TEMP_RESET');
 
-      // Insert Admin User
+      // Insert Admin User in Pending state
       const [userResult] = await connection.query(
-        'INSERT INTO users (email, phone, password_hash, role, hospital_id) VALUES (?, ?, ?, ?, ?)',
+        "INSERT INTO users (email, phone, password_hash, role, hospital_id, status) VALUES (?, ?, ?, ?, ?, 'Pending')",
         [finalEmail, phone, passwordHash, 'admin', hospitalId]
       );
 
-      const user_id = userResult.insertId;
       await connection.commit();
 
-      const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [user_id]);
-      const result = await issueTokens(userRows[0]);
-      result.message = 'Hospital registration submitted. Awaiting verification.';
-      return res.status(201).json(result);
+      return res.status(201).json({
+        message: 'Hospital registration submitted successfully. Please wait for System Admin approval.'
+      });
+
+    } else if (role === 'district') {
+      // District Officer registration
+      const { email, phone, fullName, designation, districtName, state } = req.body;
+      const finalEmail = email.toLowerCase();
+
+      const [existingEmail] = await connection.query('SELECT id FROM users WHERE email = ?', [finalEmail]);
+      if (existingEmail.length > 0) {
+        throw new ApiError('Email already registered', 409, 'EMAIL_EXISTS');
+      }
+
+      const [existingPhone] = await connection.query('SELECT id FROM users WHERE phone = ?', [phone]);
+      if (existingPhone.length > 0) {
+        throw new ApiError('Phone number already registered', 409, 'PHONE_EXISTS');
+      }
+
+      // Find or create district
+      const districtId = await findOrCreateDistrict(connection, districtName, state);
+
+      // Set temporary password hash during registration, which gets replaced on approval
+      const passwordHash = await hashPassword('PENDING_APPROVAL_TEMP_RESET');
+
+      // Insert District User in Pending state
+      await connection.query(
+        `INSERT INTO users (email, phone, password_hash, role, full_name, designation, district_id, status) 
+         VALUES (?, ?, ?, 'district', ?, ?, ?, 'Pending')`,
+        [finalEmail, phone, passwordHash, fullName, designation, districtId]
+      );
+
+      await connection.commit();
+
+      return res.status(201).json({
+        message: 'District Officer registration submitted successfully. Please wait for System Admin approval.'
+      });
 
     } else {
-      throw new ApiError('Invalid registration role. Only donor or hospital admin can register.', 400, 'INVALID_ROLE');
+      throw new ApiError('Invalid registration role. Only donor, hospital admin, or district officer can register.', 400, 'INVALID_ROLE');
     }
   } catch (error) {
     await connection.rollback();
@@ -304,13 +337,10 @@ async function login(req, res, next) {
     }
 
     // Check if hospital is pending
-    if (user.role === 'admin' && user.hospital_id) {
+    if (['admin', 'staff'].includes(user.role) && user.hospital_id) {
       const [hospRows] = await pool.query('SELECT verification_status FROM hospitals WHERE id = ?', [user.hospital_id]);
       if (hospRows.length > 0 && hospRows[0].verification_status === 'pending') {
-        // Return tokens but notify pending status
-        const result = await issueTokens(user);
-        result.message = 'Hospital status pending verification by System Admin';
-        return res.status(200).json(result);
+        throw new ApiError('Your hospital registration is pending verification. Please wait for System Admin approval.', 403, 'HOSPITAL_PENDING');
       }
     }
 

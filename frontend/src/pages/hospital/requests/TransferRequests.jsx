@@ -154,7 +154,7 @@ export const TransferRequests = () => {
             Coordinate, review, and request stock transfers across nearest partner hospitals.
           </p>
         </div>
-        <button
+        <button type="button"
           onClick={() => setIsRequestModalOpen(true)}
           className="btn-primary self-start sm:self-auto"
           style={{ minHeight: 42, minWidth: 'auto', padding: '10px 20px', fontSize: 13 }}
@@ -167,7 +167,7 @@ export const TransferRequests = () => {
       {/* Navigation tabs */}
       <div className="flex border-b border-[#EDE7E1] gap-6 text-sm font-bold select-none">
         {['Incoming', 'Outgoing'].map(tab => (
-          <button
+          <button type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`pb-3.5 relative transition-colors cursor-pointer ${
@@ -237,13 +237,13 @@ export const TransferRequests = () => {
                     <td className="px-4 py-4 text-right">
                       {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'incoming' && (
                         <div className="flex gap-2 justify-end">
-                          <button
+                          <button type="button"
                             onClick={() => setRejectId(req.id)}
                             className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full border border-[#EDE7E1] text-[11px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
                           >
                             <ThumbsDown className="h-3 w-3" /> Decline
                           </button>
-                          <button
+                          <button type="button"
                             onClick={() => handleApprove(req.id)}
                             className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full bg-[#22A06B] hover:bg-[#1B8459] text-white text-[11px] font-bold cursor-pointer transition-colors"
                           >
@@ -286,13 +286,13 @@ export const TransferRequests = () => {
           />
 
           <div className="flex gap-3 border-t border-[#EDE7E1] pt-4 mt-1">
-            <button
+            <button type="button"
               onClick={() => setRejectId(null)}
               className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
             >
               Cancel
             </button>
-            <button
+            <button type="button"
               onClick={handleRejectSubmit}
               className="w-1/2 px-4 py-2.5 rounded-full bg-[#BE1F2E] hover:bg-[#9E1825] text-white text-xs font-bold cursor-pointer transition-colors"
             >
@@ -314,8 +314,8 @@ export const TransferRequests = () => {
           </p>
 
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Target Bank</label>
-            <select
+            <label htmlFor="target-bank-1" className={fieldLabel}>Target Bank</label>
+            <select id="target-bank-1"
               {...register("fromHospitalId", { required: true })}
               className="input-field custom-select"
             >
@@ -328,8 +328,8 @@ export const TransferRequests = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Required Group</label>
-              <select
+              <label htmlFor="required-group-2" className={fieldLabel}>Required Group</label>
+              <select id="required-group-2"
                 {...register("bloodGroup", { required: true })}
                 className="input-field custom-select"
               >
@@ -340,8 +340,8 @@ export const TransferRequests = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className={fieldLabel}>Units Required</label>
-              <input
+              <label htmlFor="units-required-3" className={fieldLabel}>Units Required</label>
+              <input id="units-required-3"
                 type="number"
                 {...register("units", { required: true, min: 1 })}
                 className="input-field"
@@ -350,8 +350,8 @@ export const TransferRequests = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Priority Level</label>
-            <select
+            <label htmlFor="priority-level-4" className={fieldLabel}>Priority Level</label>
+            <select id="priority-level-4"
               {...register("priority", { required: true })}
               className="input-field custom-select"
             >
@@ -362,8 +362,8 @@ export const TransferRequests = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className={fieldLabel}>Urgency Message</label>
-            <textarea
+            <label htmlFor="urgency-message-5" className={fieldLabel}>Urgency Message</label>
+            <textarea id="urgency-message-5"
               placeholder="Provide a quick note explaining request requirements..."
               rows="3"
               {...register("message")}
@@ -372,8 +372,8 @@ export const TransferRequests = () => {
           </div>
 
           <div className="flex gap-3 border-t border-[#EDE7E1] pt-4 mt-2">
-            <button
-              type="button"
+            <button type="button"
+              
               onClick={() => setIsRequestModalOpen(false)}
               className="w-1/2 px-4 py-2.5 rounded-full border border-[#EDE7E1] text-xs font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
             >

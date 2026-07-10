@@ -259,7 +259,7 @@ id,title,value,date
                 </p>
               </div>
 
-              <button
+              <button type="button"
                 onClick={() => handleDownload(report)}
                 disabled={isDownloading}
                 className={`w-full py-3 rounded-full text-[13px] font-[500] transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 ${

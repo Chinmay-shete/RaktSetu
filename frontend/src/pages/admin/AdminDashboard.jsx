@@ -187,7 +187,7 @@ const AdminDashboard = () => {
               </div>
               <div className="flex justify-between items-center mt-6">
                 <span className="text-xs text-[#9A9A9A]">Receive regional requests</span>
-                <button 
+                <button aria-label="Toggle emergency status" type="button" 
                   onClick={() => setEmergencyStatus(!emergencyStatus)}
                   className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 focus:outline-none ${
                     emergencyStatus ? 'bg-[#BE1F2E]' : 'bg-slate-200'
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
                 <span className="material-symbols-outlined text-[#BE1F2E]">history</span>
                 <h3 className="text-[24px] font-[500] italic">Recent Movements</h3>
               </div>
-              <button 
+              <button type="button" 
                 onClick={() => navigate('/admin/forecast')}
                 className="text-[12px] font-bold text-[#BE1F2E] uppercase hover:underline tracking-wider"
               >
@@ -298,7 +298,7 @@ const AdminDashboard = () => {
                 <h3 className="font-serif text-[48px] text-white italic leading-tight">Need neighborhood donors?</h3>
                 <p className="text-white/80 text-[16px] mt-2">Broadcast a critical alert to matches inside the district.</p>
               </div>
-              <button 
+              <button type="button" 
                 onClick={() => alert(`🚨 Siren alert sent to eligible donors matching hospital groups.`)}
                 className="bg-white text-[#BE1F2E] px-10 py-4 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400 whitespace-nowrap"
               >
@@ -345,7 +345,7 @@ const AdminDashboard = () => {
                   </div>
 
                   {req.status === 'Pending' || req.status === 'pending' ? (
-                    <button 
+                    <button type="button" 
                       onClick={() => handleApproveRequest(req.id)}
                       className="w-full bg-[#1a1210] text-white py-3 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform duration-400"
                     >

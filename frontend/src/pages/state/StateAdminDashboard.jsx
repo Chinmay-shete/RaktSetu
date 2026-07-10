@@ -311,7 +311,7 @@ const StateAdminDashboard = () => {
                   <p className="text-[11px] text-[#737373] leading-relaxed line-clamp-2">{alert.message}</p>
                 </div>
               ))}
-              <button
+              <button type="button"
                 onClick={() => navigate('/state/alerts')}
                 className="btn-state w-full text-[13px]"
                 style={{ minHeight: 40, padding: '10px 20px' }}
@@ -331,7 +331,7 @@ const StateAdminDashboard = () => {
                 <p>• <strong className="text-white">Aurangabad waste KPI breach</strong> — 8.1% for 2nd month. Audit + system upgrade needed.</p>
                 <p>• <strong className="text-white">Vidarbha donor density low</strong> — 3 districts below minimum. Authorize ₹6L camp budget.</p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => navigate('/state/funding')}
                 className="inline-flex items-center gap-2 text-[14px] font-[500] group cursor-pointer hover:underline animate-pulse"
                 style={{ color: '#fca5a5' }}
@@ -354,7 +354,7 @@ const StateAdminDashboard = () => {
                   {pendingEscalations} Escalation{pendingEscalations !== 1 ? 's' : ''} Pending
                 </h3>
               </div>
-              <button
+              <button type="button"
                 onClick={() => navigate('/state/reports')}
                 className="bg-white px-6 py-2.5 rounded-full text-[13px] font-[600] hover:scale-105 active:scale-95 transition-transform w-fit"
                 style={{ color: 'var(--state)' }}

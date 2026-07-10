@@ -59,13 +59,13 @@ const CampApprovals = () => {
 
       {/* Tab Bar */}
       <div className="flex gap-3">
-        <button
+        <button type="button"
           onClick={() => setActiveTab('list')}
           className={`px-6 py-2.5 rounded-full text-[13px] font-[600] transition-all ${activeTab === 'list' ? 'bg-[#BE1F2E] text-white' : 'bg-white border border-[rgba(26,18,16,0.09)] text-[#5A5A5A] hover:text-[#BE1F2E]'}`}
         >
           Camp List ({camps.length})
         </button>
-        <button
+        <button type="button"
           onClick={() => setActiveTab('plan')}
           className={`px-6 py-2.5 rounded-full text-[13px] font-[600] transition-all ${activeTab === 'plan' ? 'bg-[#BE1F2E] text-white' : 'bg-white border border-[rgba(26,18,16,0.09)] text-[#5A5A5A] hover:text-[#BE1F2E]'}`}
         >
@@ -130,13 +130,13 @@ const CampApprovals = () => {
 
                     {camp.status === 'Pending' && (
                       <div className="flex gap-3 shrink-0">
-                        <button
+                        <button type="button"
                           onClick={() => approveCamp(camp.id)}
                           className="bg-[#1a1210] text-white px-6 py-2.5 rounded-full text-[13px] font-[500] hover:scale-105 active:scale-95 transition-transform"
                         >
                           Approve
                         </button>
-                        <button
+                        <button type="button"
                           onClick={() => rejectCamp(camp.id)}
                           className="border border-[rgba(26,18,16,0.09)] text-[#5A5A5A] px-6 py-2.5 rounded-full text-[13px] font-[500] hover:bg-[#f5f3f0] transition-colors"
                         >
@@ -167,36 +167,36 @@ const CampApprovals = () => {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Camp Name</label>
-                      <input value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className="input-field" placeholder="e.g. Kothrud Community Camp" required />
+                      <label htmlFor="camp-name-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Camp Name</label>
+                      <input id="camp-name-1" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className="input-field" placeholder="e.g. Kothrud Community Camp" required />
                     </div>
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Date</label>
-                      <input type="date" value={formData.date} onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} className="input-field" required />
+                      <label htmlFor="date-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Date</label>
+                      <input id="date-2" type="date" value={formData.date} onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} className="input-field" required />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Location / Address</label>
-                    <input value={formData.location} onChange={e => setFormData(p => ({ ...p, location: e.target.value }))} className="input-field" placeholder="Venue name, area, Pune" required />
+                    <label htmlFor="location-address-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Location / Address</label>
+                    <input id="location-address-3" value={formData.location} onChange={e => setFormData(p => ({ ...p, location: e.target.value }))} className="input-field" placeholder="Venue name, area, Pune" required />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Organizing Hospital</label>
-                      <select value={formData.organizer} onChange={e => setFormData(p => ({ ...p, organizer: e.target.value }))} className="input-field custom-select" required>
+                      <label htmlFor="organizing-hospital-4" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Organizing Hospital</label>
+                      <select id="organizing-hospital-4" value={formData.organizer} onChange={e => setFormData(p => ({ ...p, organizer: e.target.value }))} className="input-field custom-select" required>
                         <option value="">Select hospital…</option>
                         {hospitals.map(h => <option key={h.id} value={h.name}>{h.name}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Donor Capacity</label>
-                      <input type="number" value={formData.capacity} onChange={e => setFormData(p => ({ ...p, capacity: e.target.value }))} className="input-field" placeholder="e.g. 200" required />
+                      <label htmlFor="donor-capacity-5" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Donor Capacity</label>
+                      <input id="donor-capacity-5" type="number" value={formData.capacity} onChange={e => setFormData(p => ({ ...p, capacity: e.target.value }))} className="input-field" placeholder="e.g. 200" required />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-3">Target Blood Groups</label>
+                    <label htmlFor="target-blood-groups-6" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-3">Target Blood Groups</label>
                     <div className="flex flex-wrap gap-2">
                       {BLOOD_GROUPS.map(g => (
-                        <button
+                        <button type="button"
                           key={g}
                           type="button"
                           onClick={() => toggleBloodGroup(g)}

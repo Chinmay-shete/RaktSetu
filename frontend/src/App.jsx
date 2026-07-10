@@ -56,6 +56,7 @@ import HospitalProfile from './pages/admin/HospitalProfile';
 import { DistrictProvider } from './context/DistrictContext';
 import DistrictLayout from './layouts/DistrictLayout/DistrictLayout';
 import DistrictLogin from './pages/district/DistrictLogin';
+import OfficerRegistration from './pages/district/OfficerRegistration';
 import DistrictDashboard from './pages/district/DistrictDashboard';
 import DistrictMap from './pages/district/DistrictMap';
 import DistrictAlerts from './pages/district/DistrictAlerts';
@@ -173,6 +174,7 @@ function App() {
                 {/* --------------------------------- */}
                 <Route path="/district" element={<Navigate to="/district/login" replace />} />
                 <Route path="/district/login" element={<DistrictLogin />} />
+                <Route path="/district/register" element={<OfficerRegistration />} />
                 <Route path="/district/dashboard" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictDashboard /></DistrictLayout></ProtectedRoute>} />
                 <Route path="/district/map" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictMap /></DistrictLayout></ProtectedRoute>} />
                 <Route path="/district/alerts" element={<ProtectedRoute storageKey="raktsetu_district_state" redirectPath="/district/login"><DistrictLayout><DistrictAlerts /></DistrictLayout></ProtectedRoute>} />

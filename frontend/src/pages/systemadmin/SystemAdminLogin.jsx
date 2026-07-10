@@ -137,8 +137,8 @@ const SystemAdminLogin = () => {
 
                 <form onSubmit={handleSubmitCredentials} className="space-y-5">
                   <div className="mb-4">
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Administrator Email</label>
-                    <input
+                    <label htmlFor="administrator-email-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Administrator Email</label>
+                    <input id="administrator-email-1"
                       type="email"
                       value={formData.email}
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -149,8 +149,8 @@ const SystemAdminLogin = () => {
                   </div>
 
                   <div className="mb-6">
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
-                    <input
+                    <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                    <input id="password-2"
                       type="password"
                       value={formData.password}
                       onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -192,8 +192,8 @@ const SystemAdminLogin = () => {
 
                 <form onSubmit={handleVerifyMFA} className="space-y-5">
                   <div className="mb-6">
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Authenticator Code</label>
-                    <input
+                    <label htmlFor="authenticator-code-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Authenticator Code</label>
+                    <input id="authenticator-code-3"
                       type="text"
                       maxLength="6"
                       value={formData.mfaCode}
@@ -212,8 +212,8 @@ const SystemAdminLogin = () => {
                   >
                     {isLoading ? 'Verifying Token…' : 'Complete Sign In'}
                   </button>
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={() => setStep('credentials')}
                     className="w-full text-center text-xs font-semibold text-[#5A5A5A] hover:text-[#BE1F2E] mt-4 transition-colors"
                   >

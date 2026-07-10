@@ -114,7 +114,7 @@ const ContactMedicalTeam = () => {
                 <p className="text-[#737373] text-[15px] max-w-sm leading-relaxed mb-8">
                   Our medical team will respond within 24 hours. For urgent needs, please call the emergency hotline.
                 </p>
-                <button
+                <button type="button"
                   onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', subject: 'Donation Query', message: '' }); }}
                   className="px-6 py-3 border border-[rgba(26,18,16,0.12)] rounded-full text-[14px] font-[600] text-[#1a1210] hover:bg-[#f5f0eb] transition-colors"
                 >
@@ -127,8 +127,8 @@ const ContactMedicalTeam = () => {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Full Name *</label>
-                      <input
+                      <label htmlFor="full-name-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Full Name *</label>
+                      <input id="full-name-1"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
@@ -138,8 +138,8 @@ const ContactMedicalTeam = () => {
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Phone (Optional)</label>
-                      <input
+                      <label htmlFor="phone-optional-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Phone (Optional)</label>
+                      <input id="phone-optional-2"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
@@ -150,8 +150,8 @@ const ContactMedicalTeam = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Email Address *</label>
-                    <input
+                    <label htmlFor="email-address-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Email Address *</label>
+                    <input id="email-address-3"
                       name="email"
                       type="email"
                       value={formData.email}
@@ -163,8 +163,8 @@ const ContactMedicalTeam = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Subject</label>
-                    <select
+                    <label htmlFor="subject-4" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Subject</label>
+                    <select id="subject-4"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
@@ -180,8 +180,8 @@ const ContactMedicalTeam = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Message *</label>
-                    <textarea
+                    <label htmlFor="message-5" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] block mb-2">Message *</label>
+                    <textarea id="message-5"
                       name="message"
                       value={formData.message}
                       onChange={handleChange}

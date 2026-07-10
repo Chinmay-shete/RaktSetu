@@ -77,9 +77,9 @@ export const UserManagement = () => {
 
         {/* Role Filter */}
         <div className="w-full md:w-auto flex items-center gap-2">
-          <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] whitespace-nowrap">Filter Role:</label>
+          <label htmlFor="filter-role-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] whitespace-nowrap">Filter Role:</label>
           <div className="relative w-full md:w-48">
-            <select
+            <select id="filter-role-1"
               className="input-field custom-select"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
@@ -154,6 +154,7 @@ export const UserManagement = () => {
                         value={user.role}
                         onChange={(e) => changeUserRole(user.id, e.target.value)}
                         disabled={user.role === 'sysadmin'} // Prevent demoting final sysadmin
+                        aria-label={`Change role for user ${user.name}`}
                       >
                         <option value="sysadmin">System Admin</option>
                         <option value="district">District Officer</option>
@@ -169,7 +170,7 @@ export const UserManagement = () => {
                     {user.role === 'sysadmin' && user.email === 'admin@raktsetu.com' ? (
                       <span className="text-[#9A9A9A] text-[10px] italic">Superuser locked</span>
                     ) : (
-                      <button
+                      <button type="button"
                         onClick={() => toggleUserStatus(user.id)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                           user.status === 'Active'

@@ -60,9 +60,10 @@ export const SystemSettings = () => {
                   <h4 className="font-bold text-[14px] text-[#1A1210]">{flagLabels[key] || key}</h4>
                   <p className="text-xs text-[#5C403F] leading-relaxed">{flagDescriptions[key] || 'No description.'}</p>
                 </div>
-                <button 
+                <button type="button" 
                   onClick={() => toggleFeatureFlag(key)}
                   className="text-slate-400 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer"
+                  aria-label={`Toggle feature flag: ${flagLabels[key] || key}`}
                 >
                   {val ? (
                      <ToggleRight size={40} className="text-[#C8102E]" />
@@ -98,7 +99,7 @@ export const SystemSettings = () => {
                   <span className={`text-xs font-bold ${status === 'Connected' ? 'text-[#22A06B]' : 'text-[#E07B00] animate-pulse'}`}>
                     {status}
                   </span>
-                  <button
+                  <button type="button"
                     onClick={() => testIntegration(key)}
                     className="p-2 bg-white border border-[rgba(26,18,16,0.09)] hover:bg-slate-50 rounded-lg text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                   >
@@ -119,7 +120,7 @@ export const SystemSettings = () => {
             <h3 className="font-serif text-[24px] font-[700] text-[#1A1210] mb-1">Data Snapshot & Backup</h3>
             <p className="text-[14px] text-[#5C403F]">Download full JSON copies of the platform's relational state.</p>
           </div>
-          <button 
+          <button type="button" 
             onClick={triggerBackup}
             className="btn-primary bg-[#C8102E] hover:bg-[#9E001F] flex items-center gap-2 py-3 px-6 shadow-sm hover:shadow-lg cursor-pointer"
           >

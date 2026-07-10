@@ -113,10 +113,10 @@ const StateAdminLogin = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="mb-4">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">
+                <label htmlFor="government-email-address-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">
                   Government Email Address
                 </label>
-                <input
+                <input id="government-email-address-1"
                   type="email"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -127,10 +127,10 @@ const StateAdminLogin = () => {
               </div>
 
               <div className="mb-6">
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">
+                <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">
                   Password
                 </label>
-                <input
+                <input id="password-2"
                   type="password"
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}

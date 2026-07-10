@@ -94,8 +94,9 @@ const InviteStaff = () => {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1">Staff Name</label>
+              <label htmlFor="staff-name" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1">Staff Name</label>
               <input
+                id="staff-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -106,8 +107,9 @@ const InviteStaff = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1">Email Address</label>
+              <label htmlFor="staff-email" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1">Email Address</label>
               <input
+                id="staff-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -118,8 +120,9 @@ const InviteStaff = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1">Assign Role</label>
+              <label htmlFor="staff-role" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1">Assign Role</label>
               <select
+                id="staff-role"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="input-field custom-select"

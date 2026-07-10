@@ -104,7 +104,7 @@ const DonorNavbar = () => {
 
           {/* Desktop Right */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
-            <button
+            <button type="button"
               onClick={handleLogout}
               className="px-4 py-2 text-[13px] font-[600] text-[#5A5A5A] hover:bg-[rgba(26,18,16,0.06)] rounded-full transition-all whitespace-nowrap cursor-pointer"
             >
@@ -112,9 +112,11 @@ const DonorNavbar = () => {
             </button>
             {/* Profile Avatar */}
             <div
-              className="w-10 h-10 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0 hover:scale-105 transition-transform"
+              className="w-10 h-10 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,16,16,0.09)] overflow-hidden cursor-pointer shrink-0 hover:scale-105 transition-transform"
               onClick={() => navigate('/edit-profile')}
               title="Edit Profile"
+              role="button"
+              aria-label="Edit Profile"
             >
               {profilePhoto ? (
                 <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
@@ -129,6 +131,8 @@ const DonorNavbar = () => {
             <div
               className="w-8 h-8 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0 shadow-sm"
               onClick={() => navigate('/edit-profile')}
+              role="button"
+              aria-label="Edit Profile"
             >
               {profilePhoto ? (
                 <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
@@ -137,7 +141,7 @@ const DonorNavbar = () => {
               )}
             </div>
             
-            <button 
+            <button aria-label="Log out" type="button" 
               onClick={handleLogout}
               className="flex items-center justify-center p-2 rounded-xl bg-red-50/60 border border-[rgba(200,16,46,0.15)] text-[#C8102E] hover:bg-red-50 cursor-pointer shadow-sm transition-all"
               title="Logout"

@@ -64,7 +64,7 @@ const PolicyAlerts = () => {
       {/* Filter Tabs */}
       <div className="flex gap-2">
         {['Active', 'Resolved', 'All'].map(f => (
-          <button
+          <button type="button"
             key={f}
             onClick={() => setFilter(f)}
             className={`px-4 py-1.5 rounded-full text-[12px] font-[600] transition-all ${
@@ -108,14 +108,14 @@ const PolicyAlerts = () => {
 
               {alert.status === 'Active' && (
                 <div className="flex flex-col gap-2 shrink-0">
-                  <button
+                  <button type="button"
                     onClick={() => resolveAlert(alert.id)}
                     className="btn-state text-[12px]"
                     style={{ minHeight: 36, padding: '8px 16px', minWidth: 'auto' }}
                   >
                     Acknowledge
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => window.alert('Escalation report sent to Maharashtra Health Ministry.')}
                     className="px-4 py-2 rounded-full text-[12px] font-[600] text-[#BE1F2E] border border-[rgba(190,31,46,0.3)] hover:bg-[rgba(190,31,46,0.04)] transition-colors"
                   >

@@ -87,11 +87,11 @@ export const Login = () => {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+                <label htmlFor="staff-email-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
                   Staff Email
                 </label>
                 <div className="relative">
-                  <input
+                  <input id="staff-email-1"
                     type="email"
                     placeholder="name@citylifehospital.org"
                     {...register("email", { 
@@ -112,11 +112,11 @@ export const Login = () => {
               </div>
 
               <div>
-                <label className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
+                <label htmlFor="secure-password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] ml-1 block mb-2">
                   Secure Password
                 </label>
                 <div className="relative">
-                  <input
+                  <input id="secure-password-2"
                     type="password"
                     placeholder="••••••••"
                     {...register("password", { required: "Password is required" })}
@@ -140,8 +140,8 @@ export const Login = () => {
                   <span className="text-xs text-[#5A5A5A] font-medium group-hover:text-[#1A1210] transition-colors">Remember device</span>
                 </label>
 
-                <button 
-                  type="button"
+                <button type="button" 
+                  
                   onClick={handleForgotPassword}
                   className="text-xs text-[#BE1F2E] font-bold hover:underline transition-colors cursor-pointer"
                 >

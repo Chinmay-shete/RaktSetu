@@ -176,7 +176,7 @@ export const SystemAdminDashboard = () => {
               </p>
             </div>
             <div className="mt-4">
-              <button 
+              <button type="button" 
                 onClick={triggerBackup}
                 className="text-xs font-bold text-[#C8102E] hover:text-white flex items-center gap-1.5 transition-colors group"
               >
@@ -204,10 +204,11 @@ export const SystemAdminDashboard = () => {
                     <span className={`text-xs ${status === 'Connected' ? 'text-[#9A9A9A]' : 'text-[#E07B00] font-semibold'}`}>
                       {status}
                     </span>
-                    <button 
+                    <button type="button" 
                       onClick={() => testIntegration(key)}
                       className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
                       title="Ping Check"
+                      aria-label={`Ping check integration: ${key}`}
                     >
                       <RefreshCw size={12} />
                     </button>

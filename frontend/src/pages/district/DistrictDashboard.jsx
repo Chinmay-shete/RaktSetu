@@ -133,7 +133,7 @@ const DistrictDashboard = () => {
                   <span>{activeAlerts > 0 ? `${alertCount} Shortages` : 'All Clear'}</span>
                 </h2>
               </div>
-              <button
+              <button type="button"
                 onClick={() => navigate('/district/alerts')}
                 className="mt-6 w-full bg-[#BE1F2E] text-white py-3 rounded-full text-[13px] font-[500] hover:scale-105 active:scale-95 transition-transform"
               >
@@ -242,7 +242,7 @@ const DistrictDashboard = () => {
                 <p className="text-[13px] text-[#737373] mt-0.5">Schedule, approve, and organize district-wide donation drives.</p>
               </div>
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   onClick={() => setCampTab('list')}
                   className={`px-4 py-1.5 rounded-full text-[12px] font-[600] transition-all ${
                     campTab === 'list' 
@@ -252,7 +252,7 @@ const DistrictDashboard = () => {
                 >
                   Camps List ({camps.length})
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setCampTab('plan')}
                   className={`px-4 py-1.5 rounded-full text-[12px] font-[600] transition-all ${
                     campTab === 'plan' 
@@ -313,13 +313,13 @@ const DistrictDashboard = () => {
 
                         {camp.status === 'Pending' && (
                           <div className="flex gap-2 shrink-0 self-end md:self-center">
-                            <button
+                            <button type="button"
                               onClick={() => approveCamp(camp.id)}
                               className="bg-[#1a1210] text-white px-4 py-1.5 rounded-full text-[12px] font-[500] hover:scale-105 active:scale-95 transition-transform"
                             >
                               Approve
                             </button>
-                            <button
+                            <button type="button"
                               onClick={() => rejectCamp(camp.id)}
                               className="border border-[#E0DAD4] text-[#5A5A5A] px-4 py-1.5 rounded-full text-[12px] font-[500] hover:bg-[#eae8e5] transition-colors"
                             >
@@ -343,8 +343,8 @@ const DistrictDashboard = () => {
                     <form onSubmit={handlePlanSubmit} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Camp Name</label>
-                          <input 
+                          <label htmlFor="camp-name-1" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Camp Name</label>
+                          <input id="camp-name-1" 
                             value={campForm.name} 
                             onChange={e => setCampForm(p => ({ ...p, name: e.target.value }))} 
                             className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
@@ -353,8 +353,8 @@ const DistrictDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Date</label>
-                          <input 
+                          <label htmlFor="date-2" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Date</label>
+                          <input id="date-2" 
                             type="date" 
                             value={campForm.date} 
                             onChange={e => setCampForm(p => ({ ...p, date: e.target.value }))} 
@@ -364,8 +364,8 @@ const DistrictDashboard = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Location</label>
-                        <input 
+                        <label htmlFor="location-3" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Location</label>
+                        <input id="location-3" 
                           value={campForm.location} 
                           onChange={e => setCampForm(p => ({ ...p, location: e.target.value }))} 
                           className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E]" 
@@ -375,8 +375,8 @@ const DistrictDashboard = () => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Organizing Hospital</label>
-                          <select 
+                          <label htmlFor="organizing-hospital-4" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Organizing Hospital</label>
+                          <select id="organizing-hospital-4" 
                             value={campForm.organizer} 
                             onChange={e => setCampForm(p => ({ ...p, organizer: e.target.value }))} 
                             className="w-full bg-[#fbf9f6] border border-[#E0DAD4] rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-[#BE1F2E] appearance-none" 
@@ -387,8 +387,8 @@ const DistrictDashboard = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Capacity</label>
-                          <input 
+                          <label htmlFor="capacity-5" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Capacity</label>
+                          <input id="capacity-5" 
                             type="number" 
                             value={campForm.capacity} 
                             onChange={e => setCampForm(p => ({ ...p, capacity: e.target.value }))} 
@@ -398,8 +398,8 @@ const DistrictDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Expected Donors</label>
-                          <input 
+                          <label htmlFor="expected-donors-6" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Expected Donors</label>
+                          <input id="expected-donors-6" 
                             type="number" 
                             value={campForm.expectedDonors} 
                             onChange={e => setCampForm(p => ({ ...p, expectedDonors: e.target.value }))} 
@@ -410,10 +410,10 @@ const DistrictDashboard = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Target Blood Groups</label>
+                        <label htmlFor="target-blood-groups-7" className="text-[10px] font-[600] uppercase tracking-wider text-[#737373] mb-1.5 block">Target Blood Groups</label>
                         <div className="flex flex-wrap gap-1.5">
                           {BLOOD_GROUPS.map(g => (
-                            <button
+                            <button type="button"
                               key={g}
                               type="button"
                               onClick={() => {
@@ -515,7 +515,7 @@ const DistrictDashboard = () => {
           <div className="relative rounded-lg overflow-hidden h-48 flex items-center bg-[#BE1F2E] group">
             <div className="relative z-10 p-8 w-full flex flex-col justify-between h-full">
               <h3 className="font-serif text-[28px] text-white italic leading-tight">Shortage unresolvable?</h3>
-              <button 
+              <button type="button" 
                 onClick={() => alert('🚨 Escalation report sent to Maharashtra State Health Department. Response expected within 2 hours.')}
                 className="bg-white text-[#BE1F2E] px-8 py-3 rounded-full text-[14px] font-[500] hover:scale-105 active:scale-95 transition-transform w-fit"
               >

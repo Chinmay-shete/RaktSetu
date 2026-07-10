@@ -234,23 +234,22 @@ const ProfileSetup = () => {
                     </div>
 
                     <div>
-                      <label className="text-[14px] font-[600] text-[#1A1A1A] mb-1.5 block">Biological Sex</label>
+                      <label htmlFor="biological-sex-1" className="text-[14px] font-[600] text-[#1A1A1A] mb-1.5 block">Biological Sex</label>
                       <div className="flex gap-2">
                         {['Male', 'Female', 'Other'].map((g) => (
-                          <button
-                            key={g}
-                            type="button"
-                            onClick={() => {
-                              setGender(g);
-                              setTouched((p) => ({ ...p, gender: true }));
-                              setErrors((errs) => ({ ...errs, gender: '' }));
-                            }}
-                            className={`flex-1 py-3 rounded-xl text-[13px] font-[600] border transition-all duration-300 transform active:scale-95 ${
-                              gender === g
-                                ? 'bg-[#BE1F2E] border-[#BE1F2E] text-white shadow-[0_4px_14px_rgba(190,31,46,0.35)] scale-[1.03]'
-                                : 'bg-white border-[#D8D0CA] text-[#5A5A5A] hover:border-[#BE1F2E] hover:text-[#BE1F2E] hover:scale-[1.01]'
-                            }`}
-                          >
+                        <button type="button"
+                          key={g}
+                          onClick={() => {
+                            setGender(g);
+                            setTouched((p) => ({ ...p, gender: true }));
+                            setErrors((errs) => ({ ...errs, gender: '' }));
+                          }}
+                          className={`flex-1 py-3 rounded-xl text-[13px] font-[600] border transition-all duration-300 transform active:scale-95 ${
+                            gender === g
+                              ? 'bg-[#BE1F2E] border-[#BE1F2E] text-white shadow-[0_4px_14px_rgba(190,31,46,0.35)] scale-[1.03]'
+                              : 'bg-white border-[#D8D0CA] text-[#5A5A5A] hover:border-[#BE1F2E] hover:text-[#BE1F2E] hover:scale-[1.01]'
+                          }`}
+                        >
                             {g}
                           </button>
                         ))}
@@ -265,13 +264,12 @@ const ProfileSetup = () => {
 
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <label className="text-[14px] font-[600] text-[#1A1A1A]">Weight</label>
+                      <label htmlFor="weight-2" className="text-[14px] font-[600] text-[#1A1A1A]">Weight</label>
                       <span className="text-[10px] font-[600] text-[#A8A0A0] bg-[#f5f0eb] px-1.5 py-0.5 rounded uppercase tracking-wide">Optional</span>
                     </div>
                     <div className={`flex items-center border rounded-xl overflow-hidden focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)] ${errors.weight && touched.weight ? 'border-[#BE1F2E]' : 'border-[#D8D0CA]'}`}>
                       <span className="material-symbols-outlined text-[#A8A0A0] text-[20px] ml-4 shrink-0">weight</span>
-                      <input
-                        id="weight"
+                      <input id="weight-2"
                         type="number"
                         min="30"
                         max="300"
@@ -291,16 +289,15 @@ const ProfileSetup = () => {
 
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <label className="text-[14px] font-[600] text-[#1A1A1A]">Blood Group</label>
+                      <label htmlFor="blood-group-3" className="text-[14px] font-[600] text-[#1A1A1A]">Blood Group</label>
                       <button type="button" className="text-[13px] font-[500] text-[#BE1F2E] flex items-center gap-1 hover:underline">
                         <span className="material-symbols-outlined text-[14px]">info</span> Don't know?
                       </button>
                     </div>
                     <div className="grid grid-cols-4 gap-2.5">
                       {bloodGroups.map((bg) => (
-                        <button
+                        <button type="button"
                           key={bg}
-                          type="button"
                           onClick={() => {
                             setBloodGroup(bg);
                             setTouched((p) => ({ ...p, bloodGroup: true }));
@@ -344,8 +341,8 @@ const ProfileSetup = () => {
                           {q.text}
                         </p>
                         <div className="flex gap-3">
-                          <button
-                            type="button"
+                          <button type="button"
+                            
                             onClick={() => {
                               setScreeningAnswers(p => ({ ...p, [q.id]: true }));
                               setScreeningError('');
@@ -358,8 +355,8 @@ const ProfileSetup = () => {
                           >
                             Yes
                           </button>
-                          <button
-                            type="button"
+                          <button type="button"
+                            
                             onClick={() => {
                               setScreeningAnswers(p => ({ ...p, [q.id]: false }));
                               setScreeningError('');
@@ -384,8 +381,8 @@ const ProfileSetup = () => {
                   )}
 
                   <div className="border-t border-[#E0DAD4] pt-6 flex gap-3">
-                    <button 
-                      type="button" 
+                    <button type="button" 
+                       
                       onClick={() => setWizardStep('basic')}
                       className="flex-1 py-3 rounded-xl border border-[#D8D0CA] bg-white text-[#5A5A5A] font-[600] text-[15px] hover:bg-gray-50 transition-colors"
                     >
@@ -415,7 +412,7 @@ const ProfileSetup = () => {
           {/* TopAppBar */}
           <header className="w-full top-0 sticky z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center justify-between px-4 py-4 shrink-0">
             {wizardStep === 'screening' ? (
-              <button
+              <button type="button"
                 onClick={() => setWizardStep('basic')}
                 className="text-[#9e001f] active:scale-95 transition-transform"
               >
@@ -445,8 +442,8 @@ const ProfileSetup = () => {
                 <div className="space-y-4">
                   {/* Full Name */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Full Name</label>
-                    <input
+                    <label htmlFor="full-name-4" className="text-[14px] font-medium text-[#5c403f]">Full Name</label>
+                    <input id="full-name-4"
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -468,8 +465,8 @@ const ProfileSetup = () => {
                   {/* Age & Weight */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[14px] font-medium text-[#5c403f]">Age (18–65)</label>
-                      <input
+                      <label htmlFor="age-18-65-5" className="text-[14px] font-medium text-[#5c403f]">Age (18–65)</label>
+                      <input id="age-18-65-5"
                         type="number"
                         min="18" max="65"
                         value={age}
@@ -491,10 +488,10 @@ const ProfileSetup = () => {
 
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-2">
-                        <label className="text-[14px] font-medium text-[#5c403f]">Weight</label>
+                        <label htmlFor="weight-6" className="text-[14px] font-medium text-[#5c403f]">Weight</label>
                         <span className="text-[9px] font-bold text-[#A8A0A0] bg-[#f5f0eb] px-1 py-0.5 rounded uppercase tracking-wide">Optional</span>
                       </div>
-                      <input
+                      <input id="weight-6"
                         type="number"
                         value={weight}
                         onChange={(e) => setWeight(e.target.value)}
@@ -516,12 +513,11 @@ const ProfileSetup = () => {
 
                   {/* Biological Sex */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Biological Sex</label>
+                    <label htmlFor="biological-sex-7" className="text-[14px] font-medium text-[#5c403f]">Biological Sex</label>
                     <div className="flex bg-[#eae8e5]/50 rounded-full p-1 w-full border border-[rgba(26,18,16,0.05)]">
                       {['Male', 'Female', 'Other'].map((g) => (
-                        <button
+                        <button type="button"
                           key={g}
-                          type="button"
                           onClick={() => {
                             setGender(g);
                             setTouched((p) => ({ ...p, gender: true }));
@@ -544,10 +540,10 @@ const ProfileSetup = () => {
 
                   {/* Blood Group Grid Selection */}
                   <div className="flex flex-col gap-2 pt-2">
-                    <label className="text-[14px] font-medium text-[#5c403f]">Blood Group</label>
+                    <label htmlFor="blood-group-8" className="text-[14px] font-medium text-[#5c403f]">Blood Group</label>
                     <div className="grid grid-cols-4 gap-2.5">
                       {bloodGroups.map((bg) => (
-                        <button
+                        <button type="button"
                           key={bg}
                           type="button"
                           onClick={() => {
@@ -597,8 +593,8 @@ const ProfileSetup = () => {
                         {q.text}
                       </p>
                       <div className="flex gap-3">
-                        <button
-                          type="button"
+                        <button type="button"
+                          
                           onClick={() => {
                             setScreeningAnswers(p => ({ ...p, [q.id]: true }));
                             setScreeningError('');
@@ -611,8 +607,8 @@ const ProfileSetup = () => {
                         >
                           Yes
                         </button>
-                        <button
-                          type="button"
+                        <button type="button"
+                          
                           onClick={() => {
                             setScreeningAnswers(p => ({ ...p, [q.id]: false }));
                             setScreeningError('');
@@ -637,8 +633,8 @@ const ProfileSetup = () => {
                 )}
 
                 <div className="pt-4 flex gap-3">
-                  <button
-                    type="button"
+                  <button type="button"
+                    
                     onClick={() => setWizardStep('basic')}
                     className="w-1/3 bg-transparent border border-[rgba(26,18,16,0.15)] text-[#5c403f] font-semibold py-4 rounded-full active:scale-95 transition-colors"
                   >

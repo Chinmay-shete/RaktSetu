@@ -138,15 +138,16 @@ export const ExpiryAlerts = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <button
+                        <button type="button"
                           onClick={() => handleNotifyAdmin(item.id, item.bloodGroup)}
                           className="p-2 rounded-xl bg-white border border-[#EDE7E1] text-[#5A5A5A] hover:text-[#BE1F2E] hover:border-[#BE1F2E]/20 transition-colors cursor-pointer"
                           title="Notify Administrator"
+                          aria-label="Notify administrator"
                         >
                           <BellRing className="h-4 w-4" />
                         </button>
 
-                        <button
+                        <button type="button"
                           onClick={() => disposeMutation.mutate(item.id)}
                           className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                             isExpired
@@ -154,6 +155,7 @@ export const ExpiryAlerts = () => {
                               : 'bg-white hover:bg-[#FAF8F5] border-[#EDE7E1] text-[#5A5A5A]'
                           }`}
                           title={isExpired ? "Dispose Lot" : "Mark Resolved"}
+                          aria-label={isExpired ? "Dispose lot" : "Mark resolved"}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

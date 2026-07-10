@@ -73,7 +73,7 @@ async function getPendingApprovals(req, res, next) {
   try {
     // 1. Get hospitals awaiting verification
     const [hospRows] = await pool.query(
-      `SELECT id, name, type, license_no, address, contact, created_at
+      `SELECT id, name, type, license_no, address, contact, city, state, created_at
        FROM hospitals
        WHERE verification_status = 'pending'
        ORDER BY created_at DESC`
@@ -85,6 +85,8 @@ async function getPendingApprovals(req, res, next) {
       type: h.type,
       licenseNo: h.license_no,
       area: h.address,
+      city: h.city,
+      state: h.state,
       contact: h.contact,
       appliedAt: formatDate(h.created_at) || 'Recent'
     }));
@@ -148,10 +150,22 @@ async function approveOrRejectHospital(req, res, next) {
       [status, hospitalId]
     );
 
+    let tempPassword = null;
     // If verified, activate any linked admin/staff user account who is pending
     if (status === 'verified') {
+      const bcrypt = require('bcryptjs');
+      tempPassword = `RS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const tempPasswordHash = await bcrypt.hash(tempPassword, 10);
+
+      // Set admin password to temporary password, and activate account
       await connection.query(
-        "UPDATE users SET status = 'Active' WHERE hospital_id = ? AND status = 'Pending'",
+        "UPDATE users SET password_hash = ?, status = 'Active' WHERE hospital_id = ? AND role = 'admin'",
+        [tempPasswordHash, hospitalId]
+      );
+
+      // Activate other pending staff members
+      await connection.query(
+        "UPDATE users SET status = 'Active' WHERE hospital_id = ? AND role = 'staff' AND status = 'Pending'",
         [hospitalId]
       );
     }
@@ -161,7 +175,8 @@ async function approveOrRejectHospital(req, res, next) {
     return res.status(200).json({
       message: `Hospital registration has been successfully ${status === 'verified' ? 'approved' : 'rejected'}`,
       hospitalId: parseInt(hospitalId, 10),
-      status
+      status,
+      tempPassword
     });
   } catch (error) {
     await connection.rollback();
@@ -202,14 +217,17 @@ async function listUsers(req, res, next) {
  * PATCH /systemadmin/users/:id
  */
 async function updateUser(req, res, next) {
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
     const userId = req.params.id;
     const { role, status } = req.body;
 
-    const [userCheck] = await pool.query('SELECT id, role, status FROM users WHERE id = ?', [userId]);
+    const [userCheck] = await connection.query('SELECT id, role, status, district_id FROM users WHERE id = ?', [userId]);
     if (userCheck.length === 0) {
       throw new ApiError('User not found', 404, 'USER_NOT_FOUND');
     }
+    const currentUser = userCheck[0];
 
     const updates = [];
     const params = [];
@@ -223,11 +241,31 @@ async function updateUser(req, res, next) {
       params.push(role);
     }
 
+    let tempPassword = null;
     if (status !== undefined) {
       const allowedStatuses = ['Active', 'Suspended', 'Pending'];
       if (!allowedStatuses.includes(status)) {
         throw new ApiError('Invalid user status provided', 400, 'INVALID_STATUS');
       }
+      
+      // If we are activating a pending district officer, generate temporary password
+      if (status === 'Active' && currentUser.role === 'district' && currentUser.status === 'Pending') {
+        const bcrypt = require('bcryptjs');
+        tempPassword = `RS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const tempPasswordHash = await bcrypt.hash(tempPassword, 10);
+        
+        updates.push('password_hash = ?');
+        params.push(tempPasswordHash);
+
+        // Update district table to link this officer
+        if (currentUser.district_id) {
+          await connection.query(
+            'UPDATE districts SET officer_id = ? WHERE id = ?',
+            [userId, currentUser.district_id]
+          );
+        }
+      }
+
       updates.push('status = ?');
       params.push(status);
     }
@@ -237,10 +275,12 @@ async function updateUser(req, res, next) {
     }
 
     params.push(userId);
-    await pool.query(
+    await connection.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
       params
     );
+
+    await connection.commit();
 
     const [updatedRows] = await pool.query('SELECT id, role, status FROM users WHERE id = ?', [userId]);
     const updatedUser = updatedRows[0];
@@ -249,10 +289,14 @@ async function updateUser(req, res, next) {
       message: 'User details updated successfully',
       userId: updatedUser.id,
       role: updatedUser.role,
-      status: updatedUser.status
+      status: updatedUser.status,
+      tempPassword
     });
   } catch (error) {
+    await connection.rollback();
     next(error);
+  } finally {
+    connection.release();
   }
 }
 

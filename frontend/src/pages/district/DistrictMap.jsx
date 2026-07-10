@@ -75,13 +75,13 @@ const DistrictMap = () => {
 
         {/* View Toggle */}
         <div className="flex bg-[#E0DAD4] p-1 rounded-xl shrink-0 z-10">
-          <button 
+          <button type="button" 
             onClick={() => setViewMode('hospitals')}
             className={`px-6 py-2.5 rounded-lg text-[13px] font-[600] transition-colors cursor-pointer ${viewMode === 'hospitals' ? 'bg-white text-[#1A1210] shadow-sm' : 'text-[#5A5A5A] hover:text-[#1A1210]'}`}
           >
             Hospital View
           </button>
-          <button 
+          <button type="button" 
             onClick={() => setViewMode('donors')}
             className={`px-6 py-2.5 rounded-lg text-[13px] font-[600] transition-colors cursor-pointer ${viewMode === 'donors' ? 'bg-white text-[#1A1210] shadow-sm' : 'text-[#5A5A5A] hover:text-[#1A1210]'}`}
           >
@@ -160,14 +160,15 @@ const DistrictMap = () => {
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search hospital or area…"
                 className="input-field text-[14px]"
+                aria-label="Search hospitals"
               />
             </div>
-            <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">
+            <select aria-label="Filter by hospital type" value={filterType} onChange={e => setFilterType(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[160px]">
               <option value="All">All Types</option>
               <option value="Government">Government</option>
               <option value="Private">Private</option>
             </select>
-            <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[180px]">
+            <select aria-label="Filter by blood group" value={filterGroup} onChange={e => setFilterGroup(e.target.value)} className="input-field custom-select text-[14px] w-auto min-w-[180px]">
               <option value="All">All Blood Groups</option>
               {BLOOD_GROUPS.map(g => <option key={g} value={g}>Low {g} stock</option>)}
             </select>

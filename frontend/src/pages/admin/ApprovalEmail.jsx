@@ -57,7 +57,7 @@ const ApprovalEmail = () => {
           </div>
         </div>
 
-        <button
+        <button type="button"
           onClick={() => navigate('/admin/login')}
           className="w-full py-3.5 bg-[#BE1F2E] hover:bg-[#9E1825] text-white font-bold rounded-full transition-all text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:-translate-y-0.5 active:translate-y-0 group"
         >

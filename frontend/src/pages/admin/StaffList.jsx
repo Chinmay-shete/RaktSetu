@@ -56,7 +56,7 @@ export const StaffList = () => {
             Overview of medical officers and laboratory staff registered for your hospital.
           </p>
         </div>
-        <button 
+        <button aria-label="Refresh" type="button" 
           onClick={fetchStaff}
           className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95"
           title="Refresh List"
