@@ -171,6 +171,25 @@ export const StateAdminProvider = ({ children }) => {
     }));
   };
 
+  const syncState = useCallback(() => {
+    const saved = localStorage.getItem('raktsetu_state_admin');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.status === 'logged_in') {
+          setAppState(prev => {
+            if (prev.status !== 'logged_in') {
+              return { ...prev, ...parsed };
+            }
+            return prev;
+          });
+        }
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, []);
+
   return (
     <StateAdminContext.Provider value={{
       appState,
@@ -179,6 +198,7 @@ export const StateAdminProvider = ({ children }) => {
       approveTransfer,
       resolveAlert,
       updateEscalationStatus,
+      syncState,
       isLoading,
       error,
       refetchData: fetchStateData,

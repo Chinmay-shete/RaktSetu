@@ -31,16 +31,16 @@ export const AuditLogs = () => {
       {/* Editorial Header */}
       <div>
         <span className="badge-sysadmin mb-2">Audit trail</span>
-        <h1 className="font-serif text-[44px] md:text-[56px] font-[700] text-[#1A0A0A] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
-          Platform Audit Logs. <span className="italic font-normal">History log.</span>
+        <h1 className="font-serif text-[36px] md:text-[56px] font-normal text-[#1A1210] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
+          Platform Audit Logs. <span className="italic">History log.</span>
         </h1>
-        <p className="text-[15px] text-[#5A5A5A] max-w-2xl">
+        <p className="text-[15px] text-[#5C403F] max-w-2xl">
           Trace every administrative operation, automated process, and status shift in the national blood network.
         </p>
       </div>
 
       {/* Filter Row */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm">
         
         {/* Search */}
         <div className="relative w-full md:max-w-md input-with-icon">
@@ -75,11 +75,11 @@ export const AuditLogs = () => {
       </div>
 
       {/* Logs Table Card */}
-      <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-sm">
+      <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-8 shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[800px] text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#EDE7E1] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
+              <tr className="border-b border-[rgba(26,18,16,0.09)] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
                 <th className="py-3 pr-4">Timestamp</th>
                 <th className="py-3 px-4">Actor</th>
                 <th className="py-3 px-4">Action</th>
@@ -87,7 +87,7 @@ export const AuditLogs = () => {
                 <th className="py-3 pl-4">IP Address</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EDE7E1] text-xs text-[#5A5A5A]">
+            <tbody className="divide-y divide-[rgba(26,18,16,0.09)] text-xs text-[#5A5A5A]">
               {filteredLogs.map(log => (
                 <tr key={log.id} className="table-row-hover">
                   

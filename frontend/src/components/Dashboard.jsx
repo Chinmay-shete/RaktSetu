@@ -42,6 +42,13 @@ const Dashboard = () => {
   const totalDonations = useCountUp(stats.totalDonations);
   const livesImpacted  = useCountUp(stats.livesImpacted);
 
+  const handleLogout = () => {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('raktsetu_')) localStorage.removeItem(key);
+    });
+    navigate('/');
+  };
+
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -290,28 +297,40 @@ const Dashboard = () => {
       {/* ──────────────────────────────────────────────────────── */}
       <div className="block md:hidden">
         {/* TopAppBar Shell */}
-        <header className="fixed top-0 w-full z-50 bg-[#faf8f5] border-b border-[rgba(26,18,16,0.09)] flex items-center px-4 h-16 justify-between">
+        <header className="fixed top-0 w-full z-50 bg-[#faf8f5]/95 backdrop-blur-lg border-b border-[rgba(26,18,16,0.09)] flex items-center px-4 h-16 justify-between">
           <div className="flex items-center gap-4">
             <Link
               to="/dashboard"
-              className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
+              className="font-serif text-[24px] font-bold text-[#C8102E] tracking-tight shrink-0"
               style={{ fontFeatureSettings: '"liga" 0' }}
             >
               RaktSetu
             </Link>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button className="material-symbols-outlined text-[#5c403f] hover:opacity-80 transition-opacity" onClick={() => toast.success("No new notifications.")}>notifications</button>
+            
+            {/* Profile avatar */}
             <div
-              className="w-8 h-8 rounded-full overflow-hidden border border-[#BE1F2E]/20 bg-[#eae8e5] flex items-center justify-center cursor-pointer shrink-0"
+              className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center cursor-pointer shrink-0 shadow-sm"
+              style={{ borderColor: 'rgba(200, 16, 46, 0.20)', background: '#eae8e5' }}
               onClick={() => navigate('/edit-profile')}
             >
               {profilePhoto ? (
                 <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
               ) : (
-                <span className="text-[13px] font-bold text-[#BE1F2E]">{initialLetter}</span>
+                <span className="text-[13px] font-bold text-[#C8102E]">{initialLetter}</span>
               )}
             </div>
+
+            {/* Logout button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center p-2 rounded-xl bg-red-50/60 border border-[rgba(200, 16, 46, 0.15)] text-[#C8102E] hover:bg-red-50 cursor-pointer shadow-sm transition-all"
+              title="Logout"
+            >
+              <span className="material-symbols-outlined text-[16px]">logout</span>
+            </button>
           </div>
         </header>
 
@@ -457,36 +476,42 @@ const Dashboard = () => {
         </main>
 
         {/* BottomNavBar Shell */}
-        <nav className="fixed bottom-0 w-full z-50 bg-[#1a1210] flex justify-around items-center px-4 py-3 h-20 shadow-xl">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex flex-col items-center justify-center bg-[#9e001f] text-white rounded-full px-5 py-1.5"
-          >
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
-            <span className="text-[12px] font-semibold mt-0.5">Home</span>
-          </button>
-          <button
-            onClick={() => navigate('/find-camps')}
-            className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
-          >
-            <span className="material-symbols-outlined">bloodtype</span>
-            <span className="text-[12px] font-medium mt-0.5">Requests</span>
-          </button>
-          <button
-            onClick={() => navigate('/find-camps')}
-            className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
-          >
-            <span className="material-symbols-outlined">explore</span>
-            <span className="text-[12px] font-medium mt-0.5">Map</span>
-          </button>
-          <button
-            onClick={() => navigate('/edit-profile')}
-            className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
-          >
-            <span className="material-symbols-outlined">person</span>
-            <span className="text-[12px] font-medium mt-0.5">Profile</span>
-          </button>
-        </nav>
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 px-2 py-2 flex items-center justify-around"
+          style={{
+            background: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(26,18,16,0.09)',
+            boxShadow: '0 -4px 24px rgba(26,18,16,0.08)',
+          }}
+        >
+          {[
+            { name: 'Home', path: '/dashboard', icon: 'home' },
+            { name: 'Camps', path: '/find-camps', icon: 'bloodtype' },
+            { name: 'Map', path: '/location', icon: 'explore' },
+            { name: 'Profile', path: '/edit-profile', icon: 'person' }
+          ].map((item) => {
+            const isActive = item.path === '/dashboard'; // Home is active
+            return (
+              <button
+                key={item.name}
+                onClick={() => navigate(item.path)}
+                className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all cursor-pointer"
+                style={{
+                  color: isActive ? '#C8102E' : '#5C403F',
+                  background: isActive ? 'rgba(200,16,46,0.06)' : 'transparent',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
+                  {item.icon}
+                </span>
+                <span className="text-[9px] font-[700] uppercase tracking-wider text-center" style={{ fontSize: '9px' }}>
+                  {item.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

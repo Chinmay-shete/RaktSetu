@@ -184,6 +184,25 @@ export const DistrictProvider = ({ children }) => {
     }));
   };
 
+  const syncState = useCallback(() => {
+    const saved = localStorage.getItem('raktsetu_district_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.status === 'logged_in') {
+          setAppState(prev => {
+            if (prev.status !== 'logged_in') {
+              return { ...prev, ...parsed };
+            }
+            return prev;
+          });
+        }
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, []);
+
   return (
     <DistrictContext.Provider value={{
       appState,
@@ -193,6 +212,7 @@ export const DistrictProvider = ({ children }) => {
       rejectCamp,
       addCamp,
       resolveAlert,
+      syncState,
       isLoading,
       error,
       refetchData: fetchDistrictData,

@@ -617,40 +617,42 @@ const FindCamps = () => {
           </main>
 
           {/* Mobile BottomNavBar */}
-          <nav className="fixed bottom-0 w-full z-50 bg-[#1a1210] flex justify-around items-center px-4 py-3 h-20 shadow-xl">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
-            >
-              <span className="material-symbols-outlined">home</span>
-              <span className="text-[12px] font-medium mt-0.5">Home</span>
-            </button>
-            <button
-              onClick={() => { setMobileTab('requests'); }}
-              className={`flex flex-col items-center justify-center transition-all ${
-                mobileTab === 'requests' ? 'bg-[#9e001f] text-white rounded-full px-5 py-1.5' : 'text-[#737373] hover:text-[#ffb3b1] px-4 py-1'
-              }`}
-            >
-              <span className="material-symbols-outlined">bloodtype</span>
-              <span className="text-[12px] font-medium mt-0.5">Requests</span>
-            </button>
-            <button
-              onClick={() => { setMobileTab('map'); }}
-              className={`flex flex-col items-center justify-center transition-all ${
-                mobileTab === 'map' ? 'bg-[#9e001f] text-white rounded-full px-5 py-1.5' : 'text-[#737373] hover:text-[#ffb3b1] px-4 py-1'
-              }`}
-            >
-              <span className="material-symbols-outlined">explore</span>
-              <span className="text-[12px] font-medium mt-0.5">Map</span>
-            </button>
-            <button
-              onClick={() => navigate('/edit-profile')}
-              className="flex flex-col items-center justify-center text-[#737373] hover:text-[#ffb3b1] transition-colors px-4 py-1"
-            >
-              <span className="material-symbols-outlined">person</span>
-              <span className="text-[12px] font-medium mt-0.5">Profile</span>
-            </button>
-          </nav>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 px-2 py-2 flex items-center justify-around"
+            style={{
+              background: 'rgba(255,255,255,0.97)',
+              backdropFilter: 'blur(20px)',
+              borderTop: '1px solid rgba(26,18,16,0.09)',
+              boxShadow: '0 -4px 24px rgba(26,18,16,0.08)',
+            }}
+          >
+            {[
+              { name: 'Home', action: () => navigate('/dashboard'), icon: 'home', active: false },
+              { name: 'Camps', action: () => { setMobileTab('requests'); }, icon: 'bloodtype', active: mobileTab === 'requests' },
+              { name: 'Map', action: () => { setMobileTab('map'); }, icon: 'explore', active: mobileTab === 'map' },
+              { name: 'Profile', action: () => navigate('/edit-profile'), icon: 'person', active: false }
+            ].map((item) => {
+              const isActive = item.active;
+              return (
+                <button
+                  key={item.name}
+                  onClick={item.action}
+                  className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all cursor-pointer"
+                  style={{
+                    color: isActive ? '#C8102E' : '#5C403F',
+                    background: isActive ? 'rgba(200,16,46,0.06)' : 'transparent',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
+                    {item.icon}
+                  </span>
+                  <span className="text-[9px] font-[700] uppercase tracking-wider text-center" style={{ fontSize: '9px' }}>
+                    {item.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

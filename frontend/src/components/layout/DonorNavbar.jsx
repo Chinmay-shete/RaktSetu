@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Heart, MapPin, User, LogOut } from 'lucide-react';
 
 /**
  * DonorNavbar — single unified navbar used by Dashboard, FindCamps & EditProfile.
@@ -64,9 +65,7 @@ const DonorNavbar = () => {
     { to: '/edit-profile', label: 'Profile' },
   ];
 
-  const isActive = (path) => location.pathname === path;
-
-  return (
+  const isActive = (path) => location.pathname === path;  return (
     <>
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -80,7 +79,7 @@ const DonorNavbar = () => {
           {/* Logo */}
           <Link
             to="/dashboard"
-            className="font-serif text-[22px] md:text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
+            className="font-serif text-[22px] md:text-[24px] font-bold text-[#C8102E] tracking-tight shrink-0"
             style={{ fontFeatureSettings: '"liga" 0' }}
           >
             RaktSetu
@@ -94,8 +93,8 @@ const DonorNavbar = () => {
                 to={to}
                 className={`text-[14px] whitespace-nowrap transition-colors ${
                   isActive(to)
-                    ? 'font-[600] text-[#BE1F2E] border-b-2 border-[#BE1F2E] pb-1'
-                    : 'font-[500] text-[#5A5A5A] hover:text-[#BE1F2E]'
+                    ? 'font-[600] text-[#C8102E] border-b-2 border-[#C8102E] pb-1'
+                    : 'font-[500] text-[#5A5A5A] hover:text-[#C8102E]'
                 }`}
               >
                 {label}
@@ -107,7 +106,7 @@ const DonorNavbar = () => {
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-[13px] font-[600] text-[#5A5A5A] hover:bg-[rgba(26,18,16,0.06)] rounded-full transition-all whitespace-nowrap"
+              className="px-4 py-2 text-[13px] font-[600] text-[#5A5A5A] hover:bg-[rgba(26,18,16,0.06)] rounded-full transition-all whitespace-nowrap cursor-pointer"
             >
               Sign Out
             </button>
@@ -120,64 +119,73 @@ const DonorNavbar = () => {
               {profilePhoto ? (
                 <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
               ) : (
-                <span className="text-[16px] font-bold text-[#BE1F2E]">{donorName}</span>
+                <span className="text-[16px] font-bold text-[#C8102E]">{donorName}</span>
               )}
             </div>
           </div>
 
-          {/* Mobile: Avatar + Hamburger */}
-          <div className="flex md:hidden items-center gap-3" ref={mobileRef}>
+          {/* Mobile: Avatar + Logout */}
+          <div className="flex md:hidden items-center gap-3">
             <div
-              className="w-9 h-9 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0"
+              className="w-8 h-8 rounded-full bg-[#eae8e5] flex items-center justify-center border border-[rgba(26,18,16,0.09)] overflow-hidden cursor-pointer shrink-0 shadow-sm"
               onClick={() => navigate('/edit-profile')}
             >
               {profilePhoto ? (
                 <img className="w-full h-full object-cover" src={profilePhoto} alt="Profile" />
               ) : (
-                <span className="text-[14px] font-bold text-[#BE1F2E]">{donorName}</span>
+                <span className="text-[13px] font-bold text-[#C8102E]">{donorName}</span>
               )}
             </div>
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-lg hover:bg-[#f5f0eb] transition-colors"
-              aria-label="Toggle menu"
-            >
-              <span className={`block w-5 h-0.5 bg-[#1a1210] transition-all duration-200 ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-[#1a1210] transition-all duration-200 ${mobileOpen ? 'opacity-0' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-[#1a1210] transition-all duration-200 ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Dropdown Menu */}
-        <div
-          className={`md:hidden absolute top-full left-0 w-full bg-white border-b border-[#E0DAD4] shadow-lg transition-all duration-200 overflow-hidden ${
-            mobileOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="px-4 py-3 space-y-1">
-            {navLinks.map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                className={`flex items-center w-full px-4 py-3 rounded-xl text-[15px] font-[500] transition-colors ${
-                  isActive(to)
-                    ? 'bg-[rgba(190,31,46,0.06)] text-[#BE1F2E] font-[600]'
-                    : 'text-[#1a1210] hover:bg-[#f5f0eb]'
-                }`}
-              >
-                {label}
-              </Link>
-            ))}
-            <button
+            
+            <button 
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 rounded-xl text-[15px] font-[500] text-[#5A5A5A] hover:bg-[#f5f0eb] transition-colors"
+              className="flex items-center justify-center p-2 rounded-xl bg-red-50/60 border border-[rgba(200,16,46,0.15)] text-[#C8102E] hover:bg-red-50 cursor-pointer shadow-sm transition-all"
+              title="Logout"
             >
-              Sign Out
+              <LogOut size={16} />
             </button>
           </div>
         </div>
       </nav>
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          MOBILE STICKY BOTTOM BAR (matching landing page styling)
+      ───────────────────────────────────────────────────────────────────── */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-2 py-2 flex items-center justify-around"
+        style={{
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(26,18,16,0.09)',
+          boxShadow: '0 -4px 24px rgba(26,18,16,0.08)',
+        }}
+      >
+        {[
+          { name: 'Home', path: '/dashboard', icon: Home },
+          { name: 'Camps', path: '/find-camps', icon: Heart },
+          { name: 'Map', path: '/location', icon: MapPin },
+          { name: 'Profile', path: '/edit-profile', icon: User }
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              to={item.path}
+              className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all"
+              style={{
+                color: isActive ? '#C8102E' : '#5C403F',
+                background: isActive ? 'rgba(200,16,46,0.06)' : 'transparent',
+              }}
+            >
+              <Icon size={20} style={{ strokeWidth: isActive ? 2.5 : 2 }} />
+              <span className="text-[9px] font-[700] uppercase tracking-wider text-center" style={{ fontSize: '9px' }}>
+                {item.name}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </>
   );
 };

@@ -302,6 +302,25 @@ export const SystemAdminProvider = ({ children }) => {
     }, 1000);
   };
 
+  const syncState = useCallback(() => {
+    const saved = localStorage.getItem('raktsetu_sysadmin_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.status === 'logged_in') {
+          setAdminState(prev => {
+            if (prev.status !== 'logged_in') {
+              return { ...prev, ...parsed };
+            }
+            return prev;
+          });
+        }
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, []);
+
   return (
     <SystemAdminContext.Provider value={{
       adminState,
@@ -316,6 +335,7 @@ export const SystemAdminProvider = ({ children }) => {
       toggleFeatureFlag,
       triggerBackup,
       testIntegration,
+      syncState,
       isLoading,
       error,
       refetchData: fetchAdminData

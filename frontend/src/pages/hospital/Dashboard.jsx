@@ -286,17 +286,17 @@ export const Dashboard = () => {
           {/* Quick Shortcuts */}
           <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
             <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider">Quick Shortcuts</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {quickActions.map((action, idx) => {
                 const Icon = action.icon;
                 return (
                   <Link
                     key={idx}
                     to={action.path}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border border-[#EDE7E1] transition-all gap-2 text-center group cursor-pointer hover:border-[#BE1F2E]/30 ${action.bg}`}
+                    className={`flex flex-col items-center justify-center p-2 sm:p-4 rounded-xl border border-[#EDE7E1] transition-all gap-2 text-center group cursor-pointer hover:border-[#BE1F2E]/30 ${action.bg}`}
                   >
-                    <Icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xxs font-bold tracking-wide uppercase">{action.label}</span>
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform" />
+                    <span className="text-[9px] sm:text-xxs font-bold tracking-tight sm:tracking-wide uppercase leading-tight">{action.label}</span>
                   </Link>
                 );
               })}

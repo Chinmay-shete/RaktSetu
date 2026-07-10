@@ -64,15 +64,15 @@ export const SystemAdminDashboard = () => {
             ALL SYSTEMS ACTIVE
           </span>
         </div>
-        <h1 className="font-serif text-[44px] md:text-[56px] font-[700] text-[#1A0A0A] leading-tight" style={{ fontFeatureSettings: '"liga" 0' }}>
-          Platform Health. <span className="italic font-normal">Console status: active.</span>
+        <h1 className="font-serif text-[36px] md:text-[56px] font-normal text-[#1A1210] leading-tight" style={{ fontFeatureSettings: '"liga" 0' }}>
+          Platform Health. <span className="italic">Console status: active.</span>
         </h1>
       </div>
 
       {/* Stats Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Stat 1: Uptime */}
-        <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
           <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
             <Activity size={20} />
           </div>
@@ -84,7 +84,7 @@ export const SystemAdminDashboard = () => {
         </div>
 
         {/* Stat 2: Database */}
-        <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
           <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
             <Database size={20} />
           </div>
@@ -96,7 +96,7 @@ export const SystemAdminDashboard = () => {
         </div>
 
         {/* Stat 3: Users */}
-        <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
           <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
             <Users size={20} />
           </div>
@@ -108,8 +108,8 @@ export const SystemAdminDashboard = () => {
         </div>
 
         {/* Stat 4: Pending Approvals */}
-        <Link to="/systemadmin/approvals" className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group block">
-          <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[rgba(190,31,46,0.06)] group-hover:bg-[rgba(190,31,46,0.12)] flex items-center justify-center text-[#BE1F2E] transition-colors">
+        <Link to="/systemadmin/approvals" className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group block">
+          <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[rgba(200,16,46,0.06)] group-hover:bg-[rgba(200,16,46,0.12)] flex items-center justify-center text-[#C8102E] transition-colors">
             <ArrowRight size={20} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
           <p className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] mb-1">Pending Registrations</p>
@@ -128,7 +128,7 @@ export const SystemAdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Latency Chart Card */}
-        <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-sm lg:col-span-2 flex flex-col justify-between">
+        <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-8 shadow-sm lg:col-span-2 flex flex-col justify-between">
           <div className="mb-6">
             <h3 className="font-serif text-[24px] font-[700] text-[#1A1A1A] mb-1">API Response Latency</h3>
             <p className="text-[14px] text-[#5A5A5A]">Hourly telemetry of the core RaktSetu routing and prediction server APIs.</p>
@@ -137,17 +137,17 @@ export const SystemAdminDashboard = () => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={MOCK_LATENCY_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#EDE7E1" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,18,16,0.09)" vertical={false} />
                 <XAxis dataKey="time" stroke="#9A9A9A" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="#9A9A9A" fontSize={11} tickLine={false} axisLine={false} unit="ms" />
                 <Tooltip 
-                  contentStyle={{ background: '#fff', border: '1px solid #E0DAD4', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{ background: '#fff', border: '1px solid rgba(26,18,16,0.09)', borderRadius: '8px', fontSize: '12px' }}
                   labelStyle={{ fontWeight: 'bold' }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="latency" 
-                  stroke="#BE1F2E" 
+                  stroke="#C8102E" 
                   strokeWidth={2.5} 
                   dot={{ r: 4, strokeWidth: 1.5, fill: '#fff' }} 
                   activeDot={{ r: 6 }} 
@@ -160,12 +160,12 @@ export const SystemAdminDashboard = () => {
         {/* Sidebar Diagnostics Column */}
         <div className="space-y-6">
           {/* AI Insight Card */}
-          <div className="bg-[#1A0A0A] rounded-2xl p-8 text-white relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+          <div className="bg-[#1A1210] rounded-2xl p-8 text-white relative overflow-hidden flex flex-col justify-between min-h-[220px]">
             <div className="absolute top-0 right-0 opacity-[0.04] pointer-events-none">
               <Cpu size={150} />
             </div>
             <div>
-              <span className="text-[#BE1F2E] text-[10px] font-[700] uppercase tracking-widest mb-3 block">
+              <span className="text-[#C8102E] text-[10px] font-[700] uppercase tracking-widest mb-3 block">
                 Platform Diagnostic AI
               </span>
               <h4 className="font-serif text-[20px] font-[700] mb-2 leading-tight">
@@ -178,7 +178,7 @@ export const SystemAdminDashboard = () => {
             <div className="mt-4">
               <button 
                 onClick={triggerBackup}
-                className="text-xs font-bold text-[#BE1F2E] hover:text-white flex items-center gap-1.5 transition-colors group"
+                className="text-xs font-bold text-[#C8102E] hover:text-white flex items-center gap-1.5 transition-colors group"
               >
                 <span>Trigger Manual Backup</span>
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -187,7 +187,7 @@ export const SystemAdminDashboard = () => {
           </div>
 
           {/* API Integrations Status Widget */}
-          <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm">
+          <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm">
             <h4 className="font-serif text-[18px] font-[700] text-[#1A1A1A] mb-4">Integration Services</h4>
             <div className="space-y-4">
               {Object.entries(adminState?.systemHealth?.integrations || {}).map(([key, status]) => (
@@ -220,7 +220,7 @@ export const SystemAdminDashboard = () => {
       </div>
 
       {/* Audit Log Overview Panel */}
-      <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-sm">
+      <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-8 shadow-sm">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="font-serif text-[24px] font-[700] text-[#1A1A1A] mb-1">Recent Platform Activities</h3>
@@ -233,9 +233,9 @@ export const SystemAdminDashboard = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[800px] text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#EDE7E1] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
+              <tr className="border-b border-[rgba(26,18,16,0.09)] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
                 <th className="py-3 pr-4">Timestamp</th>
                 <th className="py-3 px-4">Actor</th>
                 <th className="py-3 px-4">Action</th>
@@ -243,7 +243,7 @@ export const SystemAdminDashboard = () => {
                 <th className="py-3 pl-4">IP Address</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EDE7E1] text-xs text-[#5A5A5A]">
+            <tbody className="divide-y divide-[rgba(26,18,16,0.09)] text-xs text-[#5A5A5A]">
               {(adminState?.auditLogs || []).slice(0, 3).map(log => (
                 <tr key={log.id} className="table-row-hover">
                   <td className="py-3 pr-4 font-mono">{log.timestamp}</td>

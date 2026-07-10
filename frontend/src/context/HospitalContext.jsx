@@ -117,6 +117,32 @@ export const HospitalProvider = ({ children }) => {
     });
   };
 
+  const syncState = React.useCallback(() => {
+    const saved = localStorage.getItem('raktsetu_admin_app_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.status === 'logged_in') {
+          setAppState(prev => {
+            if (prev.status !== 'logged_in') {
+              return {
+                ...prev,
+                ...parsed,
+                alertThresholds: {
+                  ...prev.alertThresholds,
+                  ...(parsed.alertThresholds || {})
+                }
+              };
+            }
+            return prev;
+          });
+        }
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, []);
+
   return (
     <HospitalContext.Provider value={{
       appState,
@@ -126,6 +152,7 @@ export const HospitalProvider = ({ children }) => {
       logoutAdmin,
       inviteStaffMember,
       updateAlertThresholds,
+      syncState,
       resetAll
     }}>
       {children}

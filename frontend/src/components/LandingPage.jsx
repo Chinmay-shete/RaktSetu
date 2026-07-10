@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-// ─── Countup hook ────────────────────────────────────────────────────────────
-function useCountUp(target, duration = 1200, start = false) {
+// ─── Countup hook ─────────────────────────────────────────────────────────────
+function useCountUp(target, duration = 1400, start = false) {
   const [value, setValue] = useState(0);
   useEffect(() => {
     if (!start) return;
@@ -19,398 +19,863 @@ function useCountUp(target, duration = 1200, start = false) {
   return value;
 }
 
-// Shared section container — full width with consistent edge padding
+// ─── Design Tokens (from DESIGN.md) ──────────────────────────────────────────
+// Primary Crimson:   #C8102E  (crimson-accent / primary-container)
+// Deep Crimson:      #9E001F  (primary)
+// Charcoal:          #1A1210  (charcoal-card / inverse-surface ~#30312f)
+// Bone BG:           #FAF8F5  (bone-bg / surface)
+// Surface White:     #FFFFFF  (surface-container-lowest)
+// Surface Card:      #EFEEEB  (surface-container)
+// Border Subtle:     rgba(26,18,16,0.09)  (border-subtle)
+// Border Variant:    #E5BDBB  (outline-variant)
+// On-Surface:        #1B1C1A  (on-surface / text primary)
+// On-Surface Var:    #5C403F  (on-surface-variant / muted text)
+// Outline:           #906F6E  (outline)
+// Tertiary Teal:     #005468  (tertiary)
+// Tertiary Light:    #B5EAFF  (on-tertiary-container)
+
+// ─── Container ────────────────────────────────────────────────────────────────
 const Container = ({ children, className = '' }) => (
-  <div className={`w-full px-6 md:px-10 lg:px-16 ${className}`}>{children}</div>
+  <div className={`w-full px-5 sm:px-8 md:px-10 lg:px-16 xl:px-20 ${className}`}>
+    {children}
+  </div>
 );
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
-  const [formEmail, setFormEmail] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
+  const [activeBloodGroup, setActiveBloodGroup] = useState('O+');
   const statsRef = useRef(null);
 
-  const stat1 = useCountUp(10, 1200, statsVisible);
-  const stat2 = useCountUp(5, 1200, statsVisible);
-  const stat3 = useCountUp(6, 1200, statsVisible);
+  const s1 = useCountUp(4800, 1400, statsVisible);
+  const s2 = useCountUp(38, 1400, statsVisible);
+  const s3 = useCountUp(12400, 1400, statsVisible);
+  const s4 = useCountUp(98, 1400, statsVisible);
 
   useEffect(() => {
-    const handleScroll = () => setNavScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setNavScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Stats count-up on scroll
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
   useEffect(() => {
     const el = statsRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) setStatsVisible(true);
-    }, { threshold: 0.3 });
+    }, { threshold: 0.2 });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
-  const handleFormSubmit = (e) => {
+  const services = [
+    { label: 'Blood Availability', sublabel: 'Live stock across all centers', icon: 'water_drop', path: '/services?service=Blood+Stock+Availability' },
+    { label: 'Camp Schedule', sublabel: 'Upcoming donation drives', icon: 'calendar_month', path: '/services?service=Camp+Schedule' },
+    { label: 'Blood Bank Finder', sublabel: 'Locate nearest centers', icon: 'location_on', path: '/services?service=Blood+Center+Directory' },
+  ];
+
+  const navLinks = [
+    { label: 'Services', href: '#services-section' },
+    { label: 'For Citizens', href: '#process' },
+    { label: 'For Hospitals', href: '#hospitals' },
+    { label: 'Helpline', href: '#helpline' },
+  ];
+
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+
+  const handleDonorSubmit = (e) => {
     e.preventDefault();
-    if (!formEmail) return;
     setFormSubmitted(true);
-    setTimeout(() => setFormSubmitted(false), 4000);
-    setFormEmail('');
+    setTimeout(() => setFormSubmitted(false), 5000);
+    setFormData({ name: '', phone: '', email: '' });
   };
 
   return (
-    <div className="bg-[#F5F0EB] text-[#1A1A1A] overflow-x-hidden min-h-screen" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ fontFamily: 'DM Sans, sans-serif', background: '#FAF8F5', color: '#1B1C1A' }}>
       <div className="noise-filter" />
 
-      {/* ── NAVBAR ─────────────────────────────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────────────────
+          NAVBAR
+      ───────────────────────────────────────────────────────────────────── */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          navScrolled
-            ? 'bg-white/95 backdrop-blur-lg shadow-sm border-b border-[#E0DAD4]'
-            : 'bg-white/90 backdrop-blur-md border-b border-[#E0DAD4]'
-        }`}
-        style={{ height: 72 }}
+        className="sticky top-0 w-full z-50 transition-all duration-300"
+        style={{
+          height: 64,
+          background: navScrolled ? 'rgba(255,255,255,0.98)' : 'rgba(250,248,245,0.92)',
+          backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(26,18,16,0.09)',
+          boxShadow: navScrolled ? '0 1px 16px rgba(26,18,16,0.06)' : 'none',
+        }}
       >
         <Container className="flex justify-between items-center h-full">
           {/* Logo */}
           <a
-            className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0"
             href="#"
-            style={{ fontFeatureSettings: '"liga" 0' }}
+            className="font-serif text-[22px] font-bold tracking-tight shrink-0"
+            style={{ color: '#C8102E', fontFeatureSettings: '"liga" 0' }}
           >
             RaktSetu
           </a>
 
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-10 ml-12">
-            <div className="relative group">
-              <button className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer py-2 border-none bg-transparent">
-                <span>Services</span>
-                <span className="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform duration-300">keyboard_arrow_down</span>
-              </button>
-              
-              {/* Dropdown menu */}
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#EDE7E1] rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 p-2 text-left">
-                <button
-                  onClick={() => navigate('/services?service=Blood+Stock+Availability')}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1210] hover:text-[#BE1F2E] flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent"
-                >
-                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">database</span>
-                  Blood Stock Availability
-                </button>
-                <button
-                  onClick={() => navigate('/services?service=Camp+Schedule')}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1210] hover:text-[#BE1F2E] flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent"
-                >
-                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">calendar_month</span>
-                  Camp Schedule
-                </button>
-                <button
-                  onClick={() => navigate('/services?service=Blood+Center+Directory')}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1210] hover:text-[#BE1F2E] flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent"
-                >
-                  <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">home_health</span>
-                  Blood Center Directory
-                </button>
-              </div>
-            </div>
-
-            {[
-              { label: 'Features', href: '#features' },
-              { label: 'How it works', href: '#process' },
-              { label: 'Who uses it', href: '#who' },
-              { label: 'Pilot', href: '#pilot' },
-            ].map(({ label, href }) => (
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map(({ label, href }) => (
               <a
                 key={label}
                 href={href}
-                className="text-[14px] font-[500] text-[#5A5A5A] hover:text-[#BE1F2E] transition-colors whitespace-nowrap"
+                className="text-[13px] font-[500] transition-colors whitespace-nowrap"
+                style={{ color: '#5C403F' }}
+                onMouseEnter={e => e.target.style.color = '#C8102E'}
+                onMouseLeave={e => e.target.style.color = '#5C403F'}
               >
                 {label}
               </a>
             ))}
           </div>
 
-          {/* Right CTAs */}
-          <div className="flex items-center gap-4 shrink-0">
+          {/* Desktop CTAs */}
+          <div className="hidden md:flex items-center gap-3 shrink-0">
             <button
-              className="px-5 py-2 text-[14px] font-[600] text-[#BE1F2E] hover:text-[#9E1825] hover:bg-[rgba(190,31,46,0.06)] rounded-full transition-all whitespace-nowrap"
               onClick={() => navigate('/login')}
+              className="px-4 py-2 text-[13px] font-[600] rounded-full transition-all"
+              style={{ color: '#C8102E' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(200,16,46,0.06)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               Login
             </button>
             <button
-              className="btn-primary whitespace-nowrap bg-[#BE1F2E] hover:bg-[#9E1825] text-white"
-              style={{ padding: '10px 22px', minHeight: 42, fontSize: 14, borderRadius: 9999 }}
               onClick={() => navigate('/register-donor')}
+              className="px-5 py-2.5 text-[13px] font-[700] rounded-full transition-all"
+              style={{ background: '#C8102E', color: '#ffffff' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#9E001F'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(200,16,46,0.35)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.boxShadow = 'none'; }}
             >
-              Register
+              Donate Blood
+            </button>
+          </div>
+
+          {/* Mobile: Hamburger */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer border"
+              style={{ borderColor: 'rgba(26,18,16,0.09)', background: 'transparent', color: '#1B1C1A' }}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <span className="material-symbols-outlined text-[20px]">{mobileMenuOpen ? 'close' : 'menu'}</span>
             </button>
           </div>
         </Container>
       </nav>
 
-      {/* ── HERO SECTION ───────────────────────────────────────────────── */}
-      <section
-        className="relative aceternity-grid overflow-hidden flex items-center"
-        style={{ paddingTop: 72, minHeight: '88vh' }}
-      >
-        <div className="absolute inset-0 radial-glow pointer-events-none" />
-        <Container className="relative z-10 text-center py-20 md:py-28">
-          {/* Live badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(190,31,46,0.2)] bg-[rgba(190,31,46,0.06)] mb-8 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-[#22A06B] pulse-dot" />
-            <span className="text-[12px] font-[700] text-[#BE1F2E] uppercase tracking-widest">
-              Now Scaling in Maharashtra
-            </span>
+      {/* ─────────────────────────────────────────────────────────────────────
+          MOBILE MENU DRAWER
+      ───────────────────────────────────────────────────────────────────── */}
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 md:hidden"
+            style={{ background: 'rgba(26,18,16,0.4)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div
+            className="fixed top-[64px] left-0 right-0 z-50 md:hidden"
+            style={{ background: '#ffffff', borderBottom: '1px solid rgba(26,18,16,0.09)', boxShadow: '0 8px 40px rgba(26,18,16,0.12)' }}
+          >
+
+            <div className="px-5 pt-4 pb-5 flex flex-col gap-1">
+              {/* Services accordion */}
+              <button
+                className="flex justify-between items-center w-full py-3 text-[15px] font-[600] border-none bg-transparent cursor-pointer"
+                style={{ color: '#1B1C1A' }}
+                onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
+              >
+                <span>Blood Services</span>
+                <span
+                  className={`material-symbols-outlined text-[18px] transition-transform duration-200 ${mobileServicesOpen ? 'rotate-180' : ''}`}
+                  style={{ color: '#C8102E' }}
+                >keyboard_arrow_down</span>
+              </button>
+              {mobileServicesOpen && (
+                <div className="pl-2 mb-2 space-y-1 rounded-2xl p-3" style={{ background: '#FAF8F5' }}>
+                  {services.map(({ label, sublabel, icon, path }) => (
+                    <button
+                      key={label}
+                      onClick={() => { navigate(path); setMobileMenuOpen(false); }}
+                      className="w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 cursor-pointer transition-all border-none bg-transparent"
+                      style={{ color: '#1A1210' }}
+                    >
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(200,16,46,0.10)' }}>
+                        <span className="material-symbols-outlined text-[16px]" style={{ color: '#C8102E' }}>{icon}</span>
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-[700]">{label}</p>
+                        <p className="text-[11px]" style={{ color: '#5C403F' }}>{sublabel}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {navLinks.slice(1).map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-3 text-[14px] font-[500] block"
+                  style={{ color: '#5C403F', borderTop: '1px solid #F0ECE8' }}
+                >
+                  {label}
+                </a>
+              ))}
+
+              <div className="pt-4 mt-2 grid grid-cols-2 gap-3" style={{ borderTop: '1px solid rgba(26,18,16,0.09)' }}>
+                <button
+                  onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                  className="py-3 text-[13px] font-[700] rounded-2xl transition-all cursor-pointer border"
+                  style={{ color: '#C8102E', borderColor: '#C8102E', background: 'transparent' }}
+                >
+                  Hospital Login
+                </button>
+                <button
+                  onClick={() => { navigate('/register-donor'); setMobileMenuOpen(false); }}
+                  className="py-3 text-[13px] font-[700] rounded-2xl transition-all cursor-pointer"
+                  style={{ background: '#C8102E', color: '#ffffff', border: 'none' }}
+                >
+                  Donate Blood
+                </button>
+              </div>
+            </div>
           </div>
+        </>
+      )}
 
-          {/* Headline */}
-          <h1
-            className="font-serif text-[#1A0A0A] mb-8 mx-auto animate-fade-in-delay-1"
-            style={{
-              fontSize: 'clamp(52px, 8vw, 100px)',
-              lineHeight: 0.92,
-              fontWeight: 700,
-              maxWidth: 900,
-              fontFeatureSettings: '"liga" 0',
-            }}
-          >
-            The smartest way <br className="hidden md:inline" /> to manage{' '}
-            <span className="text-[#BE1F2E] italic">blood</span> in India
-          </h1>
+      {/* ─────────────────────────────────────────────────────────────────────
+          HERO
+      ───────────────────────────────────────────────────────────────────── */}
+      <section
+        className="relative overflow-hidden aceternity-grid"
+        style={{ minHeight: 'calc(100svh - 64px)' }}
+      >
+        {/* Warm glow */}
+        <div
+          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse, rgba(200,16,46,0.07) 0%, transparent 70%)' }}
+        />
 
-          {/* Subtext */}
-          <p
-            className="text-[#5A5A5A] mx-auto mb-10 animate-fade-in-delay-2"
-            style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.6, maxWidth: 600 }}
-          >
-            AI-driven logistics layer for India's blood supply chain. Reducing wastage by up to{' '}
-            <strong className="text-[#1A1A1A]">10%</strong> using real-time predictive demand sensing.
-          </p>
+        <Container className="relative z-10 flex flex-col justify-center py-14 sm:py-20" style={{ minHeight: 'calc(100svh - 64px)' }}>
+          <div className="max-w-4xl mx-auto w-full text-center">
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay-3">
-            <button
-              className="btn-primary btn-arrow-hover bg-[#BE1F2E] hover:bg-[#9E1825] text-white hover:shadow-[0_8px_24px_rgba(190,31,46,0.35)] transition-all transform hover:-translate-y-0.5 active:scale-[0.97]"
-              style={{ fontSize: 15, padding: '16px 36px', minHeight: 56, borderRadius: 50 }}
+            {/* Badge */}
+            <div
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-7 sm:mb-9"
+              style={{ border: '1px solid rgba(200,16,46,0.22)', background: 'rgba(200,16,46,0.06)' }}
             >
-              Request Emergency Access
-              <span className="material-symbols-outlined btn-arrow text-[20px]">arrow_forward</span>
-            </button>
-            <button
-              className="inline-flex items-center justify-center gap-2 bg-transparent border-[1.5px] border-[#1A1A1A] hover:border-[#BE1F2E] rounded-full text-[15px] font-[600] text-[#1A1A1A] hover:text-[#BE1F2E] hover:bg-[rgba(26,18,16,0.06)] transition-all"
-              style={{ padding: '16px 36px', minHeight: 56 }}
+              <span className="w-2 h-2 rounded-full pulse-dot shrink-0" style={{ background: '#22A06B' }} />
+              <span className="text-[10px] sm:text-[11px] font-[700] uppercase tracking-widest" style={{ color: '#C8102E' }}>
+                Ministry of Health — Official National Portal
+              </span>
+            </div>
+
+            {/* Headline — Instrument Serif */}
+            <h1
+              className="font-serif mb-5 sm:mb-6"
+              style={{
+                fontSize: 'clamp(38px, 9vw, 90px)',
+                lineHeight: 0.96,
+                fontWeight: 400,
+                letterSpacing: '-0.03em',
+                color: '#1A1210',
+                fontFeatureSettings: '"liga" 0',
+              }}
             >
-              <span className="material-symbols-outlined text-[18px]">play_circle</span>
-              Watch Product Pilot
+              India's Blood.{' '}
+              <span style={{ color: '#C8102E', fontStyle: 'italic' }}>Every drop.</span>
+              <br className="hidden sm:inline" />
+              {' '}Every moment.
+            </h1>
+
+            {/* Subtext */}
+            <p
+              className="mx-auto mb-9 sm:mb-12 px-2"
+              style={{
+                fontSize: 'clamp(14px, 2.2vw, 18px)',
+                fontWeight: 400,
+                lineHeight: 1.7,
+                maxWidth: 520,
+                color: '#5C403F',
+              }}
+            >
+              The unified digital platform connecting donors, blood banks, and hospitals across all 28 states and 8 Union Territories of India.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center mb-12 sm:mb-16 px-4 sm:px-0">
+              <button
+                onClick={() => navigate('/register-donor')}
+                className="group flex items-center justify-center gap-2.5 rounded-full transition-all"
+                style={{
+                  background: '#C8102E',
+                  color: '#ffffff',
+                  fontSize: 'clamp(14px, 1.8vw, 16px)',
+                  fontWeight: 700,
+                  padding: '16px 32px',
+                  minHeight: 56,
+                  border: 'none',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#9E001F'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(200,16,46,0.38)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>volunteer_activism</span>
+                Register as Donor
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </button>
+              <button
+                onClick={() => navigate('/services?service=Blood+Stock+Availability')}
+                className="flex items-center justify-center gap-2 rounded-full font-[600] transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#1B1C1A',
+                  fontSize: 'clamp(14px, 1.8vw, 16px)',
+                  padding: '16px 32px',
+                  minHeight: 56,
+                  border: '1.5px solid rgba(26,18,16,0.12)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,16,46,0.35)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,18,16,0.12)'; e.currentTarget.style.transform = 'none'; }}
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{ color: '#C8102E' }}>search</span>
+                Find Blood Now
+              </button>
+            </div>
+
+            {/* Quick Service Tiles */}
+            <div className="grid grid-cols-3 gap-3 max-w-xl mx-auto px-2 sm:px-0">
+              {services.map(({ label, sublabel, icon, path }) => (
+                <button
+                  key={label}
+                  onClick={() => navigate(path)}
+                  className="group rounded-2xl p-3 sm:p-4 flex flex-col items-center gap-2 transition-all cursor-pointer text-center border"
+                  style={{
+                    background: 'rgba(255,255,255,0.75)',
+                    borderColor: 'rgba(26,18,16,0.09)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.borderColor = 'rgba(200,16,46,0.25)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(26,18,16,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.75)'; e.currentTarget.style.borderColor = 'rgba(26,18,16,0.09)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(200,16,46,0.08)' }}>
+                    <span className="material-symbols-outlined text-[18px] sm:text-[22px]" style={{ color: '#C8102E', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                  </div>
+                  <div>
+                    <p className="text-[11px] sm:text-[12px] font-[700] leading-tight" style={{ color: '#1A1210' }}>{label}</p>
+                    <p className="text-[9px] sm:text-[10px] mt-0.5 leading-tight hidden sm:block" style={{ color: '#906F6E' }}>{sublabel}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Container>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5" style={{ opacity: 0.35 }}>
+          <span className="text-[10px] font-[600] uppercase tracking-widest" style={{ color: '#5C403F' }}>Scroll</span>
+          <div className="w-5 h-8 rounded-full flex items-start justify-center p-1" style={{ border: '1.5px solid #906F6E' }}>
+            <div className="w-1 h-2 rounded-full animate-bounce" style={{ background: '#906F6E' }} />
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          EMERGENCY STRIP
+      ───────────────────────────────────────────────────────────────────── */}
+      <div style={{ background: '#1A1210', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <Container className="py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 animate-pulse" style={{ background: '#C8102E' }}>
+                <span className="material-symbols-outlined text-white text-[16px]">emergency</span>
+              </div>
+              <div>
+                <p className="text-[13px] font-[700] text-white">Critical Blood Shortage — O- and AB- needed urgently across 7 states</p>
+                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Last updated: Today at 6:00 AM IST</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/register-donor')}
+              className="shrink-0 px-4 py-2 text-[12px] font-[700] rounded-full transition-all cursor-pointer whitespace-nowrap"
+              style={{ background: '#C8102E', color: '#ffffff', border: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#9E001F'}
+              onMouseLeave={e => e.currentTarget.style.background = '#C8102E'}
+            >
+              Respond &amp; Donate
             </button>
           </div>
         </Container>
-      </section>
+      </div>
 
-      {/* ── STATS SECTION ──────────────────────────────────────────────── */}
-      <section className="py-20 bg-white border-y border-[#E0DAD4]" ref={statsRef}>
+      {/* ─────────────────────────────────────────────────────────────────────
+          LIVE STATISTICS
+      ───────────────────────────────────────────────────────────────────── */}
+      <section
+        className="py-14 sm:py-20 border-b"
+        style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+        ref={statsRef}
+      >
         <Container>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center mb-8 sm:mb-12">
+            <p className="text-[11px] font-[700] uppercase tracking-widest mb-2" style={{ color: '#C8102E' }}>Live Dashboard</p>
+            <h2
+              className="font-serif"
+              style={{ fontSize: 'clamp(22px, 4vw, 40px)', fontWeight: 400, color: '#1A1210', fontFeatureSettings: '"liga" 0' }}
+            >
+              India's blood infrastructure,{' '}
+              <span style={{ color: '#C8102E', fontStyle: 'italic' }}>in real time</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { value: stat1, suffix: '%', label: 'Avg. Wastage Reduced', desc: 'Consistent across pilot hospitals' },
-              { value: stat2, suffix: ' Days', label: 'Stock Forecasting Window', desc: 'Precision demand sensing ahead' },
-              { value: stat3, suffix: 'x', label: 'Logistics Features Unique', desc: 'No other platform matches this' },
-            ].map(({ value, suffix, label, desc }) => (
-              <div key={label} className="relative pt-8 px-6 md:px-10 pb-8 bg-[#fbf9f6] border border-[#E0DAD4] rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                {/* Red top indicator line */}
-                <div className="absolute top-0 left-6 right-6 md:left-10 md:right-10 h-[2px] bg-[rgba(190,31,46,0.1)]">
-                  <div className="h-full bg-[#BE1F2E] counter-scale active" />
+              { value: s1, suffix: '+', label: 'Registered Blood Banks', sub: 'Across 28 states', icon: 'account_balance' },
+              { value: s2, suffix: '', label: 'States Connected', sub: 'Full national coverage', icon: 'map' },
+              { value: s3, suffix: '+', label: 'Units Available Today', sub: 'Real-time inventory', icon: 'inventory_2' },
+              { value: s4, suffix: '%', label: 'Request Fulfillment Rate', sub: 'Within 2 hours', icon: 'check_circle' },
+            ].map(({ value, suffix, label, sub, icon }, i) => (
+              <div
+                key={label}
+                className="rounded-2xl p-5 sm:p-7 relative overflow-hidden transition-all duration-200"
+                style={{ background: '#FAF8F5', border: '1px solid rgba(26,18,16,0.09)' }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+              >
+                <div className="absolute top-0 left-0 right-0 h-[2.5px] rounded-t-2xl" style={{ background: 'linear-gradient(90deg, #C8102E, #005468)' }} />
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(200,16,46,0.08)' }}>
+                    <span className="material-symbols-outlined text-[16px] sm:text-[20px]" style={{ color: '#C8102E', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-[700] px-2 py-0.5 rounded-full border whitespace-nowrap" style={{ color: '#22A06B', background: 'rgba(34,160,107,0.08)', borderColor: 'rgba(34,160,107,0.18)' }}>LIVE</span>
                 </div>
                 <div
-                  className="font-serif text-[#1A0A0A] leading-none mb-2"
-                  style={{ fontSize: 'clamp(48px, 6vw, 80px)', fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}
+                  className="font-serif leading-none mb-1"
+                  style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 400, color: '#1A1210' }}
                 >
-                  {Math.round(value)}{suffix}
+                  {i === 2 ? `${(Math.round(value / 100) * 100).toLocaleString('en-IN')}` : Math.round(value)}{suffix}
                 </div>
-                <p className="text-[14px] font-[600] text-[#1A1A1A] mb-1">{label}</p>
-                <p className="text-[13px] text-[#6B6B6B]">{desc}</p>
+                <p className="text-[12px] sm:text-[13px] font-[600] mb-0.5" style={{ color: '#1B1C1A' }}>{label}</p>
+                <p className="text-[11px]" style={{ color: '#906F6E' }}>{sub}</p>
               </div>
             ))}
           </div>
         </Container>
       </section>
 
-      {/* ── DARK MARQUEE ───────────────────────────────────────────────── */}
-      <div className="bg-[#1A0A0A] py-5 overflow-hidden flex border-y border-white/5" style={{ whiteSpace: 'nowrap' }}>
+      {/* ─────────────────────────────────────────────────────────────────────
+          QUICK BLOOD SEARCH
+      ───────────────────────────────────────────────────────────────────── */}
+      <section className="py-14 sm:py-20" id="services-section">
+        <Container>
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8 sm:mb-10">
+              <p className="text-[11px] font-[700] uppercase tracking-widest mb-2" style={{ color: '#C8102E' }}>Instant Search</p>
+              <h2
+                className="font-serif"
+                style={{ fontSize: 'clamp(22px, 4vw, 42px)', fontWeight: 400, color: '#1A1210', fontFeatureSettings: '"liga" 0' }}
+              >
+                Find blood when it matters{' '}
+                <span style={{ color: '#C8102E', fontStyle: 'italic' }}>most</span>
+              </h2>
+              <p className="text-[14px] sm:text-[16px] mt-3 max-w-md mx-auto leading-relaxed" style={{ color: '#5C403F' }}>
+                Search real-time availability across 4,800+ registered blood banks in India.
+              </p>
+            </div>
+
+            <div className="rounded-3xl p-5 sm:p-8 mb-5" style={{ background: '#ffffff', border: '1px solid rgba(26,18,16,0.09)', boxShadow: '0 1px 16px rgba(26,18,16,0.04)' }}>
+              <p className="text-[11px] font-[700] uppercase tracking-widest mb-4" style={{ color: '#906F6E' }}>Select Blood Group</p>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 mb-6">
+                {bloodGroups.map((bg) => (
+                  <button
+                    key={bg}
+                    onClick={() => setActiveBloodGroup(bg)}
+                    className="h-12 rounded-xl text-[13px] font-[800] border transition-all cursor-pointer"
+                    style={
+                      activeBloodGroup === bg
+                        ? { background: '#C8102E', borderColor: '#C8102E', color: '#ffffff', boxShadow: '0 4px 16px rgba(200,16,46,0.32)' }
+                        : { background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)', color: '#1A1210' }
+                    }
+                    onMouseEnter={e => { if (activeBloodGroup !== bg) { e.currentTarget.style.borderColor = 'rgba(200,16,46,0.35)'; e.currentTarget.style.background = 'rgba(200,16,46,0.05)'; } }}
+                    onMouseLeave={e => { if (activeBloodGroup !== bg) { e.currentTarget.style.borderColor = 'rgba(26,18,16,0.09)'; e.currentTarget.style.background = '#FAF8F5'; } }}
+                  >
+                    {bg}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate(`/services?service=Blood+Stock+Availability&group=${activeBloodGroup}`)}
+                className="w-full h-12 sm:h-14 rounded-2xl font-[700] transition-all cursor-pointer flex items-center justify-center gap-2.5 border-none"
+                style={{ background: '#C8102E', color: '#ffffff', fontSize: 15 }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#9E001F'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(200,16,46,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <span className="material-symbols-outlined text-[20px]">search</span>
+                Search {activeBloodGroup} Availability
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {services.map(({ label, sublabel, icon, path }) => (
+                <button
+                  key={label}
+                  onClick={() => navigate(path)}
+                  className="group rounded-2xl p-4 sm:p-5 flex items-center sm:flex-col sm:items-start gap-3 text-left transition-all cursor-pointer border"
+                  style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,16,46,0.25)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(26,18,16,0.07)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,18,16,0.09)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(200,16,46,0.08)' }}>
+                    <span className="material-symbols-outlined text-[20px]" style={{ color: '#C8102E', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-[700]" style={{ color: '#1A1210' }}>{label}</p>
+                    <p className="text-[11px] mt-0.5 leading-tight" style={{ color: '#906F6E' }}>{sublabel}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          MARQUEE
+      ───────────────────────────────────────────────────────────────────── */}
+      <div
+        className="py-4 overflow-hidden flex"
+        style={{ background: '#1A1210', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', whiteSpace: 'nowrap' }}
+      >
         {[0, 1].map((k) => (
-          <div key={k} className="flex animate-marquee gap-16 items-center shrink-0" style={{ paddingRight: 64 }}>
-            {['PREDICTIVE ANALYTICS', 'COLD CHAIN MONITORING', 'DONOR RETENTION', 'REAL-TIME INVENTORY', 'INTER-HOSPITAL TRANSFER'].map((t) => (
-              <span key={t} className="text-white/40 text-[11px] font-[700] tracking-widest flex items-center gap-4">
+          <div key={k} className="flex animate-marquee gap-12 items-center shrink-0" style={{ paddingRight: 48 }}>
+            {['BLOOD AVAILABILITY', 'CAMP SCHEDULE', 'DONOR REGISTRY', 'INTER-BANK TRANSFER', 'EMERGENCY DISPATCH', 'AI FORECASTING', 'NATIONAL COVERAGE'].map((t) => (
+              <span key={t} className="text-[10px] font-[700] tracking-widest flex items-center gap-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
                 {t}
-                <span className="w-1.5 h-1.5 rounded-full bg-[#BE1F2E] inline-block" />
+                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#C8102E' }} />
               </span>
             ))}
           </div>
         ))}
       </div>
 
-      {/* ── FEATURES SECTION ───────────────────────────────────────────── */}
-      <section className="py-24" id="features">
+      {/* ─────────────────────────────────────────────────────────────────────
+          HOW IT WORKS — FOR CITIZENS
+      ───────────────────────────────────────────────────────────────────── */}
+      <section
+        className="py-14 sm:py-24 border-b"
+        style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+        id="process"
+      >
         <Container>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Large Dashboard Card */}
-            <div className="bg-[#1A0A0A] rounded-2xl p-10 md:row-span-2 relative overflow-hidden flex flex-col justify-between min-h-[520px]">
-              <div className="relative z-10">
-                <span className="text-[#BE1F2E] text-[11px] font-[700] uppercase tracking-widest mb-4 block">
-                  Central Intelligence
-                </span>
-                <h3
-                  className="text-white font-serif text-[32px] font-[700] mb-4 leading-tight"
-                  style={{ fontFeatureSettings: '"liga" 0, "clig" 0' }}
-                >
-                  Unified Supply Dashboard
-                </h3>
-                <p className="text-white/60 text-[16px] leading-[1.6] max-w-sm">
-                  Every unit tracked, from collection to transfusion. Zero blind spots in the national grid.
-                </p>
-              </div>
+          <div className="text-center mb-10 sm:mb-16">
+            <p className="text-[11px] font-[700] uppercase tracking-widest mb-2" style={{ color: '#C8102E' }}>For Citizens</p>
+            <h2
+              className="font-serif"
+              style={{ fontSize: 'clamp(22px, 4vw, 42px)', fontWeight: 400, color: '#1A1210', fontFeatureSettings: '"liga" 0' }}
+            >
+              Donate blood in{' '}
+              <span style={{ color: '#C8102E', fontStyle: 'italic' }}>3 simple steps</span>
+            </h2>
+          </div>
 
-              {/* Stock widget */}
-              <div className="mt-10 bg-white border border-[#E0DAD4] rounded-xl p-6 text-[#1A1A1A]">
-                <div className="flex justify-between items-center mb-5">
-                  <span className="text-[#1A1A1A] text-[14px] font-[600]">Real-time Stock (Pune Cluster)</span>
-                  <span className="flex items-center gap-1.5 bg-green-500/10 text-[#22A06B] px-2.5 py-1 rounded-full text-[11px] font-[700]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#22A06B] pulse-dot" />
-                    LIVE
-                  </span>
-                </div>
-                <div className="space-y-4">
-                  {[
-                    { type: 'O+', units: '742u', pct: '75%', color: '#BE1F2E' },
-                    { type: 'A−', units: '118u', pct: '25%', color: '#E07B00' },
-                    { type: 'AB+', units: '340u', pct: '50%', color: '#BE1F2E' },
-                  ].map(({ type, units, pct, color }) => (
-                    <div key={type} className="flex items-center gap-4">
-                      <span className="text-[#1A1A1A] font-[700] text-[15px] w-10 shrink-0">{type}</span>
-                      <div className="flex-1 h-2 bg-[#F5F0EB] rounded-full overflow-hidden">
-                        <div className="h-full rounded-full animate-progress" style={{ background: color, width: pct }} />
-                      </div>
-                      <span className="text-[#BE1F2E] font-[600] text-[15px] w-12 text-right">{units}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Feature cards 01–04 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 relative">
+            <div className="hidden sm:block absolute top-9 left-[20%] right-[20%] h-px" style={{ borderTop: '2px dashed rgba(26,18,16,0.10)' }} />
             {[
-              { num: '01', icon: 'analytics', title: 'AI Forecasting', desc: 'Predict demand surges based on historical events, weather, and hospital data.' },
-              { num: '02', icon: 'local_shipping', title: 'Optimized Routing', desc: 'Dynamic transit paths for life-saving units between banks and surgical units.' },
-              { num: '03', icon: 'verified_user', title: 'Chain of Custody', desc: 'QR-based verification at every touchpoint ensures unit integrity and safety.' },
-              { num: '04', icon: 'notifications_active', title: 'Smart Alerts', desc: 'Automated SMS and App triggers for rare blood type donors in specific zones.' },
-            ].map(({ num, icon, title, desc }) => (
+              { step: '01', icon: 'person_add', title: 'Register Online', desc: 'Create your digital donor profile in under 2 minutes. No paperwork required.' },
+              { step: '02', icon: 'location_on', title: 'Find a Camp Near You', desc: 'Browse scheduled donation drives in your city, district, or pincode.' },
+              { step: '03', icon: 'volunteer_activism', title: 'Donate & Save Lives', desc: 'Visit the camp, donate, and receive your digital donor certificate instantly.' },
+            ].map(({ step, icon, title, desc }) => (
               <div
-                key={num}
-                className="bg-white border border-[#EDE7E1] rounded-2xl p-7 hover:-translate-y-1 hover:shadow-xl transition-all duration-200 cursor-pointer group"
-                style={{ transition: 'all 0.25s ease' }}
+                key={step}
+                className="relative z-10 rounded-2xl p-6 sm:p-7 flex flex-row sm:flex-col items-start gap-4 sm:gap-0 transition-all duration-200 border"
+                style={{ background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(26,18,16,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                <div className="flex justify-between items-start mb-8">
-                  <span className="text-[12px] font-[700] text-[#BE1F2E] uppercase tracking-wider">{num}</span>
-                  <div className="w-10 h-10 rounded-xl bg-[rgba(190,31,46,0.08)] flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#BE1F2E] text-[20px]">{icon}</span>
+                <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:mb-6">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 relative"
+                    style={{ background: 'rgba(200,16,46,0.08)' }}
+                  >
+                    <span className="material-symbols-outlined text-[24px]" style={{ color: '#C8102E', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                    <span
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-[800]"
+                      style={{ background: '#1A1210', color: '#ffffff', border: '2px solid #FAF8F5' }}
+                    >{step}</span>
                   </div>
                 </div>
-                <h4 className="font-[700] text-[18px] text-[#1A1A1A] mb-3" style={{ fontFeatureSettings: '"liga" 0' }}>
-                  {title}
-                </h4>
-                <p className="text-[15px] text-[#5A5A5A] leading-[1.6] text-left">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}
-      <section className="py-24 bg-white border-y border-[#E0DAD4]" id="process">
-        <Container>
-          <h2
-            className="font-serif text-center mb-20"
-            style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 700, color: '#1A0A0A', fontFeatureSettings: '"liga" 0' }}
-          >
-            The Lifecycle of a <span className="text-[#BE1F2E] italic">Life</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-            {/* Connector */}
-            <div className="hidden md:block absolute top-7 left-[12.5%] right-[12.5%] h-px bg-[#E0DAD4]" />
-            {[
-              { icon: 'volunteer_activism', title: 'Sourcing', desc: 'Strategic donor mapping and mobile camp optimization across districts.' },
-              { icon: 'science', title: 'Validation', desc: 'Digital documentation of testing and cross-matching results.' },
-              { icon: 'inventory_2', title: 'Optimized Storage', desc: 'AI-suggested stocking based on localized demand heatmaps.' },
-              { icon: 'emergency_share', title: 'Transfusion', desc: 'Real-time matching and priority delivery to operating rooms.' },
-            ].map(({ icon, title, desc }, i) => (
-              <div key={title} className="relative z-10 text-left bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-200 min-w-[220px]">
-                <div className="w-14 h-14 rounded-xl bg-[rgba(190,31,46,0.08)] flex items-center justify-center mb-6 relative border border-white shadow-sm">
-                  <span className="material-symbols-outlined text-[#BE1F2E] text-[24px]">{icon}</span>
-                  <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white border border-[#E0DAD4] flex items-center justify-center text-[10px] font-[700] text-[#BE1F2E]">
-                    {i + 1}
-                  </span>
+                <div>
+                  <h5 className="font-[700] text-[15px] sm:text-[17px] mb-2" style={{ color: '#1B1C1A' }}>{title}</h5>
+                  <p className="text-[13px] sm:text-[14px] leading-[1.65]" style={{ color: '#5C403F' }}>{desc}</p>
                 </div>
-                <h5 className="font-[700] text-[17px] text-[#1A1A1A] mb-3">{title}</h5>
-                <p className="text-[15px] text-[#5A5A5A] leading-[1.6] text-left">{desc}</p>
               </div>
             ))}
+          </div>
+
+          <div className="text-center mt-8 sm:mt-10">
+            <button
+              onClick={() => navigate('/register-donor')}
+              className="inline-flex items-center gap-2 px-6 py-3.5 text-[14px] font-[700] rounded-full transition-all cursor-pointer border-none"
+              style={{ background: '#C8102E', color: '#ffffff' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#9E001F'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(200,16,46,0.32)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <span className="material-symbols-outlined text-[18px]">volunteer_activism</span>
+              Register as Voluntary Donor
+            </button>
           </div>
         </Container>
       </section>
 
-      {/* ── WHO USES IT ────────────────────────────────────────────────── */}
-      <section className="py-24" id="who">
+      {/* ─────────────────────────────────────────────────────────────────────
+          FEATURES BENTO
+      ───────────────────────────────────────────────────────────────────── */}
+      <section className="py-14 sm:py-24" id="features">
         <Container>
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-            <div>
-              <h2
-                className="font-serif mb-4"
-                style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 700, color: '#1A0A0A', fontFeatureSettings: '"liga" 0' }}
-              >
-                Built for the <span className="italic text-[#BE1F2E]">entire</span> ecosystem
-              </h2>
-              <p className="text-[17px] text-[#5A5A5A] leading-[1.6]">
-                A modular platform that scales across organizational roles and requirements.
-              </p>
-            </div>
-            <div className="flex gap-3 shrink-0">
-              {['west', 'east'].map((dir) => (
-                <button
-                  key={dir}
-                  className="w-11 h-11 rounded-full border border-[#E0DAD4] flex items-center justify-center hover:bg-[#F5F0EB] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[#5A5A5A]">{dir}</span>
-                </button>
-              ))}
-            </div>
+          <div className="text-center mb-10 sm:mb-16">
+            <p className="text-[11px] font-[700] uppercase tracking-widest mb-2" style={{ color: '#C8102E' }}>Platform Features</p>
+            <h2
+              className="font-serif"
+              style={{ fontSize: 'clamp(22px, 4vw, 42px)', fontWeight: 400, color: '#1A1210', fontFeatureSettings: '"liga" 0' }}
+            >
+              Built for the scale of{' '}
+              <span style={{ color: '#C8102E', fontStyle: 'italic' }}>1.4 billion</span>
+            </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Big dark card — charcoal (charcoal-card: #1A1210) */}
+            <div
+              className="rounded-2xl p-7 sm:p-8 sm:col-span-2 relative overflow-hidden flex flex-col justify-between"
+              style={{ background: '#1A1210', minHeight: 280 }}
+            >
+              <div
+                className="absolute -top-10 -right-10 w-40 h-40 rounded-full"
+                style={{ background: 'rgba(200,16,46,0.12)', filter: 'blur(40px)' }}
+              />
+              <div className="relative z-10">
+                <span className="text-[10px] font-[700] uppercase tracking-widest mb-3 block" style={{ color: '#C8102E' }}>AI Forecasting Engine</span>
+                <h3
+                  className="font-serif text-[22px] sm:text-[28px] mb-3 leading-snug"
+                  style={{ color: '#ffffff', fontWeight: 400, fontFeatureSettings: '"liga" 0' }}
+                >
+                  Predict. Prepare. Prevent shortages.
+                </h3>
+                <p className="text-[14px] leading-[1.7] max-w-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  Our AI engine analyzes surgical trends, seasonal diseases, and regional demographics to forecast blood demand 5 days ahead — so no patient is ever turned away.
+                </p>
+              </div>
+              {/* Mini bar chart */}
+              <div className="mt-8 flex items-end gap-1.5 h-12">
+                {[40, 65, 45, 80, 55, 90, 72, 95, 60, 85, 70, 100].map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-t transition-colors"
+                    style={{ height: `${h}%`, background: 'rgba(200,16,46,0.32)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(200,16,46,0.65)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(200,16,46,0.32)'}
+                  />
+                ))}
+              </div>
+            </div>
+
             {[
-              { icon: 'medical_services', title: 'Hospital Staff', desc: 'Request units in seconds and track transit in real-time with live updates.' },
-              { icon: 'admin_panel_settings', title: 'Health Officer', desc: 'District-wide oversight and crisis management tools with drill-down reports.' },
-              { icon: 'account_balance', title: 'Bank Admin', desc: 'Digital inventory logs and automated compliance reporting dashboards.' },
-              { icon: 'favorite', title: 'Life Donor', desc: 'Digital donor card, health history, and reward points for loyal donors.' },
+              { icon: 'local_shipping', title: 'Emergency Routing', desc: 'Real-time dispatch coordination between blood banks and hospitals within 90 minutes.' },
+              { icon: 'verified_user', title: 'Full Audit Trail', desc: 'QR-based tracking of every unit from donor to recipient — NABH compliant.' },
+              { icon: 'notifications_active', title: 'Smart Alerts', desc: 'Instant SMS and app alerts for rare blood group matches to pre-registered donors.' },
+              { icon: 'analytics', title: 'State Dashboard', desc: 'District-level inventory analytics for health officers and administrators.' },
             ].map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="group bg-white border border-[#EDE7E1] rounded-2xl p-7 hover:-translate-y-2 hover:shadow-xl transition-all duration-200 cursor-pointer min-w-[220px] flex flex-col justify-between"
+                className="rounded-2xl p-6 transition-all duration-200 border"
+                style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(26,18,16,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                <div>
-                  <div className="w-14 h-14 rounded-2xl bg-[rgba(190,31,46,0.06)] flex items-center justify-center mb-5">
-                    <span className="material-symbols-outlined text-[#BE1F2E] text-[26px]">{icon}</span>
-                  </div>
-                  <h6 className="font-[700] text-[17px] text-[#1A1A1A] mb-2">{title}</h6>
-                  <p className="text-[15px] text-[#5A5A5A] leading-[1.6] mb-6 text-left">{desc}</p>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style={{ background: 'rgba(200,16,46,0.08)' }}>
+                  <span className="material-symbols-outlined text-[22px]" style={{ color: '#C8102E' }}>{icon}</span>
                 </div>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[#BE1F2E] text-[13px] font-[600] mt-auto">
-                  Learn more
-                  <span className="material-symbols-outlined text-[16px] btn-arrow">arrow_forward</span>
+                <h4 className="font-[700] text-[15px] sm:text-[16px] mb-2" style={{ color: '#1B1C1A' }}>{title}</h4>
+                <p className="text-[13px] leading-[1.65]" style={{ color: '#5C403F' }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          FOR HOSPITALS
+      ───────────────────────────────────────────────────────────────────── */}
+      <section
+        className="py-14 sm:py-24 border-y"
+        style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+        id="hospitals"
+      >
+        <Container>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 items-center">
+            <div>
+              <p className="text-[11px] font-[700] uppercase tracking-widest mb-3" style={{ color: '#C8102E' }}>For Hospitals &amp; Blood Banks</p>
+              <h2
+                className="font-serif mb-5 leading-tight"
+                style={{ fontSize: 'clamp(22px, 4vw, 44px)', fontWeight: 400, color: '#1A1210', fontFeatureSettings: '"liga" 0' }}
+              >
+                Modern tools for the teams that{' '}
+                <span style={{ color: '#C8102E', fontStyle: 'italic' }}>save lives</span>
+              </h2>
+              <ul className="space-y-4 mb-8">
+                {[
+                  { icon: 'inventory_2', text: 'Real-time inventory management with expiry alerts' },
+                  { icon: 'swap_horiz', text: 'Peer-to-peer inter-bank transfer requests' },
+                  { icon: 'person_search', text: 'Registered voluntary donor contact outreach' },
+                  { icon: 'bar_chart', text: 'Compliance reports and audit-ready documentation' },
+                  { icon: 'schedule', text: 'Surgical scheduling with blood reservation' },
+                ].map(({ icon, text }) => (
+                  <li key={text} className="flex items-start gap-3.5">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: 'rgba(200,16,46,0.08)' }}>
+                      <span className="material-symbols-outlined text-[16px]" style={{ color: '#C8102E' }}>{icon}</span>
+                    </div>
+                    <p className="text-[14px] sm:text-[15px] font-[500] leading-[1.6]" style={{ color: '#1B1C1A' }}>{text}</p>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex gap-3 flex-wrap">
+                <button
+                  onClick={() => navigate('/admin/register')}
+                  className="px-5 py-3 text-[13px] font-[700] rounded-full transition-all cursor-pointer border-none"
+                  style={{ background: '#C8102E', color: '#ffffff' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#9E001F'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(200,16,46,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  Register Hospital
+                </button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-5 py-3 text-[13px] font-[600] rounded-full transition-all cursor-pointer border"
+                  style={{ background: 'transparent', color: '#1B1C1A', borderColor: 'rgba(26,18,16,0.15)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,16,46,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,18,16,0.15)'; }}
+                >
+                  Login to Dashboard
+                </button>
+              </div>
+            </div>
+
+            {/* Dashboard preview card */}
+            <div className="relative">
+              <div
+                className="absolute -inset-4 rounded-full pointer-events-none"
+                style={{ background: 'rgba(200,16,46,0.05)', filter: 'blur(60px)' }}
+              />
+              <div
+                className="relative rounded-2xl overflow-hidden border"
+                style={{ background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)' }}
+              >
+                <div
+                  className="px-5 py-4 flex items-center justify-between border-b"
+                  style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {['#FF6058', '#FFBD2E', '#28C840'].map(c => (
+                      <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-[600]" style={{ color: '#906F6E' }}>Hospital Dashboard — Live Preview</span>
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{ color: '#22A06B', background: 'rgba(34,160,107,0.08)', borderColor: 'rgba(34,160,107,0.18)' }}
+                  >LIVE</span>
+                </div>
+                <div className="p-5">
+                  <p className="text-[10px] font-[700] uppercase tracking-widest mb-3" style={{ color: '#906F6E' }}>Current Inventory — Apex Pune</p>
+                  <div className="space-y-3">
+                    {[
+                      { group: 'O+', units: 142, pct: 80, status: 'Good', c: '#22A06B' },
+                      { group: 'A-', units: 18, pct: 20, status: 'Critical', c: '#C8102E' },
+                      { group: 'B+', units: 74, pct: 55, status: 'Moderate', c: '#E07B00' },
+                      { group: 'AB-', units: 6, pct: 8, status: 'Critical', c: '#C8102E' },
+                    ].map(({ group, units, pct, status, c }) => (
+                      <div
+                        key={group}
+                        className="rounded-xl px-4 py-3 border"
+                        style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-[800] text-[15px]" style={{ color: '#1A1210' }}>{group}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[12px] font-[600]" style={{ color: '#5C403F' }}>{units} units</span>
+                            <span
+                              className="text-[10px] font-[700] px-2 py-0.5 rounded-full border"
+                              style={{ color: c, background: `${c}14`, borderColor: `${c}30` }}
+                            >{status}</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#EFEEEB' }}>
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: c }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          WHO USES IT
+      ───────────────────────────────────────────────────────────────────── */}
+      <section className="py-14 sm:py-24" id="who">
+        <Container>
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-[11px] font-[700] uppercase tracking-widest mb-2" style={{ color: '#C8102E' }}>Designed For Everyone</p>
+            <h2
+              className="font-serif"
+              style={{ fontSize: 'clamp(22px, 4vw, 42px)', fontWeight: 400, color: '#1A1210', fontFeatureSettings: '"liga" 0' }}
+            >
+              One platform.{' '}
+              <span style={{ color: '#C8102E', fontStyle: 'italic' }}>Every stakeholder.</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            {[
+              { icon: 'volunteer_activism', role: 'Blood Donor', desc: 'Register, find camps, track your donation history and earn recognition badges.', cta: 'Register Now', path: '/register-donor' },
+              { icon: 'medical_services', role: 'Hospital Staff', desc: 'Manage inventory, request transfers, schedule surgeries, and contact donors instantly.', cta: 'Hospital Login', path: '/login' },
+              { icon: 'admin_panel_settings', role: 'Health Officer', desc: 'State and district-level dashboards, compliance reports, and crisis coordination tools.', cta: 'Admin Portal', path: '/login' },
+              { icon: 'account_balance', role: 'Blood Bank Admin', desc: 'Full digital operations — from collection logging to inter-bank supply management.', cta: 'Get Access', path: '/admin/register' },
+            ].map(({ icon, role, desc, cta, path }) => (
+              <div
+                key={role}
+                className="rounded-2xl p-5 sm:p-7 transition-all duration-200 cursor-pointer flex flex-col border"
+                style={{ background: '#ffffff', borderColor: 'rgba(26,18,16,0.09)' }}
+                onClick={() => navigate(path)}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(26,18,16,0.10)'; e.currentTarget.style.borderColor = 'rgba(200,16,46,0.22)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(26,18,16,0.09)'; }}
+              >
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 sm:mb-5" style={{ background: 'rgba(200,16,46,0.06)' }}>
+                  <span className="material-symbols-outlined text-[24px]" style={{ color: '#C8102E', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                </div>
+                <h6 className="font-[700] text-[13px] sm:text-[16px] mb-2" style={{ color: '#1B1C1A' }}>{role}</h6>
+                <p className="text-[12px] sm:text-[14px] leading-[1.6] mb-5 flex-grow" style={{ color: '#5C403F' }}>{desc}</p>
+                <div className="flex items-center gap-1 text-[11px] sm:text-[12px] font-[700] uppercase tracking-wider mt-auto" style={{ color: '#C8102E' }}>
+                  {cta}
+                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                 </div>
               </div>
             ))}
@@ -418,96 +883,101 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* ── PILOT / CTA SECTION ────────────────────────────────────────── */}
-      <section className="py-24 bg-white border-y border-[#E0DAD4]" id="pilot">
+      {/* ─────────────────────────────────────────────────────────────────────
+          DONOR REGISTRATION + HELPLINE
+      ───────────────────────────────────────────────────────────────────── */}
+      <section className="py-14 sm:py-24" style={{ background: '#1A1210' }} id="helpline">
         <Container>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
-            {/* Left */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div>
+              <p className="text-[11px] font-[700] uppercase tracking-widest mb-4" style={{ color: '#C8102E' }}>Every Donor Counts</p>
               <h2
-                className="font-serif mb-8 leading-tight"
-                style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 700, color: '#1A0A0A', fontFeatureSettings: '"liga" 0' }}
+                className="font-serif mb-6 leading-snug"
+                style={{ fontSize: 'clamp(26px, 4vw, 52px)', fontWeight: 400, color: '#ffffff', fontFeatureSettings: '"liga" 0' }}
               >
-                Ready to modernize your{' '}
-                <span className="italic">blood logistics?</span>
+                One donation.<br />
+                <span style={{ color: '#C8102E', fontStyle: 'italic' }}>Three lives saved.</span>
               </h2>
-              <ul className="space-y-5 mb-10">
+              <p className="text-[14px] sm:text-[16px] leading-[1.7] mb-8 max-w-md" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                India needs 14.6 million units of blood every year. Only 9 million are collected. Be part of the solution — it takes 10 minutes and costs nothing.
+              </p>
+
+              <div className="space-y-3">
                 {[
-                  'Onboard your hospital in under 48 hours.',
-                  'Zero upfront capital expenditure for government banks.',
-                  '24/7 technical support and on-site training.',
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-4">
-                    <span className="w-6 h-6 rounded-full bg-[rgba(34,160,107,0.1)] flex items-center justify-center shrink-0 mt-0.5">
-                      <span
-                        className="material-symbols-outlined text-[#22A06B] text-[16px]"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        check_circle
-                      </span>
-                    </span>
-                    <p className="text-[16px] font-[500] text-[#1A1A1A] leading-[1.5]">{item}</p>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex items-center gap-8">
-                <div>
-                  <div className="text-[28px] font-[700] text-[#1A1A1A]">14+</div>
-                  <div className="text-[14px] font-[500] text-[#5A5A5A] mt-0.5">Active Pilots</div>
-                </div>
-                <div className="w-px h-10 bg-[#E0DAD4]" />
-                <div>
-                  <div className="text-[28px] font-[700] text-[#1A1A1A]">120k+</div>
-                  <div className="text-[14px] font-[500] text-[#5A5A5A] mt-0.5">Units Tracked</div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3 mt-8">
-                {['Maharashtra Pilot', 'NABH Compliant', 'AI-Enabled'].map((b) => (
-                  <span key={b} className="badge-success text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 border border-[#22A06B]/20">
-                    <span className="text-[#22A06B] font-bold">✓</span> {b}
-                  </span>
+                  { label: 'National Blood Helpline', number: '1800-180-0104', icon: 'call' },
+                  { label: 'Emergency Blood Request', number: '104', icon: 'emergency' },
+                  { label: 'SMS Blood Request', number: 'BLOOD to 51234', icon: 'sms' },
+                ].map(({ label, number, icon }) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-3.5 border"
+                    style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.08)' }}
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(200,16,46,0.22)' }}>
+                      <span className="material-symbols-outlined text-[18px]" style={{ color: '#C8102E' }}>{icon}</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-[600] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</p>
+                      <p className="font-[700] text-[15px] text-white">{number}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Right — Demo Form */}
-            <div className="relative">
-              <div className="absolute -inset-6 bg-[rgba(190,31,46,0.06)] blur-[80px] rounded-full pointer-events-none" />
-              <div className="relative bg-white border border-[#EDE7E1] rounded-2xl p-10 shadow-2xl">
-                <h4
-                  className="text-[#1A1A1A] font-serif text-[32px] font-[700] mb-3"
-                  style={{ fontFeatureSettings: '"liga" 0, "clig" 0' }}
-                >
-                  Request Demo Access
-                </h4>
-                <p className="text-[#5A5A5A] text-[15px] leading-[1.6] mb-8">
-                  See how RaktSetu can optimize your district's blood supply through real-time predictive data.
-                </p>
+            <div>
+              <div className="rounded-2xl p-7 sm:p-8" style={{ background: '#ffffff', boxShadow: '0 24px 80px rgba(0,0,0,0.3)' }}>
                 {formSubmitted ? (
-                  <div className="bg-[rgba(34,160,107,0.08)] border border-[rgba(34,160,107,0.2)] rounded-xl p-6 text-center animate-fade-in text-[#22A06B]">
-                    <span
-                      className="material-symbols-outlined text-[#22A06B] text-[36px] mb-2 block"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
+                  <div className="text-center py-8">
+                    <div
+                      className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border"
+                      style={{ background: 'rgba(34,160,107,0.08)', borderColor: 'rgba(34,160,107,0.18)' }}
                     >
-                      check_circle
-                    </span>
-                    <p className="font-[700] text-[15px]">Request received!</p>
-                    <p className="text-[#5A5A5A] text-[13px] mt-1">We'll be in touch within 24 hours.</p>
+                      <span className="material-symbols-outlined text-[32px]" style={{ color: '#22A06B', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    </div>
+                    <h4 className="font-[700] text-[18px] mb-2" style={{ color: '#1B1C1A' }}>Registration Received!</h4>
+                    <p className="text-[14px]" style={{ color: '#5C403F' }}>You'll receive a confirmation SMS within 24 hours with your Donor ID.</p>
                   </div>
                 ) : (
-                  <form className="space-y-4" onSubmit={handleFormSubmit}>
-                    <input
-                      className="input-field"
-                      placeholder="Your work email"
-                      type="email"
-                      value={formEmail}
-                      onChange={(e) => setFormEmail(e.target.value)}
-                      required
-                    />
-                    <button type="submit" className="btn-primary w-full bg-[#BE1F2E] hover:bg-[#9E1825] text-white hover:shadow-[0_8px_24px_rgba(190,31,46,0.35)] transition-all transform hover:-translate-y-0.5 active:scale-[0.97]" style={{ minHeight: 52, fontSize: 15 }}>
-                      Start Pilot Discussion
-                    </button>
-                  </form>
+                  <>
+                    <h4
+                      className="font-serif text-[22px] sm:text-[26px] mb-1"
+                      style={{ color: '#1A1210', fontWeight: 400, fontFeatureSettings: '"liga" 0' }}
+                    >
+                      Become a Donor
+                    </h4>
+                    <p className="text-[13px] mb-6 leading-relaxed" style={{ color: '#5C403F' }}>Quick registration. Save up to 3 lives per donation.</p>
+                    <form className="space-y-3.5" onSubmit={handleDonorSubmit}>
+                      {[
+                        { placeholder: 'Full Name', type: 'text', key: 'name' },
+                        { placeholder: 'Mobile Number', type: 'tel', key: 'phone' },
+                        { placeholder: 'Email Address (optional)', type: 'email', key: 'email' },
+                      ].map(({ placeholder, type, key }) => (
+                        <input
+                          key={key}
+                          className="input-field text-sm"
+                          placeholder={placeholder}
+                          type={type}
+                          value={formData[key]}
+                          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                          required={key !== 'email'}
+                          maxLength={key === 'phone' ? 10 : undefined}
+                        />
+                      ))}
+                      <button
+                        type="submit"
+                        className="btn-primary w-full border-none cursor-pointer"
+                        style={{ background: '#C8102E', color: '#ffffff', minHeight: 52, fontSize: 15, fontWeight: 700 }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#9E001F'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(200,16,46,0.38)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.boxShadow = 'none'; }}
+                      >
+                        Register as Voluntary Donor
+                      </button>
+                    </form>
+                    <p className="text-[11px] mt-4 text-center leading-relaxed" style={{ color: '#906F6E' }}>
+                      Your data is protected under the National Health Data Policy.
+                    </p>
+                  </>
                 )}
               </div>
             </div>
@@ -515,65 +985,135 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* ── FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className="bg-[#1A0A0A] py-20 border-t border-white/10">
+      {/* ─────────────────────────────────────────────────────────────────────
+          FOOTER
+      ───────────────────────────────────────────────────────────────────── */}
+      <footer
+        className="pt-14 sm:pt-20 pb-24 sm:pb-14"
+        style={{ background: '#30312F', borderTop: '1px solid rgba(255,255,255,0.05)' }}
+      >
         <Container>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-12 mb-12">
+            <div className="col-span-2">
               <a
-                className="font-serif text-[24px] font-bold text-white tracking-tight mb-5 block"
                 href="#"
-                style={{ fontFeatureSettings: '"liga" 0' }}
+                className="font-serif text-[22px] font-bold tracking-tight mb-4 block"
+                style={{ color: '#ffffff', fontFeatureSettings: '"liga" 0' }}
               >
                 RaktSetu
               </a>
-              <p className="text-[#B0A8A0] text-[15px] leading-[1.7] max-w-sm mb-6">
-                Precision blood logistics for India's 1.4 billion people. Building the digital infrastructure for a healthier tomorrow.
+              <p className="text-[13px] sm:text-[14px] leading-[1.7] max-w-xs mb-5" style={{ color: 'rgba(255,255,255,0.40)' }}>
+                An initiative under the Ministry of Health &amp; Family Welfare, Government of India. Making blood available for every citizen, everywhere.
               </p>
-              <span className="text-[#B0A8A0] text-[13px] flex items-center gap-2">
-                Made with pride in India
-                <span
-                  className="material-symbols-outlined text-[#BE1F2E] text-[14px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  favorite
-                </span>
-              </span>
+              <div className="flex flex-col gap-1.5">
+                {[
+                  { icon: 'language', label: 'mohfw.gov.in' },
+                  { icon: 'email', label: 'support@raktsetu.gov.in' },
+                ].map(({ icon, label }) => (
+                  <span key={label} className="flex items-center gap-1.5 text-[11px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                    <span className="material-symbols-outlined text-[14px]">{icon}</span>
+                    {label}
+                  </span>
+                ))}
+              </div>
             </div>
+
             {[
-              { title: 'Platform', links: ['Features', 'Impact Metrics', 'Security', 'API Documentation'] },
-              { title: 'Company', links: ['Mission', 'Partner Hospitals', 'Contact Support', 'Terms of Service', 'Privacy Policy'] },
+              {
+                title: 'Services',
+                links: [
+                  { label: 'Blood Availability', to: '/services?service=Blood+Stock+Availability' },
+                  { label: 'Camp Schedule', to: '/services?service=Camp+Schedule' },
+                  { label: 'Blood Bank Finder', to: '/services?service=Blood+Center+Directory' },
+                  { label: 'Register as Donor', to: '/register-donor' },
+                ]
+              },
+              {
+                title: 'Information',
+                links: [
+                  { label: 'Privacy Policy', to: '/privacy' },
+                  { label: 'Terms of Service', to: '/terms' },
+                  { label: 'Accessibility', to: '#' },
+                  { label: 'RTI (Right to Info)', to: '#' },
+                ]
+              }
             ].map(({ title, links }) => (
               <div key={title}>
-                <h6 className="text-white text-[11px] font-[600] uppercase tracking-widest mb-6">{title}</h6>
-                <ul className="space-y-3">
-                  {links.map((l) => (
-                    <li key={l}>
-                      {l === 'Privacy Policy' ? (
-                        <Link className="text-[#A09890] hover:text-white transition-colors text-[14px]" to="/privacy">{l}</Link>
-                      ) : l === 'Terms of Service' ? (
-                        <Link className="text-[#A09890] hover:text-white transition-colors text-[14px]" to="/terms">{l}</Link>
-                      ) : (
-                        <a className="text-[#A09890] hover:text-white transition-colors text-[14px]" href="#">{l}</a>
-                      )}
+                <h6 className="text-[10px] font-[700] uppercase tracking-widest mb-5" style={{ color: '#ffffff' }}>{title}</h6>
+                <ul className="space-y-2.5">
+                  {links.map(({ label, to }) => (
+                    <li key={label}>
+                      <Link to={to} className="text-[13px] transition-colors" style={{ color: 'rgba(255,255,255,0.38)' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#ffffff'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.38)'}
+                      >{label}</Link>
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[#A09890] text-[13px]">
-            <span>© 2024 RaktSetu AI. Precision Blood Logistics.</span>
-            <div className="flex gap-6">
-              {['Twitter', 'LinkedIn', 'GitHub'].map((s) => (
-                <a key={s} className="hover:text-white transition-colors text-[#A09890]" href="#">{s}</a>
-              ))}
+
+          <div
+            className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          >
+            <span className="text-[12px] text-center sm:text-left" style={{ color: 'rgba(255,255,255,0.22)' }}>
+              © 2024 RaktSetu · Ministry of Health &amp; Family Welfare · Government of India
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full pulse-dot" style={{ background: '#22A06B' }} />
+              <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.22)' }}>All systems operational</span>
             </div>
           </div>
         </Container>
       </footer>
 
-      {/* ── ROLE SELECTION MODAL REMOVED ───────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────────────────
+          MOBILE STICKY BOTTOM BAR
+      ───────────────────────────────────────────────────────────────────── */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 py-3 flex items-center gap-2"
+        style={{
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(26,18,16,0.09)',
+          boxShadow: '0 -4px 24px rgba(26,18,16,0.08)',
+        }}
+      >
+        <a
+          href="tel:18001800104"
+          className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid transition-all active:scale-95"
+          style={{ background: 'rgba(200,16,46,0.07)', borderColor: 'rgba(200,16,46,0.20)' }}
+        >
+          <span className="material-symbols-outlined text-[20px]" style={{ color: '#C8102E' }}>call</span>
+          <span className="text-[9px] font-[700] uppercase tracking-wider text-center" style={{ color: '#C8102E' }}>Emergency</span>
+        </a>
+        <button
+          onClick={() => navigate('/services?service=Blood+Stock+Availability')}
+          className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid cursor-pointer transition-all active:scale-95"
+          style={{ background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)' }}
+        >
+          <span className="material-symbols-outlined text-[20px]" style={{ color: '#5C403F' }}>search</span>
+          <span className="text-[9px] font-[700] uppercase tracking-wider text-center leading-tight" style={{ color: '#5C403F' }}>Find Blood</span>
+        </button>
+        <button
+          onClick={() => navigate('/services?service=Camp+Schedule')}
+          className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid cursor-pointer transition-all active:scale-95"
+          style={{ background: '#FAF8F5', borderColor: 'rgba(26,18,16,0.09)' }}
+        >
+          <span className="material-symbols-outlined text-[20px]" style={{ color: '#5C403F' }}>calendar_month</span>
+          <span className="text-[9px] font-[700] uppercase tracking-wider text-center text-center" style={{ color: '#5C403F' }}>Camps</span>
+        </button>
+        <button
+          onClick={() => navigate('/register-donor')}
+          className="flex flex-col items-center justify-center h-[60px] gap-0.5 px-2 py-2 rounded-2xl flex-1 border border-solid cursor-pointer transition-all active:scale-95"
+          style={{ background: '#C8102E', borderColor: '#C8102E' }}
+        >
+          <span className="material-symbols-outlined text-[20px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>volunteer_activism</span>
+          <span className="text-[9px] font-[700] uppercase tracking-wider text-white text-center">Donate</span>
+        </button>
+      </div>
     </div>
   );
 };

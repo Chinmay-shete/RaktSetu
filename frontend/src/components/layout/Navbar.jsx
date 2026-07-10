@@ -14,11 +14,12 @@ import {
   ArrowLeftRight,
   PlusCircle,
   Check,
-  CheckCheck
+  CheckCheck,
+  LogOut
 } from 'lucide-react';
 
 export const Navbar = ({ onMenuOpen }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const toast = useToast();
   const navigate = useNavigate();
@@ -108,21 +109,18 @@ export const Navbar = ({ onMenuOpen }) => {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-white/95 backdrop-blur-lg border-b border-[#E0DAD4] flex-shrink-0 transition-all duration-300" style={{ height: 72 }}>
       <div className="flex items-center gap-4">
-        <button
-          onClick={onMenuOpen}
-          className="lg:hidden p-2 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] cursor-pointer"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        <Link to="/staff/dashboard" className="font-serif text-[24px] font-bold text-[#C8102E] tracking-tight shrink-0" style={{ fontFeatureSettings: '"liga" 0' }}>
+          Rakt<span className="italic">Setu</span>
+        </Link>
+        <span className="hidden sm:inline-block bg-[rgba(200,16,46,0.06)] border border-[rgba(200,16,46,0.15)] text-[#C8102E] text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+          Hospital Staff
+        </span>
 
         <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-[#7A5F5F] select-none">
-          <Link to="/staff/dashboard" className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight shrink-0" style={{ fontFeatureSettings: '"liga" 0' }}>
-            RaktSetu
-          </Link>
           {breadcrumbs.map((bc, idx) => (
             <React.Fragment key={bc.path}>
               <span className="text-[#EDE7E1] font-normal">/</span>
-              <span className={idx === breadcrumbs.length - 1 ? "text-[#1A1210] font-bold" : "hover:text-[#BE1F2E] transition-colors"}>
+              <span className={idx === breadcrumbs.length - 1 ? "text-[#1A1210] font-bold" : "hover:text-[#C8102E] transition-colors"}>
                 {bc.label}
               </span>
             </React.Fragment>
@@ -225,8 +223,10 @@ export const Navbar = ({ onMenuOpen }) => {
           </AnimatePresence>
         </div>
 
+        {/* User Profile (matching donor dashboard style) */}
         <div 
-          className="w-9 h-9 rounded-2xl overflow-hidden border border-[#BE1F2E]/20 bg-[#FAF8F5] flex items-center justify-center cursor-pointer shrink-0 hover:scale-105 transition-all shadow-sm"
+          className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
+          style={{ borderColor: 'rgba(200,16,46,0.20)', background: '#eae8e5' }}
           onClick={() => navigate('/staff/profile')}
         >
           {user?.logo ? (
@@ -236,11 +236,23 @@ export const Navbar = ({ onMenuOpen }) => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-[13px] font-bold text-[#BE1F2E]">
+            <span className="text-[13px] font-bold" style={{ color: '#C8102E' }}>
               {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'ST'}
             </span>
           )}
         </div>
+
+        {/* Logout button */}
+        <button 
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+          className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
+        >
+          <LogOut size={16} />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
     </header>
   );

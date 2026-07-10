@@ -15,11 +15,15 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SystemAdminLayout = ({ children }) => {
-  const { adminState, logoutAdmin } = useSystemAdmin();
+  const { adminState, logoutAdmin, syncState } = useSystemAdmin();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  React.useEffect(() => {
+    syncState();
+  }, [syncState]);
 
 
 
@@ -49,18 +53,11 @@ const SystemAdminLayout = ({ children }) => {
       {/* Top Navbar */}
       <nav className="sticky top-0 z-40 bg-white/90 border-b border-[#E0DAD4] backdrop-blur-md px-6 md:px-10 lg:px-16 py-4 flex items-center justify-between" style={{ height: 72 }}>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden text-[#5A5A5A] hover:text-[#BE1F2E] focus:outline-none"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          
           <Link to="/systemadmin/dashboard" className="flex items-center gap-2">
-            <span className="font-serif text-[24px] font-bold text-[#BE1F2E] tracking-tight">
+            <span className="font-serif text-[24px] font-bold text-[#C8102E] tracking-tight">
               Rakt<span className="italic">Setu</span>
             </span>
-            <span className="hidden sm:inline-block bg-[rgba(190,31,46,0.06)] border border-[rgba(190,31,46,0.15)] text-[#BE1F2E] text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+            <span className="hidden sm:inline-block bg-[rgba(200,16,46,0.06)] border border-[rgba(200,16,46,0.15)] text-[#C8102E] text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
               System Admin
             </span>
           </Link>
@@ -110,23 +107,23 @@ const SystemAdminLayout = ({ children }) => {
             </AnimatePresence>
           </div>
 
-          {/* User Profile */}
-          <div className="flex items-center gap-3 bg-white border border-[#E0DAD4] rounded-full pl-3 pr-4 py-1.5 shadow-sm">
-            <div className="w-7 h-7 rounded-full bg-[#BE1F2E] flex items-center justify-center text-white font-bold text-sm">
+          {/* User Profile (matching donor dashboard style) */}
+          <div 
+            className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center shrink-0 shadow-sm"
+            style={{ borderColor: 'rgba(200,16,46,0.20)', background: '#eae8e5' }}
+          >
+            <span className="text-[13px] font-bold" style={{ color: '#C8102E' }}>
               {adminName.charAt(0).toUpperCase()}
-            </div>
-            <span className="hidden md:inline text-xs font-bold text-[#1A1A1A] max-w-[150px] truncate">
-              {adminName}
             </span>
           </div>
 
-          {/* Logout button (Desktop) */}
+          {/* Logout button */}
           <button 
             onClick={handleLogout}
-            className="hidden sm:flex items-center gap-2 text-[#5A5A5A] hover:text-[#BE1F2E] text-xs font-bold transition-colors uppercase tracking-wider"
+            className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
           >
             <LogOut size={16} />
-            <span>Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </nav>
@@ -224,9 +221,43 @@ const SystemAdminLayout = ({ children }) => {
         </AnimatePresence>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto overflow-y-auto w-full relative z-10">
+        <main className="flex-1 p-6 md:p-10 pb-24 lg:pb-10 max-w-7xl mx-auto overflow-y-auto w-full relative z-10">
           {children}
         </main>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          MOBILE STICKY BOTTOM BAR (matching landing page styling)
+      ───────────────────────────────────────────────────────────────────── */}
+      <div
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 py-2 flex items-center justify-around"
+        style={{
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(26,18,16,0.09)',
+          boxShadow: '0 -4px 24px rgba(26,18,16,0.08)',
+        }}
+      >
+        {navigation.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              to={item.path}
+              className="flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl flex-1 transition-all"
+              style={{
+                color: isActive ? '#C8102E' : '#5C403F',
+                background: isActive ? 'rgba(200,16,46,0.06)' : 'transparent',
+              }}
+            >
+              <Icon size={20} style={{ strokeWidth: isActive ? 2.5 : 2 }} />
+              <span className="text-[9px] font-[700] uppercase tracking-wider text-center" style={{ fontSize: '9px' }}>
+                {item.name === 'User Management' ? 'Users' : item.name === 'System Settings' ? 'Settings' : item.name === 'Audit Logs' ? 'Logs' : item.name}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

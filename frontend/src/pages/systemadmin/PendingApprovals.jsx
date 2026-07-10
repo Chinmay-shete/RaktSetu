@@ -21,21 +21,21 @@ export const PendingApprovals = () => {
       {/* Editorial Header */}
       <div>
         <span className="badge-sysadmin mb-2">Security Gates</span>
-        <h1 className="font-serif text-[44px] md:text-[56px] font-[700] text-[#1A0A0A] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
-          Registration Review. <span className="italic font-normal">Onboarding requests.</span>
+        <h1 className="font-serif text-[36px] md:text-[56px] font-normal text-[#1A1210] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
+          Registration Review. <span className="italic">Onboarding requests.</span>
         </h1>
-        <p className="text-[15px] text-[#5A5A5A] max-w-2xl">
+        <p className="text-[15px] text-[#5C403F] max-w-2xl">
           Review and approve access applications from hospitals seeking blood network access, and verify district health officers.
         </p>
       </div>
 
       {/* Tabs Row */}
-      <div className="flex border-b border-[#E0DAD4]">
+      <div className="flex border-b border-[rgba(26,18,16,0.09)]">
         <button
           onClick={() => setActiveTab('hospitals')}
-          className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 ${
+          className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
             activeTab === 'hospitals'
-              ? 'border-[#BE1F2E] text-[#BE1F2E]'
+              ? 'border-[#C8102E] text-[#C8102E]'
               : 'border-transparent text-[#9A9A9A] hover:text-[#5A5A5A]'
           }`}
         >
@@ -44,9 +44,9 @@ export const PendingApprovals = () => {
         </button>
         <button
           onClick={() => setActiveTab('officers')}
-          className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 ${
+          className={`pb-4 px-6 text-sm font-semibold transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
             activeTab === 'officers'
-              ? 'border-[#BE1F2E] text-[#BE1F2E]'
+              ? 'border-[#C8102E] text-[#C8102E]'
               : 'border-transparent text-[#9A9A9A] hover:text-[#5A5A5A]'
           }`}
         >
@@ -56,7 +56,7 @@ export const PendingApprovals = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-sm">
+      <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-8 shadow-sm">
         {activeTab === 'hospitals' ? (
           <div>
             {pendingHospitals.length === 0 ? (
@@ -66,9 +66,9 @@ export const PendingApprovals = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[800px] text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-[#EDE7E1] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
+                    <tr className="border-b border-[rgba(26,18,16,0.09)] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
                       <th className="py-3 pr-4">Hospital Name</th>
                       <th className="py-3 px-4">Type</th>
                       <th className="py-3 px-4">License / Registration Number</th>
@@ -78,34 +78,30 @@ export const PendingApprovals = () => {
                       <th className="py-3 pl-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EDE7E1] text-xs text-[#5A5A5A]">
+                  <tbody className="divide-y divide-[rgba(26,18,16,0.09)] text-xs text-[#5A5A5A]">
                     {pendingHospitals.map(hospital => (
                       <tr key={hospital.id} className="table-row-hover">
-                        <td className="py-4 pr-4 font-serif text-[15px] font-bold text-[#1A1A1A]">{hospital.name}</td>
+                        <td className="py-4 pr-4 font-serif text-[15px] font-bold text-[#1A1210]">{hospital.name}</td>
                         <td className="py-4 px-4 font-semibold">{hospital.type}</td>
-                        <td className="py-4 px-4 font-mono font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded px-2.5 py-1 inline-block mt-2">
-                          {hospital.licenseNo}
-                        </td>
-                        <td className="py-4 px-4">{hospital.area}</td>
-                        <td className="py-4 px-4">{hospital.contact}</td>
-                        <td className="py-4 px-4 text-[#9A9A9A]">{hospital.appliedAt}</td>
-                        <td className="py-4 pl-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button 
-                              onClick={() => approveHospital(hospital.id)}
-                              className="p-2 rounded-lg bg-green-50 text-[#22A06B] hover:bg-green-100 transition-colors flex items-center justify-center"
-                              title="Approve Hospital"
-                            >
-                              <ThumbsUp size={16} />
-                            </button>
-                            <button 
-                              onClick={() => rejectHospital(hospital.id)}
-                              className="p-2 rounded-lg bg-red-50 text-[#BE1F2E] hover:bg-red-100 transition-colors flex items-center justify-center"
-                              title="Reject Application"
-                            >
-                              <ThumbsDown size={16} />
-                            </button>
-                          </div>
+                        <td className="py-4 px-4 font-mono text-[11px] text-[#9A9A9A]">{hospital.licenseNo}</td>
+                        <td className="py-4 px-4">{hospital.city}, {hospital.state}</td>
+                        <td className="py-4 px-4 font-mono">{hospital.contact}</td>
+                        <td className="py-4 px-4 text-[#9A9A9A]">Recent</td>
+                        <td className="py-4 pl-4 text-right flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => approveHospital(hospital.id)}
+                            className="p-2 bg-green-50 border border-green-100 hover:bg-green-100 text-[#22A06B] rounded-lg transition-all cursor-pointer"
+                            title="Approve Hospital"
+                          >
+                            <ThumbsUp size={14} />
+                          </button>
+                          <button
+                            onClick={() => rejectHospital(hospital.id)}
+                            className="p-2 bg-red-50 border border-red-100 hover:bg-red-100 text-[#C8102E] rounded-lg transition-all cursor-pointer"
+                            title="Reject Hospital"
+                          >
+                            <ThumbsDown size={14} />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -123,9 +119,9 @@ export const PendingApprovals = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[800px] text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-[#EDE7E1] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
+                    <tr className="border-b border-[rgba(26,18,16,0.09)] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
                       <th className="py-3 pr-4">Officer Name</th>
                       <th className="py-3 px-4">Designation</th>
                       <th className="py-3 px-4">District jurisdiction</th>
@@ -134,33 +130,31 @@ export const PendingApprovals = () => {
                       <th className="py-3 pl-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EDE7E1] text-xs text-[#5A5A5A]">
+                  <tbody className="divide-y divide-[rgba(26,18,16,0.09)] text-xs text-[#5A5A5A]">
                     {pendingOfficers.map(officer => (
                       <tr key={officer.id} className="table-row-hover">
-                        <td className="py-4 pr-4 font-serif text-[15px] font-bold text-[#1A1A1A]">{officer.name}</td>
+                        <td className="py-4 pr-4 font-serif text-[15px] font-bold text-[#1A1210]">{officer.name}</td>
                         <td className="py-4 px-4 font-semibold">{officer.designation}</td>
                         <td className="py-4 px-4">{officer.district} District</td>
-                        <td className="py-4 px-4 font-mono text-slate-700 bg-slate-50 border border-slate-100 rounded px-2 py-0.5">
+                        <td className="py-4 px-4 font-mono text-slate-700 bg-slate-50 border border-[rgba(26,18,16,0.06)] rounded px-2 py-0.5">
                           {officer.email}
                         </td>
-                        <td className="py-4 px-4 text-[#9A9A9A]">{officer.appliedAt}</td>
-                        <td className="py-4 pl-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button 
-                              onClick={() => approveOfficer(officer.id)}
-                              className="p-2 rounded-lg bg-green-50 text-[#22A06B] hover:bg-green-100 transition-colors flex items-center justify-center"
-                              title="Approve Officer"
-                            >
-                              <ThumbsUp size={16} />
-                            </button>
-                            <button 
-                              onClick={() => rejectOfficer(officer.id)}
-                              className="p-2 rounded-lg bg-red-50 text-[#BE1F2E] hover:bg-red-100 transition-colors flex items-center justify-center"
-                              title="Reject Application"
-                            >
-                              <ThumbsDown size={16} />
-                            </button>
-                          </div>
+                        <td className="py-4 px-4 text-[#9A9A9A]">Recent</td>
+                        <td className="py-4 pl-4 text-right flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => approveOfficer(officer.id)}
+                            className="p-2 bg-green-50 border border-green-100 hover:bg-green-100 text-[#22A06B] rounded-lg transition-all cursor-pointer"
+                            title="Approve User"
+                          >
+                            <ThumbsUp size={14} />
+                          </button>
+                          <button
+                            onClick={() => rejectOfficer(officer.id)}
+                            className="p-2 bg-red-50 border border-red-100 hover:bg-red-100 text-[#C8102E] rounded-lg transition-all cursor-pointer"
+                            title="Suspend User"
+                          >
+                            <ThumbsDown size={14} />
+                          </button>
                         </td>
                       </tr>
                     ))}

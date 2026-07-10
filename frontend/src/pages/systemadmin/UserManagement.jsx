@@ -50,16 +50,16 @@ export const UserManagement = () => {
       {/* Editorial Header */}
       <div>
         <span className="badge-sysadmin mb-2">User Registry</span>
-        <h1 className="font-serif text-[44px] md:text-[56px] font-[700] text-[#1A0A0A] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
-          User Accounts. <span className="italic font-normal">Manage access.</span>
+        <h1 className="font-serif text-[36px] md:text-[56px] font-normal text-[#1A1210] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
+          User Accounts. <span className="italic">Manage access.</span>
         </h1>
-        <p className="text-[15px] text-[#5A5A5A] max-w-2xl">
+        <p className="text-[15px] text-[#5C403F] max-w-2xl">
           Directory of all system users. Update user roles, inspect last-active times, and manage status logs.
         </p>
       </div>
 
       {/* Filter Row */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-6 shadow-sm">
         
         {/* Search */}
         <div className="relative w-full md:max-w-md input-with-icon">
@@ -96,11 +96,11 @@ export const UserManagement = () => {
       </div>
 
       {/* Users Table Card */}
-      <div className="bg-white border border-[#EDE7E1] rounded-2xl p-8 shadow-sm">
+      <div className="bg-white border border-[rgba(26,18,16,0.09)] rounded-2xl p-8 shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[800px] text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#EDE7E1] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
+              <tr className="border-b border-[rgba(26,18,16,0.09)] text-[10px] font-[700] uppercase tracking-widest text-[#9A9A9A]">
                 <th className="py-3 pr-4">User Details</th>
                 <th className="py-3 px-4">Role</th>
                 <th className="py-3 px-4">Designation</th>
@@ -110,7 +110,7 @@ export const UserManagement = () => {
                 <th className="py-3 pl-4 text-right">Toggle Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EDE7E1] text-xs text-[#5A5A5A]">
+            <tbody className="divide-y divide-[rgba(26,18,16,0.09)] text-xs text-[#5A5A5A]">
               {filteredUsers.map(user => (
                 <tr key={user.id} className="table-row-hover">
                   
@@ -122,7 +122,7 @@ export const UserManagement = () => {
 
                   {/* Role Badge */}
                   <td className="py-4 px-4">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${getRoleBadgeClass(user.role)}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap ${getRoleBadgeClass(user.role)}`}>
                       {getRoleLabel(user.role)}
                     </span>
                   </td>
