@@ -225,6 +225,17 @@ export const SystemAdminProvider = ({ children }) => {
     }
   };
 
+  const createStateAdmin = async (data) => {
+    try {
+      const response = await api.post('/systemadmin/state-admin', data);
+      fetchAdminData();
+      return response.data;
+    } catch (err) {
+      console.error("Failed to create state admin", err);
+      throw err;
+    }
+  };
+
   const toggleFeatureFlag = (flagName) => {
     setAdminState(prev => {
       const newVal = !prev.featureFlags[flagName];
@@ -348,6 +359,7 @@ export const SystemAdminProvider = ({ children }) => {
       triggerBackup,
       testIntegration,
       syncState,
+      createStateAdmin,
       isLoading,
       error,
       refetchData: fetchAdminData

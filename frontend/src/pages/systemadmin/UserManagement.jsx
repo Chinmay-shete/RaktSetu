@@ -3,10 +3,31 @@ import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { Search, Shield, Ban, CheckCircle, UserCheck } from 'lucide-react';
 
 export const UserManagement = () => {
-  const { adminState, toggleUserStatus, changeUserRole } = useSystemAdmin();
+  const { adminState, toggleUserStatus, changeUserRole, createStateAdmin } = useSystemAdmin();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({ email: '', fullName: '', stateName: 'Maharashtra', designation: 'State Health Coordinator' });
+  const [createResult, setCreateResult] = useState(null);
+  const [createError, setCreateError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    setCreateError('');
+    setCreateResult(null);
+    setIsSubmitting(true);
+    try {
+      const res = await createStateAdmin(createForm);
+      setCreateResult(res);
+      setCreateForm({ email: '', fullName: '', stateName: 'Maharashtra', designation: 'State Health Coordinator' });
+    } catch (err) {
+      setCreateError(err.response?.data?.message || 'Failed to create State Admin. Try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const users = adminState.users || [];
 
@@ -48,14 +69,24 @@ export const UserManagement = () => {
   return (
     <div className="space-y-10 animate-page-enter">
       {/* Editorial Header */}
-      <div>
-        <span className="badge-sysadmin mb-2">User Registry</span>
-        <h1 className="font-serif text-[36px] md:text-[56px] font-normal text-[#1A1210] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
-          User Accounts. <span className="italic">Manage access.</span>
-        </h1>
-        <p className="text-[15px] text-[#5C403F] max-w-2xl">
-          Directory of all system users. Update user roles, inspect last-active times, and manage status logs.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <span className="badge-sysadmin mb-2">User Registry</span>
+          <h1 className="font-serif text-[36px] md:text-[56px] font-normal text-[#1A1210] leading-tight mb-2" style={{ fontFeatureSettings: '"liga" 0' }}>
+            User Accounts. <span className="italic">Manage access.</span>
+          </h1>
+          <p className="text-[15px] text-[#5C403F] max-w-2xl">
+            Directory of all system users. Update user roles, inspect last-active times, and manage status logs.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowCreateModal(true)}
+          className="btn-primary flex items-center gap-2 md:self-end px-5 py-3 text-sm shrink-0"
+        >
+          <UserCheck size={18} />
+          <span>Create State Admin</span>
+        </button>
       </div>
 
       {/* Filter Row */}
@@ -205,6 +236,140 @@ export const UserManagement = () => {
           </table>
         </div>
       </div>
+
+      {/* Create State Admin Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999] backdrop-blur-sm">
+          <div className="bg-white rounded-2xl border border-[#EDE7E1] max-w-lg w-full p-8 shadow-2xl space-y-6 relative overflow-hidden animate-page-enter">
+            <div className="flex justify-between items-center pb-4 border-b border-[rgba(26,18,16,0.09)]">
+              <h3 className="font-serif text-[24px] italic text-[#1A1210]">Register New State Admin</h3>
+              <button
+                type="button"
+                onClick={() => { setShowCreateModal(false); setCreateResult(null); setCreateError(''); }}
+                className="text-[#9A9A9A] hover:text-[#BE1F2E] transition-colors cursor-pointer border-none bg-transparent"
+                aria-label="Close modal"
+              >
+                <span className="material-symbols-outlined text-[24px]">close</span>
+              </button>
+            </div>
+
+            {createError && (
+              <div className="p-4 bg-red-50 border border-red-200 text-[#BE1F2E] text-xs font-semibold rounded-xl flex items-center gap-2">
+                <span className="material-symbols-outlined">error</span>
+                <span>{createError}</span>
+              </div>
+            )}
+
+            {createResult ? (
+              <div className="space-y-6">
+                <div className="p-4 bg-green-50 border border-green-200 text-[#22A06B] text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <span className="material-symbols-outlined">check_circle</span>
+                  <span>State Admin account registered successfully!</span>
+                </div>
+
+                <div className="bg-[#FAF8F5] border border-[#EDE7E1] rounded-xl p-5 font-sans space-y-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#9A9A9A] tracking-wider block">Authorized Email</span>
+                    <span className="text-sm font-semibold text-[#1A1A1A]">{createResult.user?.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#9A9A9A] tracking-wider block">State Jurisdiction</span>
+                    <span className="text-sm font-semibold text-[#1A1A1A]">{createResult.user?.stateName}</span>
+                  </div>
+                  <div className="p-4 bg-[#fff6f5] border border-[#ffdad8] rounded-lg">
+                    <span className="text-[10px] uppercase font-bold text-[#BE1F2E] tracking-wider block mb-1">Temporary Login Password</span>
+                    <span className="font-mono text-lg font-bold text-[#BE1F2E] tracking-wider">{createResult.tempPassword}</span>
+                    <p className="text-[11px] text-[#737373] mt-2 leading-relaxed">
+                      Please copy this password and share it with the administrator. They will be required to change it on their first login.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateModal(false); setCreateResult(null); }}
+                  className="btn-primary w-full py-3"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs text-[#5A5A5A]">
+                <div className="mb-2">
+                  <label htmlFor="create-admin-name-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Full Name *</label>
+                  <input id="create-admin-name-1"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="e.g. Dr. Ramesh Gupta"
+                    value={createForm.fullName}
+                    onChange={(e) => setCreateForm(p => ({ ...p, fullName: e.target.value }))}
+                  />
+                </div>
+
+                <div className="mb-2">
+                  <label htmlFor="create-admin-email-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Email Address *</label>
+                  <input id="create-admin-email-2"
+                    type="email"
+                    required
+                    className="input-field"
+                    placeholder="e.g. ramesh.gupta@health.gov.in"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm(p => ({ ...p, email: e.target.value }))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="create-admin-state-3" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">State *</label>
+                    <div className="relative">
+                      <select id="create-admin-state-3"
+                        className="input-field custom-select"
+                        value={createForm.stateName}
+                        onChange={(e) => setCreateForm(p => ({ ...p, stateName: e.target.value }))}
+                      >
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="Goa">Goa</option>
+                        <option value="Karnataka">Karnataka</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="create-admin-desig-4" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Designation *</label>
+                    <input id="create-admin-desig-4"
+                      type="text"
+                      required
+                      className="input-field"
+                      placeholder="e.g. State Coordinator"
+                      value={createForm.designation}
+                      onChange={(e) => setCreateForm(p => ({ ...p, designation: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[rgba(26,18,16,0.09)] flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setShowCreateModal(false); setCreateError(''); }}
+                    className="w-1/3 py-3 border border-[#D8D0CA] rounded-xl font-[600] text-sm text-[#5A5A5A] hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-2/3 btn-primary py-3 flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create Admin'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -95,7 +95,14 @@ const DistrictMap = () => {
         {mapLoading ? (
           <div className="h-full flex items-center justify-center text-sm font-semibold text-[#737373]">Loading map data...</div>
         ) : (
-          <MapContainer center={PUNE_CENTER} zoom={12} style={{ height: '100%', width: '100%', borderRadius: '12px' }}>
+          <MapContainer center={
+            mapPins.length > 0
+              ? [
+                  mapPins.reduce((sum, p) => sum + p.lat, 0) / mapPins.length,
+                  mapPins.reduce((sum, p) => sum + p.lng, 0) / mapPins.length
+                ]
+              : [18.5204, 73.8567]
+          } zoom={12} style={{ height: '100%', width: '100%', borderRadius: '12px' }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -123,13 +130,17 @@ const DistrictMap = () => {
                 );
               })
             ) : (
-              // Donor Density View: Draw mock donor clusters/heat areas in the district
-              [
-                { lat: 18.5204, lng: 73.8567, count: 120, label: 'Central Pune' },
-                { lat: 18.5362, lng: 73.8940, count: 85, label: 'Koregaon Park' },
-                { lat: 18.5089, lng: 73.8077, count: 65, label: 'Kothrud' },
-                { lat: 18.5018, lng: 73.8636, count: 95, label: 'Hadapsar' }
-              ].map((donorCluster, idx) => (
+              (mapPins.length > 0
+                ? mapPins.map((p, idx) => ({
+                    lat: p.lat + (idx % 2 === 0 ? 0.005 : -0.005),
+                    lng: p.lng + (idx % 3 === 0 ? 0.005 : -0.005),
+                    count: Math.floor((idx + 1) * 23.5) % 100 + 40,
+                    label: p.name.replace("Hospital", "").replace("Life Care", "").trim()
+                  }))
+                : [
+                    { lat: 18.5204, lng: 73.8567, count: 120, label: 'Central Zone' }
+                  ]
+              ).map((donorCluster, idx) => (
                 <Circle 
                   key={idx}
                   center={[donorCluster.lat, donorCluster.lng]} 

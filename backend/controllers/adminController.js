@@ -5,6 +5,17 @@ const { ApiError } = require('../middleware/errorHandler');
  * Resolves the state name for a logged-in state or district admin.
  */
 async function resolveStateName(userId, districtId) {
+  // 0. Check if user directly has a state
+  if (userId) {
+    const [directUserRows] = await pool.query(
+      'SELECT state FROM users WHERE id = ? LIMIT 1',
+      [userId]
+    );
+    if (directUserRows.length > 0 && directUserRows[0].state) {
+      return directUserRows[0].state;
+    }
+  }
+
   if (districtId) {
     const [rows] = await pool.query(
       'SELECT state FROM districts WHERE id = ? LIMIT 1',
@@ -526,11 +537,16 @@ async function getStateDashboard(req, res, next) {
 
     // 6. District breakdown list
     const [breakdownRows] = await pool.query(
-      `SELECT d.id, d.name, d.zone,
+      `SELECT d.id, d.name, d.zone, d.lat, d.lng,
+              u.full_name AS officer_name,
+              u.email AS officer_email,
               (SELECT COUNT(*) FROM hospitals WHERE district_id = d.id) AS hospital_count,
               (SELECT COALESCE(SUM(bb.units - bb.reserved_units), 0) FROM blood_batches bb INNER JOIN hospitals h ON h.id = bb.hospital_id WHERE h.district_id = d.id) AS total_stock,
-              (SELECT COUNT(*) FROM emergency_requests er INNER JOIN hospitals h ON h.id = er.hospital_id WHERE h.district_id = d.id AND er.status = 'pending') AS active_emergencies
+              (SELECT COUNT(*) FROM emergency_requests er INNER JOIN hospitals h ON h.id = er.hospital_id WHERE h.district_id = d.id AND er.status = 'pending') AS active_emergencies,
+              (SELECT COALESCE(SUM(ss.units), 0) FROM surgical_schedules ss INNER JOIN hospitals h ON h.id = ss.hospital_id WHERE h.district_id = d.id AND ss.surgery_date >= CURDATE()) AS schedule_demand,
+              (SELECT COALESCE(SUM(f.predicted_units), 0) FROM forecasts f INNER JOIN hospitals h ON h.id = f.hospital_id WHERE h.district_id = d.id AND f.forecast_date >= CURDATE()) AS forecast_demand
        FROM districts d
+       LEFT JOIN users u ON d.officer_id = u.id
        WHERE d.state = ?
        ORDER BY d.name ASC`,
       [stateName]
@@ -556,18 +572,33 @@ async function getStateDashboard(req, res, next) {
       districtStockMap[s.district_id][s.blood_group] = parseInt(s.units, 10);
     });
 
-    const districtBreakdown = breakdownRows.map(row => ({
-      id: row.id,
-      name: row.name,
-      zone: row.zone || 'Western',
-      hospitalsCount: row.hospital_count,
-      totalStock: parseInt(row.total_stock, 10),
-      activeEmergenciesCount: row.active_emergencies,
-      stock: {
-        'O+': 0, 'O-': 0, 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0,
-        ...(districtStockMap[row.id] || {})
-      }
-    }));
+    const districtBreakdown = breakdownRows.map(row => {
+      const stock = parseInt(row.total_stock, 10);
+      const demand = parseInt(row.schedule_demand, 10) + parseInt(row.forecast_demand, 10);
+      const statusValue = calculateHeatmapStatus(stock, demand);
+
+      let statusLabel = 'Healthy';
+      if (statusValue === 'red') statusLabel = 'Critical';
+      else if (statusValue === 'yellow') statusLabel = 'Watch';
+
+      return {
+        id: row.id,
+        name: row.name,
+        zone: row.zone || 'Western',
+        lat: row.lat ? parseFloat(row.lat) : null,
+        lng: row.lng ? parseFloat(row.lng) : null,
+        officerName: row.officer_name || 'No Officer Assigned',
+        officerEmail: row.officer_email || '—',
+        hospitalsCount: row.hospital_count,
+        totalStock: stock,
+        activeEmergenciesCount: row.active_emergencies,
+        status: statusLabel,
+        stock: {
+          'O+': 0, 'O-': 0, 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0,
+          ...(districtStockMap[row.id] || {})
+        }
+      };
+    });
 
     return res.status(200).json({
       totalDistricts,

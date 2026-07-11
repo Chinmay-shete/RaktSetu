@@ -53,7 +53,7 @@ const HospitalRegistry = () => {
           Hospital <span className="text-[#BE1F2E]">Registry.</span>
         </h1>
         <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
-          Complete directory of all registered blood banks and hospitals under Pune District jurisdiction.
+          Complete directory of all registered blood banks and hospitals under {appState.officerDetails?.district || 'Pune'} District jurisdiction.
         </p>
       </section>
 

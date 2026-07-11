@@ -8,6 +8,21 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Reset Leaflet marker icons
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(0);
@@ -35,6 +50,8 @@ const StateAdminDashboard = () => {
     refetchData();
   }, [refetchData]);
 
+  const stateName = appState.officialDetails?.state || 'Maharashtra';
+
   const districts = appState.districts || [];
   const policyAlerts = appState.policyAlerts || [];
   const escalations = appState.escalationReports || [];
@@ -49,6 +66,15 @@ const StateAdminDashboard = () => {
   const criticalCount = useCountUp(criticalDistricts);
   const watchCount = useCountUp(watchDistricts);
   const transferCount = useCountUp(appState.transfers?.length || 0);
+
+  // Dynamic Map Center Calculation based on district coordinates
+  const stateDistricts = districts.filter(d => d.lat && d.lng);
+  const mapCenter = stateDistricts.length > 0
+    ? [
+        stateDistricts.reduce((sum, d) => sum + d.lat, 0) / stateDistricts.length,
+        stateDistricts.reduce((sum, d) => sum + d.lng, 0) / stateDistricts.length
+      ]
+    : [18.5204, 73.8567]; // fallback to Pune
 
   if (isLoading) {
     return <Loader message="Loading state health statistics..." />;
@@ -79,12 +105,12 @@ const StateAdminDashboard = () => {
 
       {/* Editorial Heading */}
       <section className="mb-10">
-        <div className="inline-block badge-state mb-4">Maharashtra State Health</div>
+        <div className="inline-block badge-state mb-4">{stateName} State Health</div>
         <h1 className="font-serif text-[58px] md:text-[76px] italic leading-none mb-4 tracking-[-0.04em] text-[#1a1a1a]">
           State <span style={{ color: 'var(--state)' }}>Oversight.</span>
         </h1>
         <p className="text-[18px] text-[#737373] max-w-2xl leading-[28px]">
-          State-wide blood supply intelligence across all {districts.length} Maharashtra districts. Monitor shortages, enforce policy KPIs, and coordinate cross-district interventions.
+          State-wide blood supply intelligence across all {districts.length} {stateName} districts. Monitor shortages, enforce policy KPIs, and coordinate cross-district interventions.
         </p>
       </section>
 
@@ -117,12 +143,12 @@ const StateAdminDashboard = () => {
             ))}
           </div>
 
-          {/* State Overview Map (Color-Coded) */}
+          {/* State Overview Map (Leaflet) */}
           <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
                 <h3 className="text-[22px] font-[500] italic">State Overview Map</h3>
-                <p className="text-[13px] text-[#737373] mt-0.5">Live health status of districts across Maharashtra.</p>
+                <p className="text-[13px] text-[#737373] mt-0.5">Live health status of districts across {stateName}.</p>
               </div>
               <div className="flex items-center gap-3 text-xs font-[600] text-[#5a5a5a]">
                 <div className="flex items-center gap-1.5">
@@ -140,20 +166,47 @@ const StateAdminDashboard = () => {
               </div>
             </div>
             
-            <div className="h-[300px] w-full bg-[#fbf9f6] rounded-xl border border-[#EDE7E1] flex items-center justify-center flex-col relative overflow-hidden">
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#1A1210 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-              <div className="absolute top-1/4 left-1/3 w-32 h-32 bg-[#22A06B]/20 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-[#BE1F2E]/20 rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-white border border-[#EDE7E1] flex items-center justify-center mb-4 text-[#BE1F2E]">
-                  <span className="material-symbols-outlined text-3xl">map</span>
-                </div>
-                <h3 className="font-serif italic text-2xl text-[#1A1210] mb-2">Interactive GIS Map Disabled</h3>
-                <p className="text-[#5A5A5A] max-w-md text-sm">
-                  The geographic overview requires valid API keys. Once configured, this will display a color-coded choropleth map of Maharashtra districts based on their critical status.
-                </p>
-              </div>
+            <div className="h-[400px] w-full bg-[#fbf9f6] rounded-xl border border-[#EDE7E1] relative overflow-hidden z-10">
+              <MapContainer center={mapCenter} zoom={6.5} style={{ height: '100%', width: '100%' }}>
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {districts.filter(d => d.lat && d.lng).map(d => (
+                  <React.Fragment key={d.id}>
+                    <Marker position={[d.lat, d.lng]}>
+                      <Popup>
+                        <div className="p-3 font-sans space-y-1 text-xs">
+                          <h4 className="font-bold text-[14px] text-[#1A1A1A] mb-1">{d.name} District</h4>
+                          <p className="text-[#5A5A5A]"><strong className="text-[#1A1A1A]">Officer:</strong> {d.officerName}</p>
+                          <p className="text-[#5A5A5A]"><strong className="text-[#1A1A1A]">Email:</strong> {d.officerEmail}</p>
+                          <p className="text-[#5A5A5A]"><strong className="text-[#1A1A1A]">Total Stock:</strong> {d.totalStock} bags</p>
+                          <p className="text-[#5A5A5A]"><strong className="text-[#1A1A1A]">Hospitals:</strong> {d.hospitalsCount}</p>
+                          <div className="mt-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              d.status === 'Critical' ? 'bg-[rgba(190,31,46,0.08)] text-[#BE1F2E]'
+                                : d.status === 'Watch' ? 'bg-[#FEF3C7] text-[#92400E]'
+                                : 'bg-[rgba(34,160,107,0.1)] text-[#22A06B]'
+                            }`}>
+                              {d.status}
+                            </span>
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                    <Circle
+                      center={[d.lat, d.lng]}
+                      radius={35000}
+                      pathOptions={{
+                        color: d.status === 'Critical' ? '#BE1F2E' : d.status === 'Watch' ? '#D97706' : '#22A06B',
+                        fillColor: d.status === 'Critical' ? '#BE1F2E' : d.status === 'Watch' ? '#D97706' : '#22A06B',
+                        fillOpacity: 0.15,
+                        weight: 2
+                      }}
+                    />
+                  </React.Fragment>
+                ))}
+              </MapContainer>
             </div>
           </div>
 
@@ -162,7 +215,7 @@ const StateAdminDashboard = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
                 <h3 className="text-[22px] font-[500] italic">State Blood Stock</h3>
-                <p className="text-[13px] text-[#737373] mt-0.5">Total units across all {districts.length} Maharashtra districts.</p>
+                <p className="text-[13px] text-[#737373] mt-0.5">Total units across all {districts.length} {stateName} districts.</p>
               </div>
               <div className="flex items-center gap-3 text-xs font-[600] text-[#5a5a5a]">
                 <div className="flex items-center gap-1.5">
@@ -200,7 +253,7 @@ const StateAdminDashboard = () => {
             <div className="p-6 border-b border-[rgba(26,18,16,0.09)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h3 className="text-[22px] font-[500] italic">District Health Status</h3>
-                <p className="text-[13px] text-[#737373] mt-0.5">Live status across all {districts.length} Maharashtra districts.</p>
+                <p className="text-[13px] text-[#737373] mt-0.5">Live status across all {districts.length} {stateName} districts.</p>
               </div>
               <div className="flex items-center gap-2 text-[11px] font-[600] flex-wrap">
                 <span className="badge-danger text-[10px]">Critical</span>
@@ -213,6 +266,7 @@ const StateAdminDashboard = () => {
                 <thead className="bg-[#f5f3f0]">
                   <tr>
                     <th className="px-4 py-3 text-[11px] font-[600] tracking-[0.05em] text-[#737373] uppercase">District</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] tracking-[0.05em] text-[#737373] uppercase">District Officer</th>
                     <th className="px-4 py-3 text-[11px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Hospitals</th>
                     <th className="px-4 py-3 text-[11px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Total Bags</th>
                     <th className="px-4 py-3 text-[11px] font-[600] tracking-[0.05em] text-[#737373] uppercase">Waste %</th>
@@ -227,8 +281,12 @@ const StateAdminDashboard = () => {
                         <div className="font-[600] text-[#1A1A1A]">{d.name}</div>
                         <div className="text-[11px] text-[#9A9A9A]">{d.zone} Zone</div>
                       </td>
-                      <td className="px-4 py-3 text-[#5A5A5A]">{d.hospitals}</td>
-                      <td className="px-4 py-3 font-[600] text-[#1A1A1A]">{d.totalBags}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-[600] text-[#1A1A1A]">{d.officerName}</div>
+                        <div className="text-[11px] text-[#9A9A9A]">{d.officerEmail}</div>
+                      </td>
+                      <td className="px-4 py-3 text-[#5A5A5A]">{d.hospitalsCount}</td>
+                      <td className="px-4 py-3 font-[600] text-[#1A1A1A]">{d.totalStock}</td>
                       <td className="px-4 py-3">
                         <span className={`font-[600] ${d.wastePercent > 7 ? 'text-[#BE1F2E]' : d.wastePercent > 5 ? 'text-[#D97706]' : 'text-[#22A06B]'}`}>
                           {d.wastePercent}%
@@ -260,7 +318,7 @@ const StateAdminDashboard = () => {
           {/* Monthly Trend */}
           <div className="bg-white p-8 rounded-lg border border-[rgba(26,18,16,0.09)]">
             <h3 className="text-[22px] font-[500] italic mb-1">State Monthly Trend</h3>
-            <p className="text-[13px] text-[#737373] mb-6">Total blood bags and waste % across Maharashtra — past 6 months.</p>
+            <p className="text-[13px] text-[#737373] mb-6">Total blood bags and waste % across {stateName} — past 6 months.</p>
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyTrend} margin={{ top: 5, right: 20, left: -25, bottom: 0 }}>

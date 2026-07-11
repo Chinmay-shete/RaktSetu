@@ -4,7 +4,8 @@ const { requireRole } = require('../middleware/auth');
 const {
   validateRequest,
   approveHospitalSchema,
-  updateUserSchema
+  updateUserSchema,
+  createStateAdminSchema
 } = require('../middleware/validation');
 
 const router = express.Router();
@@ -20,6 +21,7 @@ router.patch('/systemadmin/hospitals/:id/approve', validateRequest(approveHospit
 
 // User Accounts Management
 router.get('/systemadmin/users', systemAdminController.listUsers);
+router.post('/systemadmin/state-admin', validateRequest(createStateAdminSchema), systemAdminController.createStateAdmin);
 router.patch('/systemadmin/users/:id', validateRequest(updateUserSchema), systemAdminController.updateUser);
 
 // Audit Logging

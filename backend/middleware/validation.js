@@ -279,6 +279,13 @@ const approveHospitalSchema = z.object({
   status: z.enum(['verified', 'rejected'])
 });
 
+const createStateAdminSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  stateName: z.string().min(2, 'State name must be at least 2 characters'),
+  designation: z.string().optional()
+});
+
 const updateUserSchema = z.object({
   role: z.enum(['donor', 'staff', 'admin', 'district', 'state', 'sysadmin']).optional(),
   status: z.enum(['Active', 'Suspended', 'Pending']).optional()
@@ -315,7 +322,8 @@ module.exports = {
   createStaffSchema,
   approveHospitalSchema,
   updateUserSchema,
-  changePasswordSchema
+  changePasswordSchema,
+  createStateAdminSchema
 };
 
 

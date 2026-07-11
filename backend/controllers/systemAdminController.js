@@ -405,6 +405,62 @@ async function triggerBackup(req, res, next) {
   }
 }
 
+async function createStateAdmin(req, res, next) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const { email, fullName, stateName, designation } = req.body;
+
+    // Check if email already exists
+    const [existing] = await connection.query(
+      'SELECT id FROM users WHERE email = ? LIMIT 1',
+      [email.toLowerCase().trim()]
+    );
+    if (existing.length > 0) {
+      throw new ApiError('Email already registered', 400, 'EMAIL_EXISTS');
+    }
+
+    const bcrypt = require('bcryptjs');
+    // Generate raw temporary password
+    const tempPassword = `RS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    // Insert user with role 'state'
+    const [result] = await connection.query(
+      `INSERT INTO users (email, password_hash, role, status, full_name, designation, state, must_change_password)
+       VALUES (?, ?, 'state', 'Active', ?, ?, ?, 1)`,
+      [
+        email.toLowerCase().trim(),
+        passwordHash,
+        fullName,
+        designation || 'State Health Coordinator',
+        stateName
+      ]
+    );
+
+    await connection.commit();
+
+    return res.status(201).json({
+      message: 'State Admin created successfully',
+      user: {
+        id: result.insertId,
+        email: email.toLowerCase().trim(),
+        role: 'state',
+        fullName,
+        stateName,
+        designation: designation || 'State Health Coordinator'
+      },
+      tempPassword
+    });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
+  }
+}
+
 module.exports = {
   getSystemDashboard,
   getPendingApprovals,
@@ -412,5 +468,6 @@ module.exports = {
   listUsers,
   updateUser,
   getAuditLogs,
-  triggerBackup
+  triggerBackup,
+  createStateAdmin
 };
