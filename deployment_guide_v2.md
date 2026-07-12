@@ -56,15 +56,20 @@ Below is the network topology and service layout for **RaktSetu** in production:
 
 For student and solo developers starting with zero budget, RaktSetu can be deployed entirely for free using modern serverless platforms.
 
-### 1. Database — TiDB Cloud Serverless (5GB Free)
-1. Sign up at [TiDB Cloud](https://tidbcloud.com/).
-2. Create a free **Serverless Cluster**.
-3. Under the **Connect** tab, copy your connection details:
-   - **Host:** e.g., `gateway01.ap-southeast-1.prod.aws.tidbcloud.com`
-   - **Port:** `4000`
-   - **User:** e.g., `xxxxxx.root`
-   - **Password:** `[YourPassword]`
-   - **Database Name:** `raktsetu`
+### 1. Database — Aiven MySQL (5GB Free)
+> [!IMPORTANT]
+> Aiven MySQL (standard MySQL 8.0) must be used. Do not use TiDB Cloud Serverless because TiDB lacks support for standard MySQL spatial indexing (`ST_Distance_Sphere` over `POINT` columns) which is critical for RaktSetu's location coordination functions.
+
+1. Sign up at [Aiven.io](https://aiven.io/).
+2. Create a free **MySQL** database service.
+3. Select cloud provider (AWS), Mumbai/closest region, and choose the free **Hobbyist** plan.
+4. Wait for provisioning, then copy your connection credentials from the service overview:
+   - **Host:** e.g., `mysql-xxxx-aiven.aivencloud.com`
+   - **Port:** e.g., `12345`
+   - **User:** `avnadmin` (or `DB_USER` / `DB_USERNAME`)
+   - **Password:** `[YourPassword]` (or `DB_PASSWORD`)
+   - **Database Name:** `defaultdb` (or `DB_NAME` / `DB_DATABASE`)
+5. Enable SSL connection by setting `DB_SSL = true` in your env variables.
 
 ### 2. Cache — Upstash Redis (10,000 requests/day Free)
 1. Sign up at [Upstash](https://upstash.com/).
@@ -85,11 +90,12 @@ For student and solo developers starting with zero budget, RaktSetu can be deplo
 4. Add the following **Environment Variables** in the UI:
    - `PORT`: `5001`
    - `REDIS_URL`: `rediss://default:password@endpoint.upstash.io:6379`
-   - `DB_HOST`: `gateway01.ap-southeast-1.prod.aws.tidbcloud.com`
-   - `DB_PORT`: `4000`
-   - `DB_USER`: `xxxxxx.root`
+   - `DB_HOST`: `mysql-xxxx-aiven.aivencloud.com`
+   - `DB_PORT`: `12345`
+   - `DB_USER`: `avnadmin` (or `DB_USERNAME`)
    - `DB_PASSWORD`: `[YourPassword]`
-   - `DB_NAME`: `raktsetu`
+   - `DB_NAME`: `defaultdb` (or `DB_DATABASE`)
+   - `DB_SSL`: `true`
 5. Deploy and copy the public URL (e.g., `https://raktsetu-ai.onrender.com`).
 
 ### 4. Express Backend — Render (Free Node Web Service)
@@ -103,11 +109,12 @@ For student and solo developers starting with zero budget, RaktSetu can be deplo
 3. Add **Environment Variables**:
    - `PORT`: `5000`
    - `NODE_ENV`: `production`
-   - `DB_HOST`: `gateway01.ap-southeast-1.prod.aws.tidbcloud.com`
-   - `DB_PORT`: `4000`
-   - `DB_USER`: `xxxxxx.root`
+   - `DB_HOST`: `mysql-xxxx-aiven.aivencloud.com`
+   - `DB_PORT`: `12345`
+   - `DB_USER`: `avnadmin` (or `DB_USERNAME`)
    - `DB_PASSWORD`: `[YourPassword]`
-   - `DB_NAME`: `raktsetu`
+   - `DB_NAME`: `defaultdb` (or `DB_DATABASE`)
+   - `DB_SSL`: `true`
    - `REDIS_URL`: `rediss://default:password@endpoint.upstash.io:6379`
    - `JWT_SECRET`: `[Generate a secure 32-character string]`
    - `JWT_REFRESH_SECRET`: `[Generate a secure 32-character string]`
