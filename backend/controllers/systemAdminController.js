@@ -600,6 +600,14 @@ async function updateUser(req, res, next) {
 
     await connection.commit();
 
+    const redis = require('../config/redis');
+    try {
+      await redis.del(`user:${userId}`);
+      await redis.del(`token_version:${userId}`);
+    } catch (redisErr) {
+      console.warn('[Redis] Connection failed on user update:', redisErr.message);
+    }
+
     const [updatedRows] = await pool.query('SELECT id, role, status FROM users WHERE id = ?', [userId]);
     const updatedUser = updatedRows[0];
 

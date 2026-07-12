@@ -371,3 +371,22 @@ ALTER TABLE donations
 ALTER TABLE emergency_pledges 
   ADD CONSTRAINT fk_pledges_donor FOREIGN KEY (donor_id) REFERENCES donors(id) ON DELETE CASCADE,
   ADD CONSTRAINT fk_pledges_emergency FOREIGN KEY (emergency_id) REFERENCES emergency_requests(id) ON DELETE CASCADE;
+
+-- Scale Indexes
+CREATE INDEX idx_donors_blood_location 
+  ON donors(blood_group, lat, lng, available_for_donation);
+
+CREATE INDEX idx_emergency_blood_status 
+  ON emergency_requests(blood_group, status, urgency_level, created_at);
+
+CREATE INDEX idx_donations_donor_date 
+  ON donations(donor_id, donation_date DESC);
+
+CREATE INDEX idx_notifications_user_read 
+  ON notifications(user_id, is_read, timestamp DESC);
+
+CREATE INDEX idx_blood_batches_scale 
+  ON blood_batches(hospital_id, blood_group, units, reserved_units, expiry_date);
+
+CREATE INDEX idx_users_token_version 
+  ON users(id, token_version);

@@ -1,6 +1,7 @@
 const { decodeToken } = require('../services/jwtService');
 const { pool } = require('../config/db');
 const { ApiError } = require('./errorHandler');
+const redis = require('../config/redis');
 
 /**
  * Resolves a scope ID (like hospital_id or district_id) from route params, query, or body.
@@ -36,14 +37,33 @@ async function requireAuth(req, res, next) {
     }
 
     const payload = decodeToken(token, 'access');
+    const userId = payload.sub;
+    const cacheKey = `user:${userId}`;
 
-    // Retrieve user from DB to verify active status
-    const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [payload.sub]);
-    if (rows.length === 0) {
-      throw new ApiError('User not found', 401, 'UNAUTHORIZED');
+    let user;
+    try {
+      const cachedUserStr = await redis.get(cacheKey);
+      if (cachedUserStr) {
+        user = JSON.parse(cachedUserStr);
+      }
+    } catch (redisErr) {
+      console.warn('[Redis] Connection failed, falling back to database:', redisErr.message);
     }
 
-    const user = rows[0];
+    if (!user) {
+      const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+      if (rows.length === 0) {
+        throw new ApiError('User not found', 401, 'UNAUTHORIZED');
+      }
+      user = rows[0];
+      try {
+        await redis.setex(cacheKey, 3600, JSON.stringify(user));
+        await redis.setex(`token_version:${userId}`, 3600, String(user.token_version || 0));
+      } catch (redisErr) {
+        // Ignore write errors
+      }
+    }
+
     if (user.status === 'Suspended') {
       throw new ApiError('User account has been suspended. Please contact support.', 403, 'SUSPENDED_USER');
     }

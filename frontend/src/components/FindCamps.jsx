@@ -259,6 +259,11 @@ const FindCamps = () => {
 
   // Fetch real camps and hospitals in the district from the database
   useEffect(() => {
+    if (!activeState || !activeDistrict) {
+      setDbCamps([]);
+      setDbHospitals([]);
+      return;
+    }
     let isMounted = true;
     const fetchData = async () => {
       setApiLoading(true);
@@ -404,13 +409,29 @@ const FindCamps = () => {
     });
 
     // Populate markers
+    const coordinateCounts = {};
     activeItems.forEach(item => {
+      let lat = item.lat;
+      let lng = item.lng;
+      const coordKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+
+      if (coordinateCounts[coordKey]) {
+        const count = coordinateCounts[coordKey];
+        const angle = count * (2 * Math.PI / 8); // Spread in 8 directions
+        const radius = 0.00015 * count; // Spiral outwards slightly
+        lat += Math.sin(angle) * radius;
+        lng += Math.cos(angle) * radius;
+        coordinateCounts[coordKey] = count + 1;
+      } else {
+        coordinateCounts[coordKey] = 1;
+      }
+
       const popupContent = `
         <strong>${item.isCamp ? '🔴 Camp' : '🏥 Hospital'}: ${item.name}</strong><br/>
         ${item.location}<br/>
         <span style="color: #BE1F2E; font-weight: bold;">${item.distanceStr}</span>
       `;
-      L.marker([item.lat, item.lng])
+      L.marker([lat, lng])
         .bindPopup(popupContent)
         .addTo(markersGroup.current);
     });

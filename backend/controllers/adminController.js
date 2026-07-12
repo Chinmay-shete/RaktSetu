@@ -1,5 +1,6 @@
 const { pool } = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
+const redis = require('../config/redis');
 
 /**
  * Resolves the state name for a logged-in state or district admin.
@@ -81,6 +82,17 @@ async function getDistrictDashboard(req, res, next) {
       throw new ApiError('User is not associated with any district', 403, 'FORBIDDEN');
     }
 
+    const statsKey = `dashboard:stats:${districtId}`;
+    let cached;
+    try {
+      cached = await redis.get(statsKey);
+    } catch (err) {
+      console.warn('[Redis] Connection failed on getDistrictDashboard:', err.message);
+    }
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
+
     // 1. Get total hospitals count
     const [hospRows] = await pool.query(
       'SELECT COUNT(*) AS count FROM hospitals WHERE district_id = ?',
@@ -144,7 +156,7 @@ async function getDistrictDashboard(req, res, next) {
       };
     });
 
-    return res.status(200).json({
+    const result = {
       kpis: {
         totalHospitals,
         totalStock,
@@ -152,7 +164,15 @@ async function getDistrictDashboard(req, res, next) {
         totalCamps
       },
       heatmap
-    });
+    };
+
+    try {
+      await redis.setex(statsKey, 120, JSON.stringify(result));
+    } catch (err) {
+      // Ignore write errors
+    }
+
+    return res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -166,6 +186,17 @@ async function getDistrictHospitals(req, res, next) {
     const districtId = req.user.district_id;
     if (!districtId) {
       throw new ApiError('User is not associated with any district', 403, 'FORBIDDEN');
+    }
+
+    const cacheKey = `hospitals:list:${districtId}`;
+    let cached;
+    try {
+      cached = await redis.get(cacheKey);
+    } catch (err) {
+      console.warn('[Redis] Connection failed on getDistrictHospitals:', err.message);
+    }
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
     }
 
     const [rows] = await pool.query(
@@ -214,6 +245,12 @@ async function getDistrictHospitals(req, res, next) {
         ...(stockMap[row.id] || {})
       }
     }));
+
+    try {
+      await redis.setex(cacheKey, 600, JSON.stringify(serialized));
+    } catch (err) {
+      // Ignore write errors
+    }
 
     return res.status(200).json(serialized);
   } catch (error) {
@@ -341,6 +378,15 @@ async function createDistrictCamp(req, res, next) {
     }
 
     const { name, campDate, address, lat, lng, organizer, capacity, expectedDonors } = req.body;
+
+    const campDateObj = new Date(campDate);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    if (campDateObj < tomorrow) {
+      throw new ApiError('Camp date must be at least 1 day in the future', 400, 'VALIDATION_ERROR');
+    }
+
     const pointStr = `POINT(${lng} ${lat})`;
 
     const [result] = await pool.query(

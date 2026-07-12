@@ -1,0 +1,337 @@
+You are a Senior Full-Stack Engineer and DevOps Architect performing a complete Pre-Production 
+Readiness Audit for a project called **RaktSetu** — an AI-powered blood logistics and donor 
+coordination platform built for the Indian healthcare market.
+
+The project stack is:
+- **Frontend:** React + Vite (SPA)
+- **Backend:** Node.js + Express (REST API)
+- **AI Microservice:** Python + Flask
+- **Database:** MySQL with spatial indexing (ST_Distance_Sphere)
+- **Maps:** Leaflet.js + OpenStreetMap
+- **Auth:** JWT-based, single unified login endpoint across 6 portals
+
+Your job is to perform a deep, honest audit across EVERY dimension listed below and produce 
+a structured **Production Readiness Report in Markdown format**.
+
+---
+
+## AUDIT SCOPE — CHECK EVERY SINGLE ITEM BELOW
+
+---
+
+### 1. 🔐 AUTHENTICATION & AUTHORIZATION AUDIT
+- Is JWT implemented correctly? (secret strength, expiry, refresh logic)
+- Is the single login endpoint safely routing all 6 portal roles?
+- Are protected routes guarded on BOTH frontend AND backend?
+- Is there any role-escalation vulnerability? (can a donor access hospital admin routes?)
+- Are tokens stored safely? (localStorage vs httpOnly cookie risk)
+- Is logout properly invalidating tokens?
+- Rate limiting on the login endpoint?
+- Brute-force protection?
+
+### 2. 🗄️ DATABASE AUDIT (MySQL)
+- Are all foreign keys and indexes defined correctly?
+- Is ST_Distance_Sphere used with proper SRID handling?
+- Spatial index on the location columns?
+- Are there any N+1 query problems in Express routes?
+- Connection pooling configured? (not raw createConnection per request)
+- SQL injection protection everywhere? (parameterized queries / ORM)
+- Are sensitive fields (passwords) hashed with bcrypt with salt rounds ≥ 10?
+- Are transactions used for multi-table writes?
+- Is there a DB connection error handler that won't crash the server?
+
+### 3. 🌐 EXPRESS BACKEND AUDIT
+- Is every API route returning consistent JSON response shapes?
+- Are HTTP status codes correct? (200/201/400/401/403/404/500)
+- Global error handler middleware present and catching unhandled errors?
+- CORS configured correctly for production origin?
+- Helmet.js or equivalent security headers in place?
+- Are file uploads (if any) validated and size-limited?
+- Environment variables used for ALL secrets (DB password, JWT secret, Flask URL)?
+- Is the server crashing if Flask AI service is down? (should fail gracefully)
+- Are all async route handlers wrapped in try/catch or express-async-errors?
+- Input validation/sanitization on all POST/PUT body fields?
+- Are all API endpoints returning 401 for unauthenticated access where required?
+
+### 4. 🤖 FLASK AI MICROSERVICE AUDIT
+- Is the Flask service running in production mode (not debug=True)?
+- Is it behind a WSGI server (Gunicorn) instead of Flask's dev server?
+- Are all AI endpoints responding within acceptable timeouts (< 5 seconds)?
+- What happens when the AI model is slow or fails? Does Express handle the timeout gracefully?
+- Is the Flask service URL configured via environment variable, not hardcoded in Express?
+- Are there request validation checks on Flask's input?
+- Is the AI microservice protected from direct public access? (only Express should call it)
+- Memory usage — does the model stay loaded in RAM between requests or reload every time?
+
+### 5. ⚛️ REACT FRONTEND AUDIT
+- Is the production build (vite build) clean with no console.error or warnings?
+- Are all 6 portal dashboards loading correctly?
+- Are protected routes redirecting unauthenticated users to login?
+- Are there any hardcoded API base URLs? (must use .env VITE_API_URL)
+- Error boundaries in place for major sections?
+- Is the Leaflet map loading without tile errors?
+- Are past-date issues in forms fixed? (camp registration date validation)
+- Mobile responsiveness on all major portal pages?
+- Are duplicate Navbar/Footer components removed?
+- Is the bundle size reasonable? (run: npx vite build and check dist size)
+- Accessibility: label-control associations fixed?
+- Loading states and skeleton screens for API calls?
+- Are state/district dropdowns fully populated?
+
+### 6. 📡 API INTEGRATION AUDIT
+- Test every single API endpoint end-to-end:
+  - Auth: Login (all 6 roles), token refresh, logout
+  - Donor: Register, profile update, donation history
+  - Hospital: Request blood, approve donor, manage staff
+  - Admin: Dashboard stats, user management
+  - Blood Bank: Inventory update, expiry alerts
+  - Camp Organizer: Create camp, register donor, view registrations
+- Are all form submissions reaching the backend correctly?
+- Are success/error responses shown to the user with proper UI feedback?
+- Is the blood request matching algorithm (AI-assisted) returning correct results?
+
+### 7. 📊 PERFORMANCE AUDIT
+- What is the average response time of the 5 most-used API endpoints?
+- Is any endpoint doing synchronous blocking operations in Node.js?
+- Are database queries indexed properly for the most frequent queries?
+  - donor search by blood group + location
+  - hospital blood requests by status
+  - donation history by donor_id
+- Is caching in place for static/semi-static data (blood groups, hospitals list)?
+- Is the React bundle code-split / lazy-loaded by portal role?
+- Are images optimized and properly sized?
+
+### 8. 🚀 SCALABILITY & CAPACITY ESTIMATE
+Based on the architecture, calculate and report:
+
+**Single-instance capacity estimate:**
+- Node.js/Express: How many concurrent requests can this handle?
+  - Default: ~500–1000 concurrent with connection pool of 10
+  - With cluster mode (all CPU cores): multiply by core count
+- Flask AI: What is the bottleneck? (single-threaded Python GIL)
+  - Single Gunicorn worker: ~5–20 concurrent AI requests
+  - With 4 workers: ~20–80 concurrent AI requests
+- MySQL: Connection pool size × query duration = throughput
+- Leaflet/OSM: No load on our server (client-side + CDN)
+
+**Realistic concurrent user estimate:**
+- Light usage (browsing, viewing): ~500–1,000 simultaneous users
+- Active usage (form submissions, AI queries): ~100–300 simultaneous users
+- Heavy AI requests simultaneously: ~20–80 (Flask bottleneck)
+
+**Scaling path:**
+- Horizontal scaling: Can Express be run with PM2 cluster mode?
+- Load balancer ready? (Nginx)
+- Can Flask workers be increased?
+- Is MySQL connection pool configured for multi-instance?
+- CDN for static React build?
+
+### 9. 🔒 SECURITY AUDIT (Production Checklist)
+- [ ] All .env files in .gitignore, not committed to Git
+- [ ] JWT secret is ≥ 256-bit random string
+- [ ] Passwords hashed with bcrypt
+- [ ] SQL injection protection on all queries
+- [ ] XSS protection (React escapes by default, check dangerouslySetInnerHTML usage)
+- [ ] CORS restricted to production domain only
+- [ ] Security headers (X-Frame-Options, Content-Security-Policy, X-Content-Type-Options)
+- [ ] Rate limiting on auth and sensitive routes
+- [ ] HTTPS enforced (redirect HTTP → HTTPS at Nginx level)
+- [ ] No sensitive data in frontend console.log statements
+- [ ] Flask service not exposed to public internet
+- [ ] MySQL not accessible from public internet (only Express)
+- [ ] Admin routes not guessable (no /api/admin without auth)
+
+### 10. 🧪 FUNCTIONAL TESTING COVERAGE
+For each of the 6 portals, verify:
+
+**Portal 1 — Super Admin**
+- [ ] Can create/manage hospitals, blood banks, camps
+- [ ] Dashboard statistics loading correctly
+- [ ] User management (activate/deactivate accounts)
+
+**Portal 2 — Hospital Admin**
+- [ ] Can create staff with temp passwords
+- [ ] Blood request creation working
+- [ ] Can view incoming donor matches
+
+**Portal 3 — Hospital Staff**
+- [ ] Can update blood request status
+- [ ] Can view assigned tasks
+- [ ] Cannot access admin-only features
+
+**Portal 4 — Donor**
+- [ ] Registration with all fields validated
+- [ ] Profile update saving correctly
+- [ ] Camp registration with future-date validation
+- [ ] Donation history visible
+
+**Portal 5 — Blood Bank Manager**
+- [ ] Inventory update working
+- [ ] Expiry date alerts triggering correctly
+- [ ] Stock by blood group viewable
+
+**Portal 6 — Camp Organizer**
+- [ ] Camp creation with valid future dates
+- [ ] Donor registration to camp working
+- [ ] Camp dashboard showing registrations
+
+### 11. 🌍 DEPLOYMENT READINESS CHECKLIST
+- [ ] package.json has correct start script for production
+- [ ] vite build runs without errors
+- [ ] All environment variables documented in .env.example
+- [ ] Flask app has requirements.txt with pinned versions
+- [ ] Node.js version specified in .nvmrc or engines field
+- [ ] PM2 ecosystem.config.js configured for Express?
+- [ ] Nginx config ready for reverse proxy?
+- [ ] Database migrations/schema.sql ready for fresh deployment?
+- [ ] Health check endpoint exists? (GET /api/health → 200 OK)
+- [ ] Logging in place? (Morgan for HTTP, Winston for app logs)
+- [ ] Graceful shutdown handler on SIGTERM?
+
+---
+
+## OUTPUT FORMAT — PRODUCE THIS EXACT REPORT
+
+After reviewing all the code and context I have provided, produce a complete Markdown report 
+in the following structure. Be honest — if something is missing or broken, say so clearly.
+
+---
+
+# 🩸 RaktSetu — Production Readiness Report
+**Generated:** [Today's Date]  
+**Audit Type:** Full Pre-Production Review  
+**Stack:** React/Vite · Node.js/Express · Python Flask · MySQL  
+
+---
+
+## 📊 Executive Summary
+
+| Category | Score | Status |
+|---|---|---|
+| Authentication & Authorization | X/10 | 🟢/🟡/🔴 |
+| Database & Queries | X/10 | 🟢/🟡/🔴 |
+| Express Backend | X/10 | 🟢/🟡/🔴 |
+| Flask AI Microservice | X/10 | 🟢/🟡/🔴 |
+| React Frontend | X/10 | 🟢/🟡/🔴 |
+| API Integration | X/10 | 🟢/🟡/🔴 |
+| Performance | X/10 | 🟢/🟡/🔴 |
+| Security | X/10 | 🟢/🟡/🔴 |
+| Functional Coverage | X/10 | 🟢/🟡/🔴 |
+| Deployment Readiness | X/10 | 🟢/🟡/🔴 |
+| **OVERALL SCORE** | **X/100** | 🟢/🟡/🔴 |
+
+**🟢 = Production Ready (8+) | 🟡 = Needs Fixes Before Deploy (5–7) | 🔴 = Blocking Issue (< 5)**
+
+---
+
+## 🚀 Scalability & Capacity Report
+
+### Concurrent User Capacity (Single Instance)
+| Scenario | Estimated Concurrent Users |
+|---|---|
+| Light (browsing, viewing) | ~X users |
+| Active (form submissions, DB queries) | ~X users |
+| Heavy (AI requests simultaneously) | ~X users |
+| Peak (mixed load) | ~X users |
+
+### Bottlenecks Identified
+1. [Bottleneck 1 — location + fix]
+2. [Bottleneck 2 — location + fix]
+3. [Bottleneck 3 — location + fix]
+
+### Scaling Recommendations
+- **Short-term (0–3 months):** [What to do now]
+- **Medium-term (3–12 months):** [What to do as you grow]
+- **Long-term (12+ months):** [If you reach scale]
+
+---
+
+## 🔴 CRITICAL ISSUES (Must Fix Before Deploy)
+> These will cause crashes, data loss, or security breaches in production.
+
+### Issue 1: [Title]
+- **File:** `path/to/file.js : line X`
+- **Problem:** [Clear description]
+- **Fix:** [Exact fix or code snippet]
+
+### Issue 2: [Title]
+...
+
+---
+
+## 🟡 WARNINGS (Fix Before or Shortly After Deploy)
+> These won't crash production but will degrade UX, performance, or security.
+
+### Warning 1: [Title]
+- **File:** `path/to/file.js`
+- **Problem:** [Description]
+- **Fix:** [Recommendation]
+
+...
+
+---
+
+## 🟢 WHAT IS WORKING WELL
+> Acknowledge things done correctly.
+- ✅ [Good thing 1]
+- ✅ [Good thing 2]
+- ✅ [Good thing 3]
+
+---
+
+## 📋 FULL CHECKLIST RESULTS
+
+### 🔐 Auth & Authorization
+- [x] JWT secret strong ✅ / ❌ [not found / weak]
+- [x] All 6 portals role-protected ✅ / ❌
+- ... (list every auth check with pass/fail)
+
+### 🗄️ Database
+- [x] Connection pooling configured ✅ / ❌
+- [x] ST_Distance_Sphere with spatial index ✅ / ❌
+- ... (list every DB check with pass/fail)
+
+### 🌐 Express Backend
+... (every check with pass/fail)
+
+### 🤖 Flask AI Service
+... (every check with pass/fail)
+
+### ⚛️ React Frontend
+... (every check with pass/fail)
+
+### 🔒 Security
+... (every check with pass/fail)
+
+### 🚀 Deployment
+... (every check with pass/fail)
+
+---
+
+## 🛠️ Priority Fix Plan
+
+### 🔴 Do These RIGHT NOW (before touching deployment)
+1. [Fix 1 — estimated time: X mins]
+2. [Fix 2 — estimated time: X mins]
+3. [Fix 3 — estimated time: X mins]
+
+### 🟡 Do These This Week (before go-live)
+1. [Fix 1]
+2. [Fix 2]
+
+### 🔵 Do These After Launch (v1.1 improvements)
+1. [Improvement 1]
+2. [Improvement 2]
+
+---
+
+## 🏁 GO / NO-GO VERDICT
+
+> **Verdict: 🟢 GO / 🟡 CONDITIONAL GO / 🔴 NO-GO**
+
+**Reasoning:** [1–2 honest sentences about whether this project is ready]
+
+**Condition (if Conditional GO):** Fix issues #X, #X, #X before deploying.
+
+---
+*Audit performed by Claude — Anthropic AI | RaktSetu v1.0 Pre-Production Review*

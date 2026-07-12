@@ -19,6 +19,34 @@ if (process.env.NODE_ENV !== 'test') {
 const { testConnection } = require('./config/db');
 const apiRouter = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
+const healthRouter = require('./routes/healthRoutes');
+
+// Graceful shutdown helper
+const shutdown = async (signal, activeServer) => {
+  console.log(`${signal} received — shutting down gracefully`);
+  if (activeServer) {
+    activeServer.close(() => {
+      console.log('HTTP server closed');
+    });
+  }
+  // Close MySQL pool
+  try {
+    const { pool } = require('./config/db');
+    await pool.end();
+    console.log('Database pool closed');
+  } catch (err) {
+    console.error('Error closing database pool:', err);
+  }
+  // Close Redis client
+  try {
+    const redis = require('./config/redis');
+    await redis.quit();
+    console.log('Redis client closed');
+  } catch (err) {
+    console.error('Error closing Redis client:', err);
+  }
+  process.exit(0);
+};
 
 const app = express();
 app.use(helmet());
@@ -111,6 +139,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Register routing prefix
 app.use('/api/v1', apiRouter);
+app.use('/', healthRouter);
 
 // Register global error handler
 app.use(errorHandler);
@@ -122,9 +151,12 @@ async function startServer() {
     console.warn('Warning: Database connection could not be verified at startup.');
   }
 
+  let activeServer = null;
+
   const server = app.listen(PORT, () => {
+    activeServer = server;
     console.log(`RaktSetu API Core Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
-    console.log(`Health check is available at: http://localhost:${PORT}/api/v1/health`);
+    console.log(`Health check is available at: http://localhost:${PORT}/health`);
   });
 
   server.on('error', (error) => {
@@ -134,8 +166,9 @@ async function startServer() {
       console.log(`Attempting to start server on fallback port ${fallbackPort}...`);
       
       const fallbackServer = app.listen(fallbackPort, () => {
+        activeServer = fallbackServer;
         console.log(`RaktSetu API Core Server successfully running on fallback port ${fallbackPort}.`);
-        console.log(`Health check is available at: http://localhost:${fallbackPort}/api/v1/health`);
+        console.log(`Health check is available at: http://localhost:${fallbackPort}/health`);
       });
       
       fallbackServer.on('error', (err) => {
@@ -146,6 +179,17 @@ async function startServer() {
       console.error('Server error:', error.message);
       process.exit(1);
     }
+  });
+
+  process.on('SIGTERM', () => shutdown('SIGTERM', activeServer));
+  process.on('SIGINT',  () => shutdown('SIGINT', activeServer));
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    shutdown('uncaughtException', activeServer);
+  });
+  process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+    shutdown('unhandledRejection', activeServer);
   });
 }
 
