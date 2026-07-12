@@ -1,115 +1,109 @@
-# 🩸 RaktSetu — Blood Supply Management Platform
+# 🩸 RaktSetu — AI-Driven Predictive Blood Logistics & Coordination Platform
 
-RaktSetu is an AI-powered blood supply management and forecasting platform designed as an optimization and coordination layer for hospitals and blood banks in India.
-
----
-
-## 🏗️ Project Architecture & User Portals
-
-RaktSetu supports a **6-user role hierarchy** to coordinate blood supply across hospitals, districts, and states:
-
-1. **🩸 Blood Donor**: Direct-to-donor portal for tracking personal donation impact, scheduling next eligibility dates, and locating nearby camps.
-2. **🏥 Hospital Staff**: Inventory managers who log new blood bags, approve or decline peer-to-peer transfer requests, and resolve emergency SOS demands.
-3. **🔧 Hospital Admin**: Executives who manage staff invites, set critical stock alert thresholds, and analyze automated waste metrics.
-4. **📊 District Officer**: Government officials who monitor all hospitals in their district, analyze shortage prediction heatmaps, approve/schedule community camps, and escalate issues.
-5. **🏛️ State Admin**: Regional directors overseeing cross-district transfers, monitoring state-wide waste percentages, and viewing AI-generated funding recommendations.
-6. **⚙️ System Admin**: Platform maintenance portal containing audit logs, user suspension controls, backup execution, and API integration checks.
+**RaktSetu** is a next-generation, intelligent blood logistics coordination layer designed to eliminate supply shortages and inventory wastage. By combining machine learning time-series forecasting, spatial GIS routing, and a secure multi-portal architecture, RaktSetu optimizes the blood supply chain across donors, hospitals, districts, and state administrations.
 
 ---
 
-## 📂 Directory Structure
+## 🧠 Core Technical & AI Pillars
 
-The project has been organized into a clean, standard full-stack layout:
+### 📈 1. Predictive Demand Forecasting (Prophet ML Engine)
+RaktSetu integrates a Python forecasting microservice powered by **Facebook Prophet** to analyze historical collection and consumption data.
+* **Proactive Inventory Rebalancing**: Predicts monthly blood category demand (A+, O-, etc.) at the hospital and district levels.
+* **Waste Prevention**: Alerts administrators of upcoming surplus or seasonal deficits before inventory expires (FEFO: First Expired, First Out).
+
+### 📍 2. Spatial GIS Emergency SOS Routing
+Utilizing MySQL spatial indexing and **Leaflet.js + OpenStreetMap**, the platform implements real-time proximity coordination:
+* **`ST_Distance_Sphere` Querying**: Automatically identifies and ranks the nearest eligible donors and peer hospitals during emergency SOS requests.
+* **Zero-Budget Mapping**: Interactive visual camp-finders and transfer trackers operating without expensive proprietary map APIs.
+
+### 🛡️ 3. Safe Peer-to-Peer Logistics & Idempotency
+Cross-hospital transfers are secured against duplicate submissions and race conditions:
+* **Idempotency-Key Validation**: Redis-backed transactional validation protects peer-to-peer blood requests against network retries.
+* **Double-Entry Ledger Routing**: Automates stock reservation upon transfer approval and updates both supplier and receiver inventories atomically.
+
+### 🔒 4. Granular Multi-Portal Architecture
+Secured by JWT-based state-aware middleware, the platform segments coordination workflows into 6 role-based portals:
+1. **🩸 Donor Portal**: Self-scheduling, donation eligibility countdowns, and real-time donation camp locators.
+2. **🏥 Hospital Staff**: Real-time blood bag inventory logging, transfer validations, and emergency SOS dispatch.
+3. **⚙️ Hospital Admin**: Dynamic stock threshold controls, staff user provisioning, and waste analytics.
+4. **📊 District Officer**: District-wide shortage heatmaps, community camp scheduling, and hospital performance oversight.
+5. **🏛️ State Coordinator**: Cross-district transfer authorization, state-wide waste percentages, and AI-generated resource allocation insights.
+6. **🔧 System Administrator**: Real-time system health checks, secure backup execution, audit logs, and API gateway health monitoring.
+
+---
+
+## 📂 Repository Structure
+
+The workspace follows a clean, decoupled monorepo structure:
 
 ```text
 RaktSetu/
-├── backend/                  # Node.js + Express + MySQL Backend
-│   ├── config/               # Database connection pool configurations
-│   ├── controllers/          # Request handlers
-│   ├── middleware/           # Auth validation, error handling, rate limiting
-│   ├── models/               # SQL database schema and migrations
-│   ├── routes/               # Express routing (versioned under /v1)
-│   ├── services/             # Third-party integrations (Twilio, Resend)
-│   └── server.js             # Main backend application entry point
+├── backend/                  # Core REST API (Node.js + Express + MySQL)
+│   ├── config/               # Database pool, Redis client & SSL/TLS settings
+│   ├── controllers/          # Business logic handlers
+│   ├── middleware/           # JWT verification, validation schemas & error handlers
+│   ├── models/               # SQL schemas and seeder scripts
+│   ├── routes/               # Express routing (versioned under /api/v1)
+│   ├── services/             # Twilio SMS & Resend email notification pipelines
+│   └── server.js             # API entry point
 │
-├── frontend/                 # React + Vite + Tailwind CSS Frontend
+├── frontend/                 # Client UI SPA (React + Vite + Vanilla CSS)
 │   ├── src/
-│   │   ├── components/       # Reusable UI components & layouts
-│   │   ├── context/          # Role-based React contexts (Auth, Hospital, District, etc.)
-│   │   ├── pages/            # View pages grouped by user role portal
-│   │   ├── services/         # API clients and HTTP helper services
-│   │   └── App.jsx           # Main Router definitions
+│   │   ├── components/       # Reusable layouts, Leaflet maps & UI elements
+│   │   ├── context/          # React Auth and Portal global state providers
+│   │   ├── pages/            # View pages segmented by user role portal
+│   │   └── App.jsx           # Client-side router configuration
 │   └── vite.config.js        # Vite bundler configurations
 │
-└── docs/                     # Project Documentation & Resources
-    ├── architecture/         # System design diagrams, DFDs, ER schemas, and user flows
-    ├── design/               # HTML UI mockups and visual guidelines
-    ├── ui-assets/            # Screenshot examples and layout stitches
-    ├── reports/              # QA test audits, fix reports, and readiness audits
-    ├── guides/               # Developer onboarding, OTP setup, and manual prerequisites
-    ├── prompts/              # Original prompt specifications and PRD references
-    └── planning/             # Historical planning documents
+└── nginx/                    # Production reverse-proxy configuration templates
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start (Local Development)
 
 ### 📋 Prerequisites
+* **Node.js** (v18+ recommended)
+* **MySQL** (v8.0+ required for spatial GIS indexing support)
+* **Redis** (Required for caching and idempotency layers)
+* **Python** (v3.10+ required for running the AI service)
 
-Before running the application, make sure you have:
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [npm](https://www.npmjs.com/) (v9+ recommended)
-- [MySQL](https://www.mysql.com/) (v8.0+ required for spatial GIS indexing support)
-
----
-
-### ⚙️ Environment Variables Setup
-
-Configure the environment files for both components:
-
-1. **Root Reference**: Copy the root environment template:
+### ⚙️ Environment Configuration
+1. Copy the root environment template into your local directories:
    ```bash
-   cp .env.example .env
+   cp .env.example backend/.env
+   cp .env.example frontend/.env
    ```
-2. **Backend**:
-   Navigate to the `backend/` folder, copy `.env.example` as `.env`, and customize your MySQL credentials, Twilio credentials, and Resend email keys:
-   ```bash
-   cd backend
-   cp .env.example .env
-   ```
-3. **Frontend**:
-   Navigate to the `frontend/` folder, copy `.env.example` as `.env`, and update the Vite configurations:
-   ```bash
-   cd frontend
-   cp .env.example .env
-   ```
+2. Open `backend/.env` and update your MySQL, Redis, and API key credentials.
 
----
+### ⚙️ Database Seeding (For Tests & Development)
+Initialize your local database tables and load the mock test scenarios:
+```bash
+cd backend
+npm run migrate    # Creates tables using models/migrations/001_initial_schema.sql
+node seed.js       # Seeds default districts, hospitals, and test users
+```
 
 ### 💻 Running the Application
-
-You can control both servers directly from the project root using our coordinated npm scripts:
-
-#### 1. Install Dependencies for Both Projects
+Install dependencies and run both servers concurrently:
 ```bash
-npm run install:all
-```
-*This installs dependencies for both `backend/` and `frontend/` in a single command.*
+# Install root, backend, and frontend dependencies
+npm install
 
-#### 2. Start the Development Servers Concurrently
-```bash
+# Run backend API and Vite dev servers concurrently
 npm run dev
 ```
-*This starts the Express backend (defaulting to Port `5000`) and the Vite frontend dev server (defaulting to Port `5173`) concurrently.*
 
-#### 3. Other Utility Commands (from Root)
-- Run backend tests: `npm run test:backend`
-- Build frontend for production: `npm run build:frontend`
-- Lint frontend code: `npm run lint:frontend`
+### 🧪 Running Tests
+Verify that all 19 Jest integration test cases pass:
+```bash
+cd backend
+npm test
+```
 
 ---
 
-## 🛡️ License & Project Reference
-
-For questions, audit findings, or deployment credentials, please refer to the files in the [docs/reports/](file:///Users/chinu/Developer/VS%20CODE%20NOT%20IMP/RaktSetu/docs/reports) and [docs/guides/](file:///Users/chinu/Developer/VS%20CODE%20NOT%20IMP/RaktSetu/docs/guides) directories.
+## 🛡️ Security & Production Hardening
+* **Database TLS**: SSL configuration is enabled via `DB_SSL=true` using secure CA certificates.
+* **Cache Security**: Redis TLS is enforced for all cloud redis configurations.
+* **Audit Logging**: System-critical operations (like cross-district approvals and user status changes) are tracked in the database `audit_logs` table.
