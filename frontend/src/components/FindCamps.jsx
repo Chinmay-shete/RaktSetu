@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -401,12 +401,7 @@ const FindCamps = () => {
     const initialZoom = hasLocation ? 13 : 6;
     mapInstance.current.setView(baseCoords, initialZoom);
 
-    console.log('[FindCamps MARKERS UPDATE]', {
-      activeDistrict,
-      activeState,
-      baseCoords,
-      itemsCount: activeItems.length
-    });
+
 
     // Populate markers
     const coordinateCounts = {};

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useHospital } from '../../context/HospitalContext';
 import { Sliders, Check, AlertTriangle, ShieldCheck, HelpCircle, ArrowRightLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

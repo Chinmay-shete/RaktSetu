@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { 
   LayoutDashboard, 
@@ -9,7 +9,6 @@ import {
   Settings, 
   LogOut, 
   Bell, 
-  Menu, 
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

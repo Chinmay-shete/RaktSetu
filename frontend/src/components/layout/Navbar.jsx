@@ -6,16 +6,11 @@ import { useToast } from '../../hooks/useToast';
 import { hospitalApi } from '../../services/api';
 import {
   Bell,
-  Search,
-  Menu,
-  RefreshCw,
   AlertTriangle,
-  Flame,
   ArrowLeftRight,
   PlusCircle,
   Check,
-  CheckCheck,
-  LogOut
+  CheckCheck
 } from 'lucide-react';
 
 export const Navbar = ({ onMenuOpen }) => {

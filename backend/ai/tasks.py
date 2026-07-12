@@ -28,11 +28,12 @@ def generate_forecast_task(self, hospital_id: int, blood_group: str, days: int):
         )
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            """SELECT DATE(donation_date) as ds, COUNT(*) as y
-               FROM donations
-               WHERE hospital_id = %s AND blood_group = %s
-                 AND donation_date >= DATE_SUB(NOW(), INTERVAL 180 DAY)
-               GROUP BY DATE(donation_date)
+            """SELECT DATE(dn.donation_date) as ds, COUNT(*) as y
+               FROM donations dn
+               INNER JOIN donors d ON dn.donor_id = d.id
+               WHERE dn.hospital_id = %s AND d.blood_group = %s
+                 AND dn.donation_date >= DATE_SUB(NOW(), INTERVAL 180 DAY)
+               GROUP BY DATE(dn.donation_date)
                ORDER BY ds""",
             (hospital_id, blood_group)
         )
@@ -53,6 +54,11 @@ def generate_forecast_task(self, hospital_id: int, blood_group: str, days: int):
                 if units > 0:
                     synthetic_rows.append({'ds': d, 'y': units})
             df = pd.DataFrame(synthetic_rows)
+            if len(df) < 2:
+                df = pd.DataFrame([
+                    {'ds': today - datetime.timedelta(days=2), 'y': 1},
+                    {'ds': today - datetime.timedelta(days=1), 'y': 1}
+                ])
         else:
             df = pd.DataFrame(rows)
             df['ds'] = pd.to_datetime(df['ds'])

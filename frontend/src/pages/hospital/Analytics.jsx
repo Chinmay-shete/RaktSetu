@@ -1,4 +1,3 @@
-import React from 'react';
 import { hospitalApi } from '../../services/api';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorState } from '../../components/ui/ErrorState';

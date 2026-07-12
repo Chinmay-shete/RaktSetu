@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../hooks/useToast';
-import { Mail, Lock, Building2, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, AlertCircle, Loader2 } from 'lucide-react';
 
 export const Login = () => {
   const { login, isAuthenticated } = useAuth();

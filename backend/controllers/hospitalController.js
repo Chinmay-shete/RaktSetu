@@ -5,12 +5,8 @@ const { hashPassword } = require('../services/passwordService');
 const { sendEmail } = require('../services/emailService');
 const redis = require('../config/redis');
 
-// Memory caches for idempotency and forecasts
+// Memory caches for idempotency
 const idempotencyKeys = new Map();
-const forecastCache = {
-  forecast: null,
-  forecastExpiry: null
-};
 
 /**
  * Helper to calculate days remaining from expiry date to today.

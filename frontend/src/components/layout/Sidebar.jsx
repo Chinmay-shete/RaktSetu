@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -9,7 +8,6 @@ import {
   ArrowLeftRight,
   AlertTriangle,
   UserPlus,
-  Heart,
   LogOut,
   X,
   BarChart3,

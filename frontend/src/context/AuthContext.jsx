@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext();
@@ -94,7 +94,9 @@ export const AuthProvider = ({ children }) => {
       try {
         setUser(JSON.parse(saved));
         setIsAuthenticated(localStorage.getItem('raktsetu_hospital_authenticated') === 'true');
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Failed to parse local storage profile:', e);
+      }
     }
   };
 

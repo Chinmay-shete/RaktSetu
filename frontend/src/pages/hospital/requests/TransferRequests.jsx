@@ -7,7 +7,7 @@ import { Loader } from '../../../components/ui/Loader';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { Modal } from '../../../components/ui/Modal';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
 import {
   ArrowLeftRight,

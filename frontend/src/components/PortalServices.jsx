@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Search, ChevronRight, RefreshCw, AlertCircle, Heart } from 'lucide-react';
 import api from '../services/api';
@@ -267,8 +267,8 @@ export const PortalServices = () => {
   const [selectedDistrict, setSelectedDistrict] = useState('Select District');
 
   // Filters state
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [bloodGroup, setBloodGroup] = useState('All');
   const [searchKeyword, setSearchKeyword] = useState('');
 

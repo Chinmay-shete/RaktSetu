@@ -10,8 +10,7 @@ import {
   Calendar,
   Layers,
   AlertCircle,
-  Stethoscope,
-  Heart
+  Stethoscope
 } from 'lucide-react';
 
 export const SurgicalSchedule = () => {

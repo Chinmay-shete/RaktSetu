@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
-import { Search, Shield, Ban, CheckCircle, UserCheck } from 'lucide-react';
+import { Search, Ban, CheckCircle, UserCheck } from 'lucide-react';
 import { INDIA_STATES_DISTRICTS } from '../../utils/indiaData';
 
 export const UserManagement = () => {

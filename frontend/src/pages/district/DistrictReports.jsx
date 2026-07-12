@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDistrict } from '../../context/DistrictContext';
-import { CheckCircle } from 'lucide-react';
 
 const REPORTS = [
   {
