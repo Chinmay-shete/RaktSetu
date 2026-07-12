@@ -4,7 +4,8 @@ const { requireRole, requireOwnership } = require('../middleware/auth');
 const {
   validateRequest,
   createCampSchema,
-  updateCampStatusSchema
+  updateCampStatusSchema,
+  createDistrictOfficerSchema
 } = require('../middleware/validation');
 
 const router = express.Router();
@@ -22,11 +23,15 @@ router.get('/district/camps', districtRole, requireOwnership(), adminController.
 router.post('/district/camps', districtRole, requireOwnership(), validateRequest(createCampSchema), adminController.createDistrictCamp);
 router.patch('/district/camps/:id/status', districtRole, requireOwnership({ resourceType: 'donation_camps' }), validateRequest(updateCampStatusSchema), adminController.updateCampStatus);
 router.get('/district/map', districtRole, requireOwnership(), adminController.getDistrictMap);
+router.get('/district/pending-hospitals', districtRole, requireOwnership(), adminController.getDistrictPendingHospitals);
+router.patch('/district/hospitals/:id/approve', districtRole, requireOwnership(), adminController.approveDistrictHospital);
+router.patch('/district/hospitals/:id/reject', districtRole, requireOwnership(), adminController.rejectDistrictHospital);
 
 // State Endpoints
 router.get('/state/dashboard', stateRole, adminController.getStateDashboard);
 router.get('/state/transfers', stateRole, adminController.getStateTransfers);
 router.patch('/state/transfers/:id/approve', stateRole, adminController.approveStateTransfer);
 router.get('/state/policy-alerts', stateRole, adminController.getStatePolicyAlerts);
+router.post('/state/district-officer', stateRole, validateRequest(createDistrictOfficerSchema), adminController.createDistrictOfficer);
 
 module.exports = router;

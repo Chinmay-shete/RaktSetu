@@ -3,6 +3,7 @@ const { ApiError } = require('../middleware/errorHandler');
 const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { sendEmail } = require('../services/emailService');
 
 /**
  * Helper to validate environment parameters against a strict whitelist.
@@ -73,9 +74,9 @@ async function getPendingApprovals(req, res, next) {
   try {
     // 1. Get hospitals awaiting verification
     const [hospRows] = await pool.query(
-      `SELECT id, name, type, license_no, address, contact, city, state, created_at
+      `SELECT id, name, type, license_no, address, contact, city, state, created_at, verification_status
        FROM hospitals
-       WHERE verification_status = 'pending'
+       WHERE verification_status IN ('pending', 'district_approved')
        ORDER BY created_at DESC`
     );
 
@@ -88,7 +89,8 @@ async function getPendingApprovals(req, res, next) {
       city: h.city,
       state: h.state,
       contact: h.contact,
-      appliedAt: formatDate(h.created_at) || 'Recent'
+      appliedAt: formatDate(h.created_at) || 'Recent',
+      verificationStatus: h.verification_status
     }));
 
     // 2. Get district officers awaiting approval
@@ -150,6 +152,11 @@ async function approveOrRejectHospital(req, res, next) {
       [status, hospitalId]
     );
 
+    const [adminUserRows] = await connection.query(
+      "SELECT email, full_name FROM users WHERE hospital_id = ? AND role = 'admin' LIMIT 1",
+      [hospitalId]
+    );
+
     let tempPassword = null;
     // If verified, activate any linked admin/staff user account who is pending
     if (status === 'verified') {
@@ -157,9 +164,9 @@ async function approveOrRejectHospital(req, res, next) {
       tempPassword = `RS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       const tempPasswordHash = await bcrypt.hash(tempPassword, 10);
 
-      // Set admin password to temporary password, and activate account
+      // Set admin password to temporary password, activate account, and set must_change_password = 1
       await connection.query(
-        "UPDATE users SET password_hash = ?, status = 'Active' WHERE hospital_id = ? AND role = 'admin'",
+        "UPDATE users SET password_hash = ?, status = 'Active', must_change_password = 1 WHERE hospital_id = ? AND role = 'admin'",
         [tempPasswordHash, hospitalId]
       );
 
@@ -168,6 +175,197 @@ async function approveOrRejectHospital(req, res, next) {
         "UPDATE users SET status = 'Active' WHERE hospital_id = ? AND role = 'staff' AND status = 'Pending'",
         [hospitalId]
       );
+
+      // Send approval welcome email
+      if (adminUserRows.length > 0 && adminUserRows[0].email) {
+        const adminEmail = adminUserRows[0].email;
+        const adminName = adminUserRows[0].full_name || 'Hospital Representative';
+        const hospitalName = hospRows[0].name;
+        const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
+        const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        const approvalHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaktSetu – Hospital Application Approved</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0eb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#9e001f;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">RaktSetu</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;letter-spacing:2px;text-transform:uppercase;">National Blood Logistics Platform</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="color:#685c59;font-size:13px;margin:0 0 24px;">Date: ${today}</p>
+
+            <h2 style="margin:0 0 8px;color:#1a1210;font-size:22px;font-weight:700;">Registration Approved</h2>
+            <p style="margin:0 0 28px;color:#685c59;font-size:14px;">Hospital Access Authorization — ${hospitalName}</p>
+
+            <p style="font-size:15px;color:#1a1210;line-height:1.7;margin:0 0 16px;">
+              Dear <strong>${adminName}</strong>,
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
+              We are pleased to inform you that your application to register <strong>${hospitalName}</strong> on the RaktSetu National Blood Logistics Platform has been approved. Your account as Hospital Admin has been successfully activated.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 32px;">
+              Please find your temporary login credentials below. You are required to change your password upon first login.
+            </p>
+
+            <!-- Credentials Card -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf6f6;border:1.5px solid #ffdad8;border-radius:12px;margin-bottom:32px;">
+              <tr>
+                <td style="padding:24px 28px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9e001f;">Your Login Credentials</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #fce8e8;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">EMAIL ADDRESS</span><br/>
+                        <span style="font-size:15px;color:#1a1210;font-weight:700;">${adminEmail}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0 0;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">TEMPORARY PASSWORD</span><br/>
+                        <span style="font-size:20px;color:#9e001f;font-weight:800;letter-spacing:3px;font-family:monospace;">${tempPassword}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="${loginUrl}" style="display:inline-block;background:#9e001f;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.3px;">Login to RaktSetu Portal →</a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0 0 8px;">
+              ⚠️ This is a system-generated temporary password. Please do not share it with anyone. You will be prompted to set a new password upon your first login.
+            </p>
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0;">
+              If you did not expect this email or believe this is an error, please contact the RaktSetu support team.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#faf8f5;padding:20px 40px;border-top:1px solid #ede7e1;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9A9A9A;">© ${new Date().getFullYear()} RaktSetu — National Blood Logistics Platform</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c4b8b5;">This is an automated message. Please do not reply to this email.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+        await sendEmail({
+          to: adminEmail,
+          subject: `RaktSetu – Hospital Application Approved: ${hospitalName}`,
+          html: approvalHtml
+        });
+      }
+    } else if (status === 'rejected') {
+      // Suspend linked admin/staff users in DB
+      await connection.query(
+        "UPDATE users SET status = 'Suspended' WHERE hospital_id = ?",
+        [hospitalId]
+      );
+
+      // Send rejection notification email
+      if (adminUserRows.length > 0 && adminUserRows[0].email) {
+        const adminEmail = adminUserRows[0].email;
+        const adminName = adminUserRows[0].full_name || 'Hospital Representative';
+        const hospitalName = hospRows[0].name;
+        const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        const rejectionHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaktSetu – Hospital Application Declined</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0eb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#9e001f;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">RaktSetu</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;letter-spacing:2px;text-transform:uppercase;">National Blood Logistics Platform</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="color:#685c59;font-size:13px;margin:0 0 24px;">Date: ${today}</p>
+
+            <h2 style="margin:0 0 8px;color:#1a1210;font-size:22px;font-weight:700;">Registration Update</h2>
+            <p style="margin:0 0 28px;color:#685c59;font-size:14px;">Hospital Application Status — ${hospitalName}</p>
+
+            <p style="font-size:15px;color:#1a1210;line-height:1.7;margin:0 0 16px;">
+              Dear <strong>${adminName}</strong>,
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
+              Thank you for your application to register <strong>${hospitalName}</strong> on the RaktSetu National Blood Logistics Platform.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 24px;">
+              After reviewing the verification details and submitted documents, we regret to inform you that your application has been **declined** at this time.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 32px;">
+              If you believe this decision is in error, or if you would like to submit additional documentation or re-apply with corrected information, please reach out to our support team at support@raktsetu.online.
+            </p>
+
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0;">
+              If you did not expect this email or believe this is an error, please contact the RaktSetu support team.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#faf8f5;padding:20px 40px;border-top:1px solid #ede7e1;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9A9A9A;">© ${new Date().getFullYear()} RaktSetu — National Blood Logistics Platform</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c4b8b5;">This is an automated message. Please do not reply to this email.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+        await sendEmail({
+          to: adminEmail,
+          subject: `RaktSetu – Hospital Application Update: ${hospitalName}`,
+          html: rejectionHtml
+        });
+      }
     }
 
     await connection.commit();
@@ -223,7 +421,10 @@ async function updateUser(req, res, next) {
     const userId = req.params.id;
     const { role, status } = req.body;
 
-    const [userCheck] = await connection.query('SELECT id, role, status, district_id FROM users WHERE id = ?', [userId]);
+    const [userCheck] = await connection.query(
+      'SELECT id, email, role, status, district_id, full_name, designation FROM users WHERE id = ?',
+      [userId]
+    );
     if (userCheck.length === 0) {
       throw new ApiError('User not found', 404, 'USER_NOT_FOUND');
     }
@@ -256,13 +457,130 @@ async function updateUser(req, res, next) {
         
         updates.push('password_hash = ?');
         params.push(tempPasswordHash);
+        
+        updates.push('must_change_password = 1');
 
+        let districtName = 'Assigned District';
         // Update district table to link this officer
         if (currentUser.district_id) {
+          const [distRows] = await connection.query(
+            'SELECT name, state FROM districts WHERE id = ?',
+            [currentUser.district_id]
+          );
+          if (distRows.length > 0) {
+            districtName = `${distRows[0].name}, ${distRows[0].state}`;
+          }
           await connection.query(
             'UPDATE districts SET officer_id = ? WHERE id = ?',
             [userId, currentUser.district_id]
           );
+        }
+
+        // Send welcome email to district officer
+        if (currentUser.email) {
+          const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
+          const designationLabel = currentUser.designation || 'District Health Officer';
+          const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+          const welcomeHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaktSetu – Appointment Letter</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0eb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#9e001f;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">RaktSetu</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;letter-spacing:2px;text-transform:uppercase;">National Blood Logistics Platform</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="color:#685c59;font-size:13px;margin:0 0 24px;">Date: ${today}</p>
+
+            <h2 style="margin:0 0 8px;color:#1a1210;font-size:22px;font-weight:700;">Appointment Letter</h2>
+            <p style="margin:0 0 28px;color:#685c59;font-size:14px;">District Officer Commission — ${districtName}</p>
+
+            <p style="font-size:15px;color:#1a1210;line-height:1.7;margin:0 0 16px;">
+              Dear <strong>${currentUser.full_name || 'Officer'}</strong>,
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
+              We are pleased to inform you that your application as <strong>${designationLabel}</strong> for the district of <strong>${districtName}</strong> on the RaktSetu National Blood Logistics Platform has been approved. Your account is now active.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 32px;">
+              Please find your temporary login credentials below. You are required to change your password upon first login.
+            </p>
+
+            <!-- Credentials Card -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf6f6;border:1.5px solid #ffdad8;border-radius:12px;margin-bottom:32px;">
+              <tr>
+                <td style="padding:24px 28px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9e001f;">Your Login Credentials</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #fce8e8;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">EMAIL ADDRESS</span><br/>
+                        <span style="font-size:15px;color:#1a1210;font-weight:700;">${currentUser.email}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0 0;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">TEMPORARY PASSWORD</span><br/>
+                        <span style="font-size:20px;color:#9e001f;font-weight:800;letter-spacing:3px;font-family:monospace;">${tempPassword}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="${loginUrl}" style="display:inline-block;background:#9e001f;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.3px;">Login to RaktSetu Portal →</a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0 0 8px;">
+              ⚠️ This is a system-generated temporary password. Please do not share it with anyone. You will be prompted to set a new password upon your first login.
+            </p>
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0;">
+              If you did not expect this email or believe this is an error, please contact the RaktSetu support team.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#faf8f5;padding:20px 40px;border-top:1px solid #ede7e1;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9A9A9A;">© ${new Date().getFullYear()} RaktSetu — National Blood Logistics Platform</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c4b8b5;">This is an automated message. Please do not reply to this email.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+          await sendEmail({
+            to: currentUser.email,
+            subject: `RaktSetu – Your Appointment as ${designationLabel}`,
+            html: welcomeHtml
+          });
         }
       }
 
@@ -439,10 +757,116 @@ async function createStateAdmin(req, res, next) {
       ]
     );
 
+    // ── Send welcome / appointment letter email ──────────────────────────────
+    const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/state/login`;
+    const designationLabel = designation || 'State Health Coordinator';
+    const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const welcomeHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaktSetu – Appointment Letter</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0eb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#9e001f;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">RaktSetu</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;letter-spacing:2px;text-transform:uppercase;">National Blood Logistics Platform</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="color:#685c59;font-size:13px;margin:0 0 24px;">Date: ${today}</p>
+
+            <h2 style="margin:0 0 8px;color:#1a1210;font-size:22px;font-weight:700;">Appointment Letter</h2>
+            <p style="margin:0 0 28px;color:#685c59;font-size:14px;">State Health Administration — ${stateName}</p>
+
+            <p style="font-size:15px;color:#1a1210;line-height:1.7;margin:0 0 16px;">
+              Dear <strong>${fullName}</strong>,
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
+              We are pleased to appoint you as <strong>${designationLabel}</strong> for the state of <strong>${stateName}</strong> on the RaktSetu National Blood Logistics Platform. Your role grants you administrative access to manage blood banks, hospitals, donation camps, and cross-district transfers within your jurisdiction.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 32px;">
+              Please find your temporary login credentials below. You are required to change your password upon first login.
+            </p>
+
+            <!-- Credentials Card -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf6f6;border:1.5px solid #ffdad8;border-radius:12px;margin-bottom:32px;">
+              <tr>
+                <td style="padding:24px 28px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9e001f;">Your Login Credentials</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #fce8e8;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">EMAIL ADDRESS</span><br/>
+                        <span style="font-size:15px;color:#1a1210;font-weight:700;">${email.toLowerCase().trim()}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0 0;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">TEMPORARY PASSWORD</span><br/>
+                        <span style="font-size:20px;color:#9e001f;font-weight:800;letter-spacing:3px;font-family:monospace;">${tempPassword}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="${loginUrl}" style="display:inline-block;background:#9e001f;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.3px;">Login to RaktSetu Portal →</a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0 0 8px;">
+              ⚠️ This is a system-generated temporary password. Please do not share it with anyone. You will be prompted to set a new password upon your first login.
+            </p>
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0;">
+              If you did not expect this email or believe this is an error, please contact the RaktSetu system administrator immediately.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#faf8f5;padding:20px 40px;border-top:1px solid #ede7e1;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9A9A9A;">© ${new Date().getFullYear()} RaktSetu — National Blood Logistics Platform</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c4b8b5;">This is an automated message. Please do not reply to this email.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await sendEmail({
+      to: email.toLowerCase().trim(),
+      subject: `RaktSetu – Your Appointment as ${designationLabel}, ${stateName}`,
+      html: welcomeHtml
+    });
+    // ── End welcome email ────────────────────────────────────────────────────
+
     await connection.commit();
 
     return res.status(201).json({
-      message: 'State Admin created successfully',
+      message: 'State Admin created successfully. Welcome email sent.',
       user: {
         id: result.insertId,
         email: email.toLowerCase().trim(),

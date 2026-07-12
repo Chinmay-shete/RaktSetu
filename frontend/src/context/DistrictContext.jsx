@@ -53,10 +53,11 @@ export const DistrictProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const [hospRes, alertsRes, campsRes] = await Promise.all([
+      const [hospRes, alertsRes, campsRes, pendingHospRes] = await Promise.all([
         api.get('/district/hospitals'),
         api.get('/district/alerts'),
-        api.get('/district/camps')
+        api.get('/district/camps'),
+        api.get('/district/pending-hospitals')
       ]);
 
       const mappedCamps = (campsRes.data || []).map(camp => {
@@ -81,6 +82,7 @@ export const DistrictProvider = ({ children }) => {
         hospitals: hospRes.data || [],
         alerts: alertsRes.data || [],
         camps: mappedCamps,
+        pendingHospitals: pendingHospRes.data || []
       }));
     } catch (err) {
       console.error("Failed to fetch district data from API", err);
@@ -89,6 +91,26 @@ export const DistrictProvider = ({ children }) => {
       setIsLoading(false);
     }
   }, [appState.status]);
+
+  const approveHospital = async (id) => {
+    try {
+      await api.patch(`/district/hospitals/${id}/approve`);
+      await fetchDistrictData();
+    } catch (err) {
+      console.error("Failed to approve hospital", err);
+      throw err;
+    }
+  };
+
+  const rejectHospital = async (id) => {
+    try {
+      await api.patch(`/district/hospitals/${id}/reject`);
+      await fetchDistrictData();
+    } catch (err) {
+      console.error("Failed to reject hospital", err);
+      throw err;
+    }
+  };
 
   useEffect(() => {
     if (appState.status === 'logged_in') {
@@ -216,6 +238,8 @@ export const DistrictProvider = ({ children }) => {
       isLoading,
       error,
       refetchData: fetchDistrictData,
+      approveHospital,
+      rejectHospital,
     }}>
       {children}
     </DistrictContext.Provider>

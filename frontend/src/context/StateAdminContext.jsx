@@ -65,12 +65,18 @@ export const StateAdminProvider = ({ children }) => {
         id: d.id,
         name: d.name,
         zone: d.zone || 'Western',
+        hospitalsCount: d.hospitalsCount,
         hospitals: d.hospitalsCount,
+        totalStock: d.totalStock,
         totalBags: d.totalStock,
-        wastePercent: 4.5,
-        escalations: d.activeEmergenciesCount,
-        status: d.activeEmergenciesCount > 0 ? 'Critical' : d.totalStock < 150 ? 'Watch' : 'Healthy',
-        stock: d.stock || {}
+        wastePercent: d.wastePercent || 4.5,
+        escalations: d.activeEmergenciesCount || 0,
+        status: d.status || 'Healthy',
+        stock: d.stock || {},
+        officerName: d.officerName || 'No Officer Assigned',
+        officerEmail: d.officerEmail || '—',
+        lat: d.lat ? parseFloat(d.lat) : null,
+        lng: d.lng ? parseFloat(d.lng) : null
       }));
 
       const mappedTransfers = (transfersRes.data || []).map(t => ({
@@ -190,6 +196,17 @@ export const StateAdminProvider = ({ children }) => {
     }
   }, []);
 
+  const createDistrictOfficer = async (data) => {
+    try {
+      const response = await api.post('/state/district-officer', data);
+      await fetchStateData();
+      return response.data;
+    } catch (err) {
+      console.error("Failed to create district officer", err);
+      throw err;
+    }
+  };
+
   return (
     <StateAdminContext.Provider value={{
       appState,
@@ -202,6 +219,7 @@ export const StateAdminProvider = ({ children }) => {
       isLoading,
       error,
       refetchData: fetchStateData,
+      createDistrictOfficer,
     }}>
       {children}
     </StateAdminContext.Provider>

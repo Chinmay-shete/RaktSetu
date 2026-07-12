@@ -815,6 +815,342 @@ async function getStatePolicyAlerts(req, res, next) {
   }
 }
 
+async function createDistrictOfficer(req, res, next) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const { email, fullName, districtName, designation } = req.body;
+
+    // 1. Resolve State Admin's state
+    const stateName = await resolveStateName(req.user.id, req.user.district_id);
+
+    // 2. Check if email already exists
+    const [existing] = await connection.query(
+      'SELECT id FROM users WHERE email = ? LIMIT 1',
+      [email.toLowerCase().trim()]
+    );
+    if (existing.length > 0) {
+      throw new ApiError('Email already registered', 400, 'EMAIL_EXISTS');
+    }
+
+    // 3. Find or create district
+    let districtId = null;
+    const [distRows] = await connection.query(
+      'SELECT id FROM districts WHERE name = ? AND state = ? LIMIT 1',
+      [districtName.trim(), stateName]
+    );
+    if (distRows.length > 0) {
+      districtId = distRows[0].id;
+    } else {
+      const [newDist] = await connection.query(
+        'INSERT INTO districts (name, state) VALUES (?, ?)',
+        [districtName.trim(), stateName]
+      );
+      districtId = newDist.insertId;
+    }
+
+    const bcrypt = require('bcryptjs');
+    // Generate raw temporary password
+    const tempPassword = `RS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    // Insert user with role 'district'
+    const [result] = await connection.query(
+      `INSERT INTO users (email, password_hash, role, status, full_name, designation, district_id, must_change_password)
+       VALUES (?, ?, 'district', 'Active', ?, ?, ?, 1)`,
+      [
+        email.toLowerCase().trim(),
+        passwordHash,
+        fullName,
+        designation || 'District Health Officer',
+        districtId
+      ]
+    );
+    const userId = result.insertId;
+
+    // Update district table to link this officer
+    await connection.query(
+      'UPDATE districts SET officer_id = ? WHERE id = ?',
+      [userId, districtId]
+    );
+
+    // ── Send welcome / appointment letter email ──────────────────────────────
+    const { sendEmail } = require('../services/emailService');
+    const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
+    const designationLabel = designation || 'District Health Officer';
+    const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const welcomeHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaktSetu – Appointment Letter</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0eb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#9e001f;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">RaktSetu</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;letter-spacing:2px;text-transform:uppercase;">National Blood Logistics Platform</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="color:#685c59;font-size:13px;margin:0 0 24px;">Date: ${today}</p>
+
+            <h2 style="margin:0 0 8px;color:#1a1210;font-size:22px;font-weight:700;">Appointment Letter</h2>
+            <p style="margin:0 0 28px;color:#685c59;font-size:14px;">District Officer Commission — ${districtName.trim()}, ${stateName}</p>
+
+            <p style="font-size:15px;color:#1a1210;line-height:1.7;margin:0 0 16px;">
+              Dear <strong>${fullName}</strong>,
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
+              We are pleased to appoint you as <strong>${designationLabel}</strong> for the district of <strong>${districtName.trim()}</strong> in the state of <strong>${stateName}</strong> on the RaktSetu National Blood Logistics Platform. Your role grants you access to manage blood banks, hospitals, donation camps, and transfer validations within your district.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 32px;">
+              Please find your temporary login credentials below. You are required to change your password upon first login.
+            </p>
+
+            <!-- Credentials Card -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf6f6;border:1.5px solid #ffdad8;border-radius:12px;margin-bottom:32px;">
+              <tr>
+                <td style="padding:24px 28px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9e001f;">Your Login Credentials</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #fce8e8;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">EMAIL ADDRESS</span><br/>
+                        <span style="font-size:15px;color:#1a1210;font-weight:700;">${email.toLowerCase().trim()}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0 0;">
+                        <span style="font-size:12px;color:#685c59;font-weight:600;">TEMPORARY PASSWORD</span><br/>
+                        <span style="font-size:20px;color:#9e001f;font-weight:800;letter-spacing:3px;font-family:monospace;">${tempPassword}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="${loginUrl}" style="display:inline-block;background:#9e001f;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.3px;">Login to RaktSetu Portal →</a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0 0 8px;">
+              ⚠️ This is a system-generated temporary password. Please do not share it with anyone. You will be prompted to set a new password upon your first login.
+            </p>
+            <p style="font-size:13px;color:#9A9A9A;line-height:1.6;margin:0;">
+              If you did not expect this email or believe this is an error, please contact your State Health Administration immediately.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#faf8f5;padding:20px 40px;border-top:1px solid #ede7e1;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9A9A9A;">© ${new Date().getFullYear()} RaktSetu — National Blood Logistics Platform</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c4b8b5;">This is an automated message. Please do not reply to this email.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await sendEmail({
+      to: email.toLowerCase().trim(),
+      subject: `RaktSetu – Your Appointment as ${designationLabel}, ${districtName.trim()}`,
+      html: welcomeHtml
+    });
+
+    await connection.commit();
+
+    return res.status(201).json({
+      message: 'District Officer created successfully. Commission email sent.',
+      user: {
+        id: userId,
+        email: email.toLowerCase().trim(),
+        role: 'district',
+        fullName,
+        districtName,
+        designation: designation || 'District Health Officer'
+      },
+      tempPassword
+    });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * GET /district/pending-hospitals
+ */
+async function getDistrictPendingHospitals(req, res, next) {
+  try {
+    const districtId = req.user.district_id;
+    if (!districtId) {
+      return res.status(200).json([]);
+    }
+
+    const [rows] = await pool.query(
+      `SELECT id, name, type, license_no, address, contact, city, state, pincode, license_document, created_at
+       FROM hospitals
+       WHERE district_id = ? AND verification_status = 'pending'
+       ORDER BY created_at DESC`,
+      [districtId]
+    );
+
+    const pending = rows.map(h => ({
+      id: h.id,
+      name: h.name,
+      type: h.type,
+      licenseNo: h.license_no,
+      address: h.address,
+      contact: h.contact,
+      city: h.city,
+      state: h.state,
+      pincode: h.pincode,
+      licenseDocument: h.license_document,
+      appliedAt: h.created_at
+    }));
+
+    return res.status(200).json(pending);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /district/hospitals/:id/approve
+ */
+async function approveDistrictHospital(req, res, next) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const { id } = req.params;
+    const districtId = req.user.district_id;
+
+    // Verify hospital belongs to district
+    const [rows] = await connection.query(
+      "SELECT id, name FROM hospitals WHERE id = ? AND district_id = ? AND verification_status = 'pending'",
+      [id, districtId]
+    );
+
+    if (rows.length === 0) {
+      throw new ApiError('Hospital not found or not in pending state under this district', 404);
+    }
+
+    // Set to 'district_approved'
+    await connection.query(
+      "UPDATE hospitals SET verification_status = 'district_approved' WHERE id = ?",
+      [id]
+    );
+
+    await connection.commit();
+    return res.status(200).json({ message: 'Hospital approved successfully at district level. Awaiting final System Admin approval.' });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * PATCH /district/hospitals/:id/reject
+ */
+async function rejectDistrictHospital(req, res, next) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const { id } = req.params;
+    const districtId = req.user.district_id;
+
+    // Verify hospital belongs to district
+    const [rows] = await connection.query(
+      "SELECT id, name, contact FROM hospitals WHERE id = ? AND district_id = ? AND verification_status = 'pending'",
+      [id, districtId]
+    );
+
+    if (rows.length === 0) {
+      throw new ApiError('Hospital not found or not in pending state under this district', 404);
+    }
+
+    const hospital = rows[0];
+
+    // Set to 'rejected'
+    await connection.query(
+      "UPDATE hospitals SET verification_status = 'rejected' WHERE id = ?",
+      [id]
+    );
+
+    // Update the associated admin user status to 'Suspended' (or keep it in inactive state)
+    await connection.query(
+      "UPDATE users SET status = 'Suspended' WHERE hospital_id = ?",
+      [id]
+    );
+
+    await connection.commit();
+
+    // Optionally send rejection email (reused from systemAdminController)
+    try {
+      const { sendEmail } = require('../services/emailService');
+      const [userRows] = await pool.query('SELECT email FROM users WHERE hospital_id = ?', [id]);
+      if (userRows.length > 0) {
+        const adminEmail = userRows[0].email;
+        const rejectHtml = `
+  <!DOCTYPE html>
+  <html>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+      <h2 style="color: #c8102e;">Registration Application Update</h2>
+      <p>Dear Administrator,</p>
+      <p>Thank you for your interest in RaktSetu. We regret to inform you that your application for <strong>${hospital.name}</strong> has been declined during the district officer verification phase.</p>
+      <p>Please contact your District Health Office or email support@raktsetu.online to obtain details or update your registration documents.</p>
+      <p>Regards,<br>RaktSetu Team</p>
+    </div>
+  </body>
+  </html>`;
+        await sendEmail({
+          to: adminEmail,
+          subject: 'RaktSetu Registration Update - Declined',
+          html: rejectHtml
+        });
+      }
+    } catch (e) {
+      console.error('Rejection email failed to send:', e);
+    }
+
+    return res.status(200).json({ message: 'Hospital application declined successfully.' });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
+  } finally {
+    connection.release();
+  }
+}
+
 module.exports = {
   getDistrictDashboard,
   getDistrictHospitals,
@@ -827,5 +1163,9 @@ module.exports = {
   getStateDashboard,
   getStateTransfers,
   approveStateTransfer,
-  getStatePolicyAlerts
+  getStatePolicyAlerts,
+  createDistrictOfficer,
+  getDistrictPendingHospitals,
+  approveDistrictHospital,
+  rejectDistrictHospital
 };

@@ -28,7 +28,6 @@ export const HospitalProfile = () => {
       licenseNumber: '',
       address: '',
       contactPhone: '',
-      contactEmail: '',
       emergencyContact: '',
     }
   });
@@ -58,7 +57,6 @@ export const HospitalProfile = () => {
           licenseNumber: data.license_no || '',
           address: data.address || '',
           contactPhone: data.contact || '',
-          contactEmail: data.email || '',
           emergencyContact: data.contact || '',
         });
       } catch (err) {
@@ -74,8 +72,7 @@ export const HospitalProfile = () => {
       await api.put('/hospital/profile', {
         name: data.hospitalName,
         address: data.address,
-        contact: data.contactPhone,
-        email: data.contactEmail
+        contact: data.contactPhone
       });
       toast.success("Hospital profile updated successfully.");
     } catch (err) {
@@ -176,45 +173,37 @@ export const HospitalProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="contact-email-4" className={fieldLabel}>Contact Email</label>
+              <label htmlFor="primary-phone-5" className={fieldLabel}>Primary Phone</label>
               <div className="relative">
-                <input id="contact-email-4"
-                  type="email"
-                  {...register("contactEmail", { required: "Email is required" })}
-                  className={`input-field !pl-10 ${errors.contactEmail ? 'error' : ''}`}
+                <input id="primary-phone-5"
+                  type="text"
+                  {...register("contactPhone", { required: "Phone is required" })}
+                  className={`input-field !pl-10 ${errors.contactPhone ? 'error' : ''}`}
                 />
-                <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
+                <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
               </div>
-              {errors.contactEmail && (
+              {errors.contactPhone && (
                 <span className={errorMsg}>
-                  <AlertCircle className="h-3 w-3" /> {errors.contactEmail.message}
+                  <AlertCircle className="h-3 w-3" /> {errors.contactPhone.message}
                 </span>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="primary-phone-5" className={fieldLabel}>Primary Phone</label>
-                <div className="relative">
-                  <input id="primary-phone-5"
-                    type="text"
-                    {...register("contactPhone", { required: "Phone is required" })}
-                    className={`input-field !pl-10 ${errors.contactPhone ? 'error' : ''}`}
-                  />
-                  <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />
-                </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="emergency-helpline-6" className={fieldLabel}>Emergency Helpline</label>
+              <div className="relative">
+                <input id="emergency-helpline-6"
+                  type="text"
+                  {...register("emergencyContact", { required: "Emergency number required" })}
+                  className={`input-field !pl-10 ${errors.emergencyContact ? 'error' : ''}`}
+                />
+                <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-[#BE1F2E]" />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="emergency-helpline-6" className={fieldLabel}>Emergency Helpline</label>
-                <div className="relative">
-                  <input id="emergency-helpline-6"
-                    type="text"
-                    {...register("emergencyContact", { required: "Emergency number required" })}
-                    className={`input-field !pl-10 ${errors.emergencyContact ? 'error' : ''}`}
-                  />
-                  <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-[#BE1F2E]" />
-                </div>
-              </div>
+              {errors.emergencyContact && (
+                <span className={errorMsg}>
+                  <AlertCircle className="h-3 w-3" /> {errors.emergencyContact.message}
+                </span>
+              )}
             </div>
           </div>
 

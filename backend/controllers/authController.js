@@ -27,6 +27,9 @@ function serializeUser(user) {
     hospital_name: user.hospital_name || null,
     districtId: user.district_id,
     district_id: user.district_id,
+    districtName: user.district_name || null,
+    district_name: user.district_name || null,
+    state: user.state || null,
     createdAt: user.created_at,
     created_at: user.created_at,
     lastLogin: user.last_login,
@@ -34,7 +37,13 @@ function serializeUser(user) {
     mustChangePassword: !!user.must_change_password,
     must_change_password: !!user.must_change_password,
     name: user.full_name || user.email,
-    designation: user.designation || 'Staff'
+    designation: user.designation || (
+      user.role === 'admin' ? 'Hospital Administrator' :
+      user.role === 'sysadmin' ? 'System Administrator' :
+      user.role === 'district' ? 'District Officer' :
+      user.role === 'state' ? 'State Admin' :
+      'Hospital Staff'
+    )
   };
 }
 
@@ -180,7 +189,7 @@ async function register(req, res, next) {
 
     } else if (role === 'admin') {
       // Hospital registration
-      const { email, phone, password, hospitalName, hospitalType, license_no, address, city, state, pincode, lat, lng, licenseDocument, license_document } = req.body;
+      const { email, phone, password, hospitalName, hospitalType, license_no, address, city, state, pincode, lat, lng, licenseDocument, license_document, district, ownerName } = req.body;
       const uploadedDoc = licenseDocument || license_document || null;
 
       const finalEmail = email.toLowerCase();
@@ -194,8 +203,15 @@ async function register(req, res, next) {
         throw new ApiError('Phone number already registered', 409, 'PHONE_EXISTS');
       }
 
+      // Check if license number already exists
+      const [existingLicense] = await connection.query('SELECT id FROM hospitals WHERE license_no = ?', [license_no.trim()]);
+      if (existingLicense.length > 0) {
+        throw new ApiError('Hospital license registration number already registered', 409, 'LICENSE_EXISTS');
+      }
+
       // Handle district
-      const districtId = await findOrCreateDistrict(connection, city, state);
+      const targetDistrict = district || city;
+      const districtId = await findOrCreateDistrict(connection, targetDistrict, state);
 
       // Insert Hospital in pending state
       const [hospitalResult] = await connection.query(
@@ -208,7 +224,7 @@ async function register(req, res, next) {
           lat,
           lng,
           `POINT(${lng} ${lat})`, // Longitude first, then Latitude
-          license_no,
+          license_no.trim(),
           address,
           phone,
           city,
@@ -224,11 +240,106 @@ async function register(req, res, next) {
 
       // Insert Admin User in Pending state
       const [userResult] = await connection.query(
-        "INSERT INTO users (email, phone, password_hash, role, hospital_id, status) VALUES (?, ?, ?, ?, ?, 'Pending')",
-        [finalEmail, phone, passwordHash, 'admin', hospitalId]
+        "INSERT INTO users (email, phone, password_hash, role, hospital_id, status, full_name, designation) VALUES (?, ?, ?, ?, ?, 'Pending', ?, 'Hospital Administrator')",
+        [finalEmail, phone, passwordHash, 'admin', hospitalId, ownerName || 'Hospital Representative']
       );
 
       await connection.commit();
+
+      // Dispatch confirmation email
+      try {
+        const { sendEmail } = require('../services/emailService');
+        const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        const welcomeHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaktSetu – Registration Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0eb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#9e001f;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">RaktSetu</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;letter-spacing:2px;text-transform:uppercase;">National Blood Logistics Platform</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="color:#685c59;font-size:13px;margin:0 0 24px;">Date: ${today}</p>
+
+            <h2 style="margin:0 0 12px;color:#1a1210;font-size:22px;font-weight:700;">Registration Received</h2>
+            <p style="margin:0 0 28px;color:#22a06b;font-size:15px;font-weight:600;">✓ Submission In Review — ${hospitalName}</p>
+
+            <p style="font-size:15px;color:#1a1210;line-height:1.7;margin:0 0 16px;">
+              Dear Administrator,
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
+              Thank you for registering <strong>${hospitalName}</strong> on the RaktSetu National Blood Logistics Platform. We have successfully received your facility details, license registration documents, and contact details.
+            </p>
+            <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 24px;">
+              Your application is currently in progress. Over the next few hours, our district administration officers and system administrators will verify your license details:
+            </p>
+
+            <!-- Verification Timeline -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;border-left:2px solid #ede7e1;padding-left:16px;">
+              <tr>
+                <td style="padding:4px 0 16px;">
+                  <span style="font-size:11px;font-weight:700;color:#22a06b;letter-spacing:1px;text-transform:uppercase;">STEP 1: DETAILS SUBMITTED</span><br/>
+                  <span style="font-size:13px;color:#5a5a5a;">Your details are stored securely.</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0 16px;">
+                  <span style="font-size:11px;font-weight:700;color:#9e001f;letter-spacing:1px;text-transform:uppercase;">STEP 2: DISTRICT & SYSTEM REVIEW</span><br/>
+                  <span style="font-size:13px;color:#5a5a5a;">Officers review the license registration <strong>${license_no}</strong> for authenticity.</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0 0;">
+                  <span style="font-size:11px;font-weight:700;color:#9a9a9a;letter-spacing:1px;text-transform:uppercase;">STEP 3: CREDENTIALS EMAIL</span><br/>
+                  <span style="font-size:13px;color:#5a5a5a;">Upon verification, your account password and activation notice will be sent.</span>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:13px;color:#685c59;line-height:1.6;margin:0 0 24px;">
+              If you have any questions or did not submit this request, please reply to this email to contact our support team.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#faf8f5;padding:20px 40px;border-top:1px solid #ede7e1;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9A9A9A;">© ${new Date().getFullYear()} RaktSetu — National Blood Logistics Platform</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c4b8b5;">This is an automated message. Please do not reply to this email.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+        await sendEmail({
+          to: finalEmail,
+          subject: `RaktSetu – Registration Confirmation for ${hospitalName}`,
+          html: welcomeHtml
+        });
+      } catch (emailErr) {
+        console.error('Failed to send registration confirmation email:', emailErr);
+      }
 
       return res.status(201).json({
         message: 'Hospital registration submitted successfully. Please wait for System Admin approval.'
@@ -290,9 +401,10 @@ async function login(req, res, next) {
     if (email) {
       // Email + Password Login
       const [rows] = await pool.query(
-        `SELECT u.*, h.name AS hospital_name 
+        `SELECT u.*, h.name AS hospital_name, d.name AS district_name 
          FROM users u 
          LEFT JOIN hospitals h ON u.hospital_id = h.id 
+         LEFT JOIN districts d ON u.district_id = d.id
          WHERE u.email = ?`,
         [email.toLowerCase()]
       );
@@ -606,6 +718,28 @@ async function verifyMfa(req, res, next) {
   }
 }
 
+async function getCurrentUser(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const [rows] = await pool.query(
+      `SELECT u.*, h.name AS hospital_name, d.name AS district_name 
+       FROM users u 
+       LEFT JOIN hospitals h ON u.hospital_id = h.id 
+       LEFT JOIN districts d ON u.district_id = d.id
+       WHERE u.id = ?`,
+      [userId]
+    );
+    if (rows.length === 0) {
+      throw new ApiError('User not found', 404, 'NOT_FOUND');
+    }
+    return res.status(200).json({
+      user: serializeUser(rows[0])
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -617,6 +751,7 @@ module.exports = {
   refresh,
   changePassword,
   verifyMfa,
+  getCurrentUser,
   // Exported for reuse by donorFirebaseController
   issueTokens,
   serializeUser

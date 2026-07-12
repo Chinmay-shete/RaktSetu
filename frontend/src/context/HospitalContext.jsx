@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 const HospitalContext = createContext();
 
@@ -40,6 +41,32 @@ export const HospitalProvider = ({ children }) => {
     localStorage.setItem('raktsetu_admin_app_state', JSON.stringify(appState));
   }, [appState]);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (appState.status === 'logged_in') {
+        try {
+          const res = await api.get('/auth/me');
+          if (res.data && res.data.user) {
+            const user = res.data.user;
+            setAppState(prev => ({
+              ...prev,
+              user,
+              hospitalDetails: {
+                hospitalName: user.hospitalName || user.hospital_name || 'Apex City Hospital',
+                city: user.city || 'Pune',
+                email: user.email,
+                id: user.hospitalId || user.hospital_id
+              }
+            }));
+          }
+        } catch (e) {
+          console.error("Failed to sync current user profile", e);
+        }
+      }
+    };
+    fetchCurrentUser();
+  }, [appState.status]);
+
   const submitApplication = (details) => {
     setAppState(prev => ({
       ...prev,
@@ -64,7 +91,8 @@ export const HospitalProvider = ({ children }) => {
         city: user.city || 'Pune',
         email: user.email,
         id: user.hospitalId || user.hospital_id
-      } : null
+      } : null,
+      user: user
     }));
   };
 

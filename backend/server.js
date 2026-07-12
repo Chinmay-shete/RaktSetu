@@ -95,6 +95,10 @@ app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/v1/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Request logging middleware
 if (process.env.NODE_ENV === 'production') {
   app.use(pinoHttp({ logger }));

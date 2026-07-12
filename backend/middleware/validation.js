@@ -176,7 +176,9 @@ const saveLocationSchema = z.object({
     message: 'Longitude must be between -180 and 180'
   }),
   city: z.string().min(2, 'City name must be at least 2 characters'),
-  pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers')
+  pincode: z.string().length(6, 'Pincode must be exactly 6 digits').regex(/^[0-9]+$/, 'Pincode must contain only numbers'),
+  address: z.string().optional().nullable(),
+  district: z.string().optional().nullable()
 });
 
 const pledgeSchema = z.object({
@@ -286,6 +288,13 @@ const createStateAdminSchema = z.object({
   designation: z.string().optional()
 });
 
+const createDistrictOfficerSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  districtName: z.string().min(2, 'District name must be at least 2 characters'),
+  designation: z.string().optional()
+});
+
 const updateUserSchema = z.object({
   role: z.enum(['donor', 'staff', 'admin', 'district', 'state', 'sysadmin']).optional(),
   status: z.enum(['Active', 'Suspended', 'Pending']).optional()
@@ -323,7 +332,8 @@ module.exports = {
   approveHospitalSchema,
   updateUserSchema,
   changePasswordSchema,
-  createStateAdminSchema
+  createStateAdminSchema,
+  createDistrictOfficerSchema
 };
 
 

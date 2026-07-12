@@ -15,6 +15,8 @@ const LocationPage = () => {
 
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
+  const [address, setAddress] = useState('');
+  const [district, setDistrict] = useState('');
   const [donatedBefore, setDonatedBefore] = useState(false);
   const [lastDonation, setLastDonation] = useState('');
   const [donationType, setDonationType] = useState('blood');
@@ -61,11 +63,16 @@ const LocationPage = () => {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
           const data = await res.json();
-          if (data?.address) {
-            const detectedCity = data.address.city || data.address.town || data.address.village || '';
-            const detectedPin = data.address.postcode || '';
-            if (detectedCity && !city) setCity(detectedCity);
-            if (detectedPin && !pincode) setPincode(detectedPin.slice(0, 6));
+          if (data) {
+            if (data.display_name) setAddress(data.display_name);
+            if (data.address) {
+              const detectedCity = data.address.city || data.address.town || data.address.village || '';
+              const detectedDistrict = data.address.county || data.address.district || detectedCity || '';
+              const detectedPin = data.address.postcode || '';
+              if (detectedCity && !city) setCity(detectedCity);
+              if (detectedDistrict && !district) setDistrict(detectedDistrict);
+              if (detectedPin && !pincode) setPincode(detectedPin.slice(0, 6));
+            }
           }
         } catch { /* silent */ }
       },
@@ -148,11 +155,13 @@ const LocationPage = () => {
         lat: latitude,
         lng: longitude,
         city: city || 'Mumbai',
-        pincode: pincode || '400001'
+        pincode: pincode || '400001',
+        address: address || null,
+        district: district || null
       });
       
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify({
-        ...existing, city, pincode, donatedBefore,
+        ...existing, city, pincode, address, district, donatedBefore,
         lastDonation: donatedBefore ? lastDonation : '',
         donationType: donatedBefore ? donationType : '',
         donationTimes: donatedBefore ? donationTimes : '',
@@ -207,7 +216,7 @@ const LocationPage = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="text-[14px] font-[600] text-[#1A1A1A] mb-1.5 block" htmlFor="city">City</label>
                     <div className="relative">
@@ -243,6 +252,20 @@ const LocationPage = () => {
                     </div>
                   </div>
                   <div>
+                    <label className="text-[14px] font-[600] text-[#1A1A1A] mb-1.5 block" htmlFor="district">District</label>
+                    <div className="flex items-center border border-[#D8D0CA] rounded-xl overflow-hidden transition-all focus-within:border-[#BE1F2E] focus-within:shadow-[0_0_0_3px_rgba(190,31,46,0.12)] input-with-icon">
+                      <span className="material-symbols-outlined input-icon text-[#A8A0A0] text-[18px] ml-3 shrink-0 transition-colors">map</span>
+                      <input
+                        id="district"
+                        type="text"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        placeholder="e.g. Pune"
+                        className="flex-1 bg-transparent border-none focus:ring-0 px-3 py-3.5 text-[16px] text-[#1A1A1A] placeholder:text-[#A8A0A0] outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
                     <label className="text-[14px] font-[600] text-[#1A1A1A] mb-1.5 block" htmlFor="pincode">Pincode</label>
                     <input
                       id="pincode"
@@ -258,7 +281,18 @@ const LocationPage = () => {
                   </div>
                 </div>
 
-                <div className="border-t border-[#E0DAD4]" />
+                <div>
+                  <label className="text-[14px] font-[600] text-[#1A1A1A] mb-1.5 block" htmlFor="address-textarea">Street Address / Landmark</label>
+                  <textarea
+                    id="address-textarea"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter detailed street address or landmark"
+                    rows="2"
+                    className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[15px] text-[#1A1A1A] placeholder:text-[#A8A0A0] outline-none focus:border-[#BE1F2E] transition-all resize-none"
+                  />
+                </div>
+                 <div className="border-t border-[#E0DAD4]" />
 
                 <div>
                   <div className="flex items-center justify-between">
@@ -432,7 +466,7 @@ const LocationPage = () => {
 
             <div className="space-y-6">
               {/* City and Pincode */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2 relative">
                   <label htmlFor="city-3" className="text-[14px] font-medium text-[#5c403f]">City</label>
                   <input id="city-3"
@@ -463,6 +497,17 @@ const LocationPage = () => {
                 </div>
 
                 <div className="flex flex-col gap-2">
+                  <label htmlFor="district-mobile" className="text-[14px] font-medium text-[#5c403f]">District</label>
+                  <input id="district-mobile"
+                    type="text"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    placeholder="Enter District"
+                    className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
                   <label htmlFor="pincode-4" className="text-[14px] font-medium text-[#5c403f]">Pincode</label>
                   <input id="pincode-4"
                     type="text"
@@ -479,6 +524,18 @@ const LocationPage = () => {
                   {pincodeError && <p className="text-[12px] text-[#BE1F2E] mt-1">{pincodeError}</p>}
                 </div>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="address-mobile" className="text-[14px] font-medium text-[#5c403f]">Street Address / Landmark</label>
+                <textarea id="address-mobile"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Enter detailed street address or landmark"
+                  rows="2"
+                  className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] resize-none"
+                />
+              </div>
+
 
               {/* GPS Live Location Toggle Card */}
               <div className={`border rounded-xl p-4 flex items-start gap-3.5 transition-all duration-300 ${

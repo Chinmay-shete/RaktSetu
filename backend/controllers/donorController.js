@@ -36,6 +36,8 @@ function serializeProfile(donor) {
     email: donor.email,
     phone: donor.phone,
     availableForDonation: !!donor.available_for_donation,
+    address: donor.address || null,
+    district: donor.district || null,
     createdAt: donor.created_at,
     updatedAt: donor.updated_at
   };
@@ -197,7 +199,7 @@ async function saveLocation(req, res, next) {
       throw new ApiError('Donor profile not found', 404, 'PROFILE_NOT_FOUND');
     }
 
-    const { lat, lng, city, pincode } = req.body;
+    const { lat, lng, city, pincode, address, district } = req.body;
     const pointStr = `POINT(${lng} ${lat})`; // Longitude first
 
     await pool.query(
@@ -206,9 +208,11 @@ async function saveLocation(req, res, next) {
            lng = ?,
            location = ST_GeomFromText(?, 4326),
            city = COALESCE(?, city),
-           pincode = COALESCE(?, pincode)
+           pincode = COALESCE(?, pincode),
+           address = ?,
+           district = ?
        WHERE id = ?`,
-      [lat, lng, pointStr, city, pincode, donor.id]
+      [lat, lng, pointStr, city, pincode, address || null, district || null, donor.id]
     );
 
     const [updatedRows] = await pool.query(

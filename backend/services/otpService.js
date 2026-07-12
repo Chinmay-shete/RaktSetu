@@ -95,38 +95,54 @@ async function sendOtp(target, purpose, isEmail = false) {
   if (!isTest) {
     if (isEmail) {
       try {
-        // Send OTP via Resend Email
-        await emailService.sendEmail({
-          to: target,
-          subject: 'Verify your contact - RaktSetu OTP',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EDE7E1; border-radius: 12px;">
-              <h2 style="color: #BE1F2E; font-style: italic;">RaktSetu</h2>
-              <p>Hello,</p>
-              <p>Your 6-digit verification code is:</p>
-              <div style="background-color: #F5F0EB; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; text-align: center; color: #1A0A0A; margin: 20px 0;">
-                ${code}
+        if (!process.env.EMAIL_API_KEY) {
+          console.warn(`[DEV DEBUG] Resend API key is missing. Skipping email send for ${target}`);
+        } else {
+          // Send OTP via Resend Email
+          await emailService.sendEmail({
+            to: target,
+            subject: 'Verify your contact - RaktSetu OTP',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EDE7E1; border-radius: 12px;">
+                <h2 style="color: #BE1F2E; font-style: italic;">RaktSetu</h2>
+                <p>Hello,</p>
+                <p>Your 6-digit verification code is:</p>
+                <div style="background-color: #F5F0EB; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; text-align: center; color: #1A0A0A; margin: 20px 0;">
+                  ${code}
+                </div>
+                <p style="color: #9A9A9A; font-size: 13px;">This code is valid for ${expiresMinutes} minutes. Please do not share this OTP with anyone.</p>
+                <hr style="border: 0; border-top: 1px solid #EDE7E1; margin: 20px 0;">
+                <p style="color: #A8A0A0; font-size: 11px;">&copy; 2026 RaktSetu. Precision Blood Logistics.</p>
               </div>
-              <p style="color: #9A9A9A; font-size: 13px;">This code is valid for ${expiresMinutes} minutes. Please do not share this OTP with anyone.</p>
-              <hr style="border: 0; border-top: 1px solid #EDE7E1; margin: 20px 0;">
-              <p style="color: #A8A0A0; font-size: 11px;">&copy; 2026 RaktSetu. Precision Blood Logistics.</p>
-            </div>
-          `
-        });
+            `
+          });
+        }
       } catch (err) {
-        console.error('Error sending Email OTP via Resend:', err);
-        throw new ApiError(`Failed to send Email OTP: ${err.message}`, 502, 'EMAIL_PROVIDER_ERROR');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[DEV DEBUG] Resend OTP email failed: ${err.message}`);
+        } else {
+          console.error('Error sending Email OTP via Resend:', err);
+          throw new ApiError(`Failed to send Email OTP: ${err.message}`, 502, 'EMAIL_PROVIDER_ERROR');
+        }
       }
     } else {
       // Send OTP via MSG91 SMS (India-ready 🇮🇳)
       try {
-        const result = await sendSmsViaMSG91(target, code, expiresMinutes);
-        sessionId = result.request_id || null; // MSG91 may return a request_id
+        if (!process.env.MSG91_AUTH_KEY || !process.env.MSG91_TEMPLATE_ID) {
+          console.warn(`[DEV DEBUG] MSG91 credentials/template missing. Skipping SMS send for ${target}`);
+        } else {
+          const result = await sendSmsViaMSG91(target, code, expiresMinutes);
+          sessionId = result.request_id || null; // MSG91 may return a request_id
+        }
       } catch (err) {
-        console.error('Error sending SMS OTP via MSG91:', err);
-        // Re-throw ApiError as-is, wrap plain errors
-        if (err instanceof ApiError) throw err;
-        throw new ApiError(`Failed to send SMS OTP: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[DEV DEBUG] MSG91 OTP SMS failed: ${err.message}`);
+        } else {
+          console.error('Error sending SMS OTP via MSG91:', err);
+          // Re-throw ApiError as-is, wrap plain errors
+          if (err instanceof ApiError) throw err;
+          throw new ApiError(`Failed to send SMS OTP: ${err.message}`, 502, 'SMS_PROVIDER_ERROR');
+        }
       }
     }
   }

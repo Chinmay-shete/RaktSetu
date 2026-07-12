@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { Search, Shield, Ban, CheckCircle, UserCheck } from 'lucide-react';
+import { INDIA_STATES_DISTRICTS } from '../../utils/indiaData';
 
 export const UserManagement = () => {
   const { adminState, toggleUserStatus, changeUserRole, createStateAdmin } = useSystemAdmin();
@@ -172,6 +173,8 @@ export const UserManagement = () => {
                   <td className="py-4 px-4">
                     {user.status === 'Active' ? (
                       <span className="badge-success text-[10px]">Active</span>
+                    ) : user.status === 'Pending' ? (
+                      <span className="badge-warning text-[10px]">Pending</span>
                     ) : (
                       <span className="badge-danger text-[10px]">Suspended</span>
                     )}
@@ -328,10 +331,9 @@ export const UserManagement = () => {
                         value={createForm.stateName}
                         onChange={(e) => setCreateForm(p => ({ ...p, stateName: e.target.value }))}
                       >
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Goa">Goa</option>
-                        <option value="Karnataka">Karnataka</option>
+                        {Object.keys(INDIA_STATES_DISTRICTS).sort().map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
                       </select>
                     </div>
                   </div>

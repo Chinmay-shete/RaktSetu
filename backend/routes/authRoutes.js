@@ -54,4 +54,7 @@ router.post('/refresh', validateRequest(refreshSchema), authController.refresh);
 // 9. Change Password (For direct staff password rotation)
 router.post('/change-password', requireAuth, validateRequest(changePasswordSchema), authController.changePassword);
 
+// 10. Get Current User profile
+router.get('/me', requireAuth, authController.getCurrentUser);
+
 module.exports = router;

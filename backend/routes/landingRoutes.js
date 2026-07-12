@@ -25,7 +25,8 @@ router.get('/camps', async (req, res) => {
     const { state, district } = req.query;
     let query = `
       SELECT c.id, c.name, c.camp_date, c.address, c.organizer, c.capacity, c.expected_donors, c.status,
-             d.name AS district_name, d.state AS state_name
+             d.name AS district_name, d.state AS state_name,
+             ST_Y(c.location) AS lat, ST_X(c.location) AS lng
       FROM donation_camps c
       JOIN districts d ON c.district_id = d.id
       WHERE c.status = 'upcoming'
@@ -88,7 +89,7 @@ router.get('/hospitals', async (req, res) => {
   try {
     const { state, district, keyword } = req.query;
     let query = `
-      SELECT h.id, h.name, h.type, h.license_no, h.address, h.city, h.state, h.pincode, h.contact
+      SELECT h.id, h.name, h.type, h.license_no, h.address, h.city, h.state, h.pincode, h.contact, h.lat, h.lng
       FROM hospitals h
       JOIN districts d ON h.district_id = d.id
       WHERE h.verification_status = 'verified'

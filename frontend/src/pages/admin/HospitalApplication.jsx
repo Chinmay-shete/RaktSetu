@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
 import api from '../../services/api';
+import { INDIA_STATES_DISTRICTS } from '../../utils/indiaData';
 
 const HospitalApplication = () => {
   const navigate = useNavigate();
@@ -9,11 +10,13 @@ const HospitalApplication = () => {
   
   const [formData, setFormData] = useState({
     hospitalName: '',
+    ownerName: '',
     regNumber: '',
     licenseNumber: '',
     bloodBankLicense: '',
     address: '',
     city: '',
+    district: '',
     state: '',
     pincode: '',
     email: '',
@@ -29,11 +32,13 @@ const HospitalApplication = () => {
   const validate = () => {
     let tempErrors = {};
     if (!formData.hospitalName.trim()) tempErrors.hospitalName = "Hospital Name is required";
+    if (!formData.ownerName.trim()) tempErrors.ownerName = "Authorized Representative / Owner Name is required";
     if (!formData.regNumber.trim()) tempErrors.regNumber = "Registration Number is required";
     if (!formData.licenseNumber.trim()) tempErrors.licenseNumber = "License Number is required";
     if (!formData.bloodBankLicense.trim()) tempErrors.bloodBankLicense = "Blood Bank License is required";
     if (!formData.address.trim()) tempErrors.address = "Address is required";
     if (!formData.city.trim()) tempErrors.city = "City is required";
+    if (!formData.district.trim()) tempErrors.district = "District Jurisdiction is required";
     if (!formData.state.trim()) tempErrors.state = "State is required";
     
     if (!formData.pincode.trim()) {
@@ -66,7 +71,15 @@ const HospitalApplication = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === 'state') {
+      setFormData(prev => ({
+        ...prev,
+        state: value,
+        district: '' // Reset district on state change
+      }));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -112,11 +125,13 @@ const HospitalApplication = () => {
           license_no: formData.licenseNumber,
           address: formData.address,
           city: formData.city,
+          district: formData.district,
           state: formData.state,
           pincode: formData.pincode,
           lat: 18.5204, // Default Pune lat
           lng: 73.8567, // Default Pune lng
-          licenseDocument: uploadedFilename
+          licenseDocument: uploadedFilename,
+          ownerName: formData.ownerName
         });
 
         submitApplication({
@@ -179,7 +194,7 @@ const HospitalApplication = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               
               {/* General Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="mb-1">
                   <label htmlFor="hospital-name-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Hospital Name *</label>
                   <input id="hospital-name-1"
@@ -192,6 +207,20 @@ const HospitalApplication = () => {
                     required
                   />
                   {errors.hospitalName && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.hospitalName}</p>}
+                </div>
+
+                <div className="mb-1">
+                  <label htmlFor="owner-name-input" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Representative Name *</label>
+                  <input id="owner-name-input"
+                    type="text"
+                    name="ownerName"
+                    value={formData.ownerName}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Dr. Ramesh Patil"
+                    className={`input-field ${errors.ownerName ? 'error' : ''}`}
+                    required
+                  />
+                  {errors.ownerName && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.ownerName}</p>}
                 </div>
 
                 <div className="mb-1">
@@ -270,15 +299,52 @@ const HospitalApplication = () => {
                 {errors.address && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.address}</p>}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="mb-1">
-                  <label htmlFor="city-7" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">City *</label>
-                  <input id="city-7"
+                  <label htmlFor="state-select" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">State *</label>
+                  <select id="state-select"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    className={`input-field custom-select ${errors.state ? 'error' : ''}`}
+                    required
+                  >
+                    <option value="">Select State</option>
+                    {Object.keys(INDIA_STATES_DISTRICTS).sort().map(st => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                  {errors.state && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.state}</p>}
+                </div>
+
+                <div className="mb-1">
+                  <label htmlFor="district-select" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">District Jurisdiction *</label>
+                  <select id="district-select"
+                    name="district"
+                    value={formData.district}
+                    onChange={handleInputChange}
+                    disabled={!formData.state}
+                    className={`input-field custom-select ${errors.district ? 'error' : ''}`}
+                    required
+                  >
+                    <option value="">Select District</option>
+                    {(INDIA_STATES_DISTRICTS[formData.state] || []).sort().map(dist => (
+                      <option key={dist} value={dist}>{dist}</option>
+                    ))}
+                  </select>
+                  {errors.district && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.district}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-1">
+                  <label htmlFor="city-input" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">City / Town / Village *</label>
+                  <input id="city-input"
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="Pune"
+                    placeholder="e.g. Pune"
                     className={`input-field ${errors.city ? 'error' : ''}`}
                     required
                   />
@@ -286,22 +352,8 @@ const HospitalApplication = () => {
                 </div>
 
                 <div className="mb-1">
-                  <label htmlFor="state-8" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">State *</label>
-                  <input id="state-8"
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    placeholder="Maharashtra"
-                    className={`input-field ${errors.state ? 'error' : ''}`}
-                    required
-                  />
-                  {errors.state && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.state}</p>}
-                </div>
-
-                <div className="mb-1">
-                  <label htmlFor="pincode-9" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Pincode *</label>
-                  <input id="pincode-9"
+                  <label htmlFor="pincode-input" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Pincode *</label>
+                  <input id="pincode-input"
                     type="text"
                     name="pincode"
                     value={formData.pincode}

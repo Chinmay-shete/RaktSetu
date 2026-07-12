@@ -118,8 +118,9 @@ const AdminDashboard = () => {
   }, []);
 
   // Countup stats matching donor dashboard feel
-  const totalBags = useCountUp(inventory.reduce((acc, curr) => acc + curr.units, 0));
-  const criticalCategories = useCountUp(inventory.filter(i => i.units < 15).length);
+  const totalBagsRaw = inventory.reduce((acc, curr) => acc + curr.units, 0);
+  const totalBags = useCountUp(totalBagsRaw);
+  const criticalCategories = useCountUp(totalBagsRaw === 0 ? 0 : inventory.filter(i => i.units < 15).length);
 
   // Approve pending request function
   const handleApproveRequest = async (id) => {
@@ -224,7 +225,7 @@ const AdminDashboard = () => {
                   <Tooltip cursor={{ fill: 'rgba(190,31,46,0.02)' }} contentStyle={{ background: '#FFFFFF', border: '1px solid #E0DAD4', borderRadius: 8, fontFamily: 'DM Sans' }} />
                   <Bar dataKey="units" fill="#BE1F2E" radius={[4, 4, 0, 0]} maxBarSize={45}>
                     {inventory.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.units < 15 ? '#BE1F2E' : '#7A5F5F'} />
+                      <Cell key={`cell-${index}`} fill={totalBagsRaw === 0 ? '#E0DAD4' : (entry.units < 15 ? '#BE1F2E' : '#7A5F5F')} />
                     ))}
                   </Bar>
                 </BarChart>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { createRecaptchaVerifier, sendFirebaseOtp } from '../services/firebaseConfig';
+import { createRecaptchaVerifier, sendFirebaseOtp, isFirebaseConfigured, auth } from '../services/firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -72,13 +72,20 @@ const Login = () => {
     try {
       const phoneNumber = `+91${mobile}`;
 
-      // Create reCAPTCHA verifier (invisible)
-      if (!recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+      if (!isFirebaseConfigured) {
+        // Fallback: Send local OTP using backend endpoint
+        await api.post('/auth/send-otp', {
+          phone: phoneNumber,
+          purpose: 'login'
+        });
+      } else {
+        // Create reCAPTCHA verifier (invisible)
+        if (!recaptchaVerifierRef.current) {
+          recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+        }
+        const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+        setConfirmationResult(confirmation);
       }
-
-      const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
-      setConfirmationResult(confirmation);
 
       setButtonState('sent');
       setTimeout(() => {
@@ -90,11 +97,11 @@ const Login = () => {
         setButtonState('default');
       }, 700);
     } catch (err) {
-      console.error('[Firebase OTP] Send error:', err);
+      console.error('[OTP] Send error:', err);
       setButtonState('default');
       recaptchaVerifierRef.current = null;
 
-      let errorMsg = `Failed to send OTP. Please try again. [${err.code || 'UNKNOWN'}]: ${err.message || 'No message'}`;
+      let errorMsg = err.response?.data?.message || err.message || 'Failed to send OTP. Please try again.';
       if (err.code === 'auth/too-many-requests') {
         errorMsg = 'Too many attempts. Please wait a few minutes and try again.';
       } else if (err.code === 'auth/invalid-phone-number') {
@@ -115,11 +122,18 @@ const Login = () => {
 
     try {
       const phoneNumber = `+91${mobile}`;
-      const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
-      setConfirmationResult(confirmation);
+      if (!isFirebaseConfigured) {
+        await api.post('/auth/send-otp', {
+          phone: phoneNumber,
+          purpose: 'login'
+        });
+      } else {
+        const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+        setConfirmationResult(confirmation);
+      }
       setOtpSuccess(false);
     } catch (err) {
-      console.error('[Firebase OTP] Resend error:', err);
+      console.error('[OTP] Resend error:', err);
       setOtpError('Failed to resend OTP. Please try again.');
     }
     setTimeout(() => otpRefs.current[0]?.focus(), 50);
@@ -195,7 +209,58 @@ const Login = () => {
       localStorage.setItem('raktsetu_donor_authenticated', 'true');
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
       syncAuth();
-      navigate('/dashboard');
+
+      // Check for live coordinates on login
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            localStorage.setItem('raktsetu_location', JSON.stringify({ latitude, longitude }));
+            try {
+              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+              const data = await res.json();
+              if (data) {
+                const detectedCity = data.address?.city || data.address?.town || data.address?.village || '';
+                const detectedDistrict = data.address?.county || data.address?.district || detectedCity || '';
+                const detectedPin = data.address?.postcode || '';
+                const addressStr = data.display_name || '';
+
+                // Save live location to backend
+                await api.post('/donor/location', {
+                  lat: latitude,
+                  lng: longitude,
+                  city: detectedCity || user.city || 'Pune',
+                  pincode: detectedPin.slice(0, 6) || user.pincode || '411001',
+                  address: addressStr || null,
+                  district: detectedDistrict || null
+                });
+
+                // Update local profile representation
+                const updatedProfile = {
+                  ...user,
+                  city: detectedCity || user.city,
+                  pincode: detectedPin.slice(0, 6) || user.pincode,
+                  address: addressStr || user.address,
+                  district: detectedDistrict || user.district,
+                  lat: latitude,
+                  lng: longitude
+                };
+                localStorage.setItem('raktsetu_donor_profile', JSON.stringify(updatedProfile));
+              }
+            } catch (err) {
+              console.error('Failed to sync location on login:', err);
+            } finally {
+              navigate('/dashboard');
+            }
+          },
+          (err) => {
+            console.warn('Location permission denied on login. Keeping previous profile coordinates.');
+            navigate('/dashboard');
+          }
+        );
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -221,7 +286,7 @@ const Login = () => {
     }
   };
 
-  // ── VERIFY OTP (FIREBASE) ─────────────────────────────────────────
+  // ── VERIFY OTP ────────────────────────────────────────────────────
   const handleVerifyOTP = async () => {
     const code = otp.join('');
     if (code.length < 6) { setOtpError('Please enter all 6 digits.'); return; }
@@ -230,24 +295,38 @@ const Login = () => {
     setOtpError('');
 
     try {
-      if (!confirmationResult) {
-        throw new Error('No OTP transaction active. Please request code again.');
+      let response;
+      if (!isFirebaseConfigured) {
+        // Fallback: Verify OTP and Login directly on the backend
+        response = await api.post('/auth/login', {
+          phone: `+91${mobile}`,
+          otp: code
+        });
+      } else {
+        if (!confirmationResult) {
+          throw new Error('No OTP transaction active. Please request code again.');
+        }
+        await confirmationResult.confirm(code);
+        
+        // Fetch Firebase ID token
+        const idToken = await auth.currentUser.getIdToken(true);
+        
+        // Submit ID token to backend Firebase login
+        response = await api.post('/auth/donor/firebase-login', {
+          idToken
+        });
       }
-      await confirmationResult.confirm(code);
-      setOtpSuccess(true);
 
-      const response = await api.post('/auth/firebase-login', {
-        mobile: mobile
-      });
+      setOtpSuccess(true);
       const { token, refreshToken, refresh_token, user } = response.data;
       setButtonState('default');
       setTimeout(() => {
         handleRoleRedirect(user, token, refreshToken, refresh_token);
       }, 800);
     } catch (err) {
-      console.error('[Firebase OTP] Verify error:', err);
+      console.error('[OTP] Verify error:', err);
       setButtonState('default');
-      const msg = err.response?.data?.message || 'Invalid verification code. Please try again.';
+      const msg = err.response?.data?.message || err.message || 'Invalid verification code. Please try again.';
       setOtpError(msg);
     }
   };

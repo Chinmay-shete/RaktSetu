@@ -11,6 +11,13 @@ const DistrictLogin = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Password reset state variables
+  const [mustChange, setMustChange] = useState(false);
+  const [tempPassword, setTempPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changeSuccess, setChangeSuccess] = useState(false);
+
   useEffect(() => {
     let timeout;
     if (error) timeout = setTimeout(() => setError(''), 4000);
@@ -34,12 +41,21 @@ const DistrictLogin = () => {
         password: formData.password
       });
 
-      const { token, user } = response.data;
+      const { token, user, must_change_password } = response.data;
       if (user.role !== 'district') {
         throw new Error('Access denied: You are not authorized as a district officer.');
       }
 
       localStorage.setItem('raktsetu_auth_token', token);
+
+      if (must_change_password) {
+        localStorage.setItem('raktsetu_district_state', JSON.stringify({ status: 'pending_password_reset', user }));
+        setTempPassword(formData.password);
+        setMustChange(true);
+        setIsLoading(false);
+        return;
+      }
+
       localStorage.setItem('raktsetu_district_state', JSON.stringify({ status: 'logged_in', user }));
 
       loginOfficer({
@@ -51,6 +67,53 @@ const DistrictLogin = () => {
       navigate('/district/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Invalid email or password.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChangeSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword.length < 8) {
+      setError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await api.post('/auth/change-password', {
+        currentPassword: tempPassword,
+        newPassword: newPassword
+      });
+
+      const response = await api.post('/auth/login', {
+        email: formData.email.toLowerCase().trim(),
+        password: newPassword
+      });
+
+      const { token, user } = response.data;
+      localStorage.setItem('raktsetu_auth_token', token);
+      localStorage.setItem('raktsetu_district_state', JSON.stringify({ status: 'logged_in', user }));
+
+      setChangeSuccess(true);
+
+      setTimeout(() => {
+        loginOfficer({
+          name: user.full_name,
+          designation: 'District Health Officer',
+          district: 'Pune',
+          email: user.email,
+        });
+        navigate('/district/dashboard');
+      }, 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to change password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -88,58 +151,131 @@ const DistrictLogin = () => {
           </div>
 
           <div className="space-y-6">
-            <div>
-              <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
-                Sign in as District Officer
-              </h1>
-              <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
-                Government access for district-wide blood supply oversight and shortage management.
-              </p>
-            </div>
+            {!mustChange ? (
+              <>
+                <div>
+                  <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
+                    Sign in as District Officer
+                  </h1>
+                  <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
+                    Government access for district-wide blood supply oversight and shortage management.
+                  </p>
+                </div>
 
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
-                <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
-                <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
-              </div>
+                {/* Error */}
+                {error && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
+                    <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                    <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="mb-4">
+                    <label htmlFor="government-email-address-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Government Email Address</label>
+                    <input id="government-email-address-1"
+                      type="email"
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      className="input-field"
+                      placeholder="officer@district.gov.in"
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
+                    <input id="password-2"
+                      type="password"
+                      value={formData.password}
+                      onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      className="input-field"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full"
+                    style={{ minHeight: 52 }}
+                  >
+                    {isLoading ? 'Verifying Credentials…' : 'Authorize Login'}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h1 className="font-serif mb-2 text-[32px] font-[700] text-[#1A0A0A] leading-[1.1]" style={{ fontFeatureSettings: '"liga" 0' }}>
+                    Reset Password
+                  </h1>
+                  <p className="text-[15px] text-[#9A9A9A] mb-8 leading-[1.6]">
+                    Your account has been commissioned. Please establish a new secure password to proceed.
+                  </p>
+                </div>
+
+                {changeSuccess ? (
+                  <div className="p-5 bg-green-50 border border-green-200 text-[#22A06B] rounded-2xl flex flex-col items-center gap-3 text-center">
+                    <span className="material-symbols-outlined text-[48px] animate-bounce">check_circle</span>
+                    <h4 className="font-bold text-base text-[#1A1A1A]">Password Changed successfully!</h4>
+                    <p className="text-xs text-[#5A5A5A]">Logging you into RaktSetu District Dashboard...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Error */}
+                    {error && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(190,31,46,0.05)] border border-[rgba(190,31,46,0.15)] mb-4">
+                        <span className="material-symbols-outlined text-[#BE1F2E] text-[18px]">error</span>
+                        <p className="text-[13px] font-[600] text-[#BE1F2E]">{error}</p>
+                      </div>
+                    )}
+
+                    <form onSubmit={handlePasswordChangeSubmit} className="space-y-5">
+                      <div className="mb-4">
+                        <label htmlFor="new-password-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">
+                          New Secure Password *
+                        </label>
+                        <input id="new-password-1"
+                          type="password"
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          className="input-field"
+                          placeholder="••••••••"
+                          required
+                          minLength={8}
+                        />
+                      </div>
+
+                      <div className="mb-6">
+                        <label htmlFor="confirm-password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">
+                          Confirm New Password *
+                        </label>
+                        <input id="confirm-password-2"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={e => setConfirmPassword(e.target.value)}
+                          className="input-field"
+                          placeholder="••••••••"
+                          required
+                          minLength={8}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="btn-primary w-full cursor-pointer"
+                        style={{ minHeight: 52 }}
+                      >
+                        {isLoading ? 'Updating Account...' : 'Set Password & Access Portal'}
+                      </button>
+                    </form>
+                  </>
+                )}
+              </>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="mb-4">
-                <label htmlFor="government-email-address-1" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Government Email Address</label>
-                <input id="government-email-address-1"
-                  type="email"
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className="input-field"
-                  placeholder="officer@district.gov.in"
-                  required
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="password-2" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Password</label>
-                <input id="password-2"
-                  type="password"
-                  value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  className="input-field"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-primary w-full"
-                style={{ minHeight: 52 }}
-              >
-                {isLoading ? 'Verifying Credentials…' : 'Authorize Login'}
-              </button>
-            </form>
-
           </div>
 
           {/* Register link */}

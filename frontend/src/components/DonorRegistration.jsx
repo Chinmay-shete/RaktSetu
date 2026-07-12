@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createRecaptchaVerifier, sendFirebaseOtp } from '../services/firebaseConfig';
+import { createRecaptchaVerifier, sendFirebaseOtp, isFirebaseConfigured, auth } from '../services/firebaseConfig';
 import api from '../services/api';
 
 const DonorRegistration = () => {
@@ -95,17 +95,24 @@ const DonorRegistration = () => {
     setOtpError('');
 
     if (!isEmail) {
-      // ── FIREBASE PHONE OTP ──
+      // ── PHONE OTP ──
       try {
         const phoneNumber = inputVal.startsWith('+') ? inputVal : `+91${inputVal.replace(/\D/g, '')}`;
 
-        // Create reCAPTCHA verifier (invisible)
-        if (!recaptchaVerifierRef.current) {
-          recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+        if (!isFirebaseConfigured) {
+          // Fallback: Send local OTP using backend endpoint
+          await api.post('/auth/send-otp', {
+            phone: phoneNumber,
+            purpose: 'registration'
+          });
+        } else {
+          // Create reCAPTCHA verifier (invisible)
+          if (!recaptchaVerifierRef.current) {
+            recaptchaVerifierRef.current = createRecaptchaVerifier('recaptcha-container');
+          }
+          const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+          setConfirmationResult(confirmation);
         }
-
-        const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
-        setConfirmationResult(confirmation);
 
         setButtonState('sent');
         setTimeout(() => {
@@ -117,11 +124,11 @@ const DonorRegistration = () => {
           setButtonState('default');
         }, 700);
       } catch (err) {
-        console.error('[Firebase OTP] Send error:', err);
+        console.error('[OTP] Send error:', err);
         setButtonState('default');
         recaptchaVerifierRef.current = null;
 
-        let errorMsg = `Failed to send OTP. Please try again. [${err.code || 'UNKNOWN'}]: ${err.message || 'No message'}`;
+        let errorMsg = err.response?.data?.message || err.message || 'Failed to send OTP. Please try again.';
         if (err.code === 'auth/too-many-requests') {
           errorMsg = 'Too many attempts. Please wait a few minutes and try again.';
         } else if (err.code === 'auth/invalid-phone-number') {
@@ -166,11 +173,18 @@ const DonorRegistration = () => {
     if (!isEmail) {
       try {
         const phoneNumber = inputVal.startsWith('+') ? inputVal : `+91${inputVal.replace(/\D/g, '')}`;
-        const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
-        setConfirmationResult(confirmation);
+        if (!isFirebaseConfigured) {
+          await api.post('/auth/send-otp', {
+            phone: phoneNumber,
+            purpose: 'registration'
+          });
+        } else {
+          const confirmation = await sendFirebaseOtp(phoneNumber, recaptchaVerifierRef.current);
+          setConfirmationResult(confirmation);
+        }
         setOtpSuccess(false);
       } catch (err) {
-        console.error('[Firebase OTP] Resend error:', err);
+        console.error('[OTP] Resend error:', err);
         setOtpError('Failed to resend OTP. Please try again.');
       }
     } else {
@@ -199,26 +213,52 @@ const DonorRegistration = () => {
     setOtpError('');
 
     if (!isEmail) {
-      // Verify Firebase SMS code
       try {
-        if (!confirmationResult) {
-          throw new Error('No OTP transaction active. Please request code again.');
+        const phoneNumber = inputVal.startsWith('+') ? inputVal : `+91${inputVal.replace(/\D/g, '')}`;
+        if (!isFirebaseConfigured) {
+          // Verify Phone code via backend
+          const response = await api.post('/auth/verify-otp', {
+            phone: phoneNumber,
+            otp: code,
+            purpose: 'registration'
+          });
+          const token = response.data.verification_token || response.data.token;
+          setEmailVerificationToken(token);
+          setOtpSuccess(true);
+          setButtonState('default');
+          localStorage.setItem('raktsetu_otp_verified', 'true');
+          localStorage.setItem('raktsetu_register_mobile', inputVal);
+          setTimeout(() => {
+            setStep(3);
+          }, 1000);
+        } else {
+          // Verify Firebase SMS code
+          if (!confirmationResult) {
+            throw new Error('No OTP transaction active. Please request code again.');
+          }
+          await confirmationResult.confirm(code);
+          const idToken = await auth.currentUser.getIdToken(true);
+          const response = await api.post('/auth/donor/firebase-register', {
+            idToken
+          });
+          const { token, refreshToken, refresh_token, user } = response.data;
+          setOtpSuccess(true);
+          setButtonState('default');
+          localStorage.setItem('raktsetu_auth_token', token);
+          if (refreshToken || refresh_token) {
+            localStorage.setItem('raktsetu_refresh_token', refreshToken || refresh_token);
+          }
+          localStorage.setItem('raktsetu_donor_authenticated', 'true');
+          localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
+          setTimeout(() => {
+            navigate('/profile-setup');
+          }, 1000);
         }
-        await confirmationResult.confirm(code);
-        setOtpSuccess(true);
-        setButtonState('default');
-        
-        // Save mobile state and verification
-        localStorage.setItem('raktsetu_otp_verified', 'true');
-        localStorage.setItem('raktsetu_register_mobile', inputVal);
-        
-        setTimeout(() => {
-          setStep(3);
-        }, 1000);
       } catch (err) {
-        console.error('[Firebase OTP] Verify error:', err);
+        console.error('[Phone OTP] Verify error:', err);
         setButtonState('default');
-        setOtpError('Invalid OTP code. Please try again.');
+        const msg = err.response?.data?.message || err.message || 'Invalid or expired OTP. Please try again.';
+        setOtpError(msg);
       }
     } else {
       // Verify Email code via backend
@@ -307,13 +347,20 @@ const DonorRegistration = () => {
     setButtonState('sending');
 
     try {
-      // Send register details to backend
-      const response = await api.post('/auth/register', {
+      const payload = {
         role: 'donor',
-        email: inputVal.toLowerCase().trim(),
         password: password,
         verificationToken: emailVerificationToken
-      });
+      };
+
+      if (isEmail) {
+        payload.email = inputVal.toLowerCase().trim();
+      } else {
+        payload.phone = inputVal.startsWith('+') ? inputVal : `+91${inputVal.replace(/\D/g, '')}`;
+      }
+
+      // Send register details to backend
+      const response = await api.post('/auth/register', payload);
       
       const { token, refreshToken, refresh_token, user } = response.data;
       

@@ -15,6 +15,10 @@ const EditProfile = () => {
     gender: 'Male',
     city: '',
     pincode: '',
+    address: '',
+    district: '',
+    lat: 0,
+    lng: 0,
     bloodGroup: 'O+',
     weight: '',
     chronicIllness: false,
@@ -46,6 +50,10 @@ const EditProfile = () => {
           gender:        data.gender || 'Male',
           city:          data.city || '',
           pincode:       data.pincode || '',
+          address:       data.address || '',
+          district:      data.district || '',
+          lat:           data.lat || 0,
+          lng:           data.lng || 0,
           bloodGroup:    data.bloodGroup || 'O+',
           weight:        data.weight ? data.weight.toString() : '',
           chronicIllness: !!data.chronicIllness,
@@ -67,6 +75,9 @@ const EditProfile = () => {
             gender:        data.gender || 'Male',
             city:          data.city || '',
             pincode:       data.pincode || '',
+            address:       data.address || '',
+            lat:           data.lat || 0,
+            lng:           data.lng || 0,
             bloodGroup:    data.bloodGroup || 'O+',
             weight:        data.weight ? data.weight.toString() : '',
             chronicIllness: !!data.chronicIllness,
@@ -82,6 +93,51 @@ const EditProfile = () => {
     };
     fetchProfile();
   }, []);
+
+  const [gpsLoading, setGpsLoading] = useState(false);
+
+  const handleGetGps = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.');
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setProfile(prev => ({
+          ...prev,
+          lat: latitude,
+          lng: longitude
+        }));
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await res.json();
+          if (data) {
+            const detectedCity = data.address?.city || data.address?.town || data.address?.village || '';
+            const detectedDistrict = data.address?.county || data.address?.district || detectedCity || '';
+            setProfile(prev => ({
+              ...prev,
+              address: data.display_name || prev.address,
+              city: detectedCity || prev.city,
+              district: detectedDistrict || prev.district,
+              pincode: data.address?.postcode?.slice(0, 6) || prev.pincode
+            }));
+            toast.success('Live location coordinates & address loaded!');
+          }
+        } catch (err) {
+          console.error(err);
+          toast.warning('Live coordinates loaded, but failed to fetch address name.');
+        } finally {
+          setGpsLoading(false);
+        }
+      },
+      (error) => {
+        setGpsLoading(false);
+        toast.error('Failed to get location. Please allow browser location access.');
+      }
+    );
+  };
 
   /* ── Dirty detection ─────────────────────────────────────────────── */
   useEffect(() => {
@@ -171,13 +227,29 @@ const EditProfile = () => {
       const response = await api.put('/donor/profile', payload);
       const data = response.data;
 
+      // Sync geography details (coordinates, city, pincode, exact address) to backend
+      await api.post('/donor/location', {
+        lat: parseFloat(profile.lat || 0),
+        lng: parseFloat(profile.lng || 0),
+        city: profile.city || 'Mumbai',
+        pincode: profile.pincode || '400001',
+        address: profile.address || null,
+        district: profile.district || null
+      });
+
       const updated = {
         ...profile,
         fullName:      data.fullName || profile.fullName,
         age:           data.age?.toString() || profile.age,
         gender:        data.gender || profile.gender,
         weight:        data.weight ? data.weight.toString() : '',
-        chronicIllness: data.chronicIllness ?? profile.chronicIllness
+        chronicIllness: data.chronicIllness ?? profile.chronicIllness,
+        city:          profile.city,
+        pincode:       profile.pincode,
+        address:       profile.address,
+        district:      profile.district,
+        lat:           profile.lat,
+        lng:           profile.lng
       };
 
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify(updated));
@@ -317,27 +389,62 @@ const EditProfile = () => {
 
             {/* Geography */}
             <section className="bg-white border border-[rgba(26,18,16,0.09)] rounded-xl p-7 shadow-sm">
-              <div className="mb-5 pb-4 border-b border-[rgba(26,18,16,0.07)]">
-                <h3 className="text-[22px] font-[600] italic text-[#BE1F2E]">Geography</h3>
-                <p className="text-[13px] text-[#737373] mt-0.5 font-medium">Location details for proximity camp matching</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="city-4" className="text-[13px] font-[600] text-[#685c59]">City</label>
-                  <input id="city-4"
-                    name="city"
-                    value={profile.city}
-                    onChange={handleChange}
-                    className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
-                  />
+              <div className="mb-5 pb-4 border-b border-[rgba(26,18,16,0.07)] flex justify-between items-center">
+                <div>
+                  <h3 className="text-[22px] font-[600] italic text-[#BE1F2E]">Geography</h3>
+                  <p className="text-[13px] text-[#737373] mt-0.5 font-medium">Location details for proximity camp matching</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleGetGps}
+                  disabled={gpsLoading}
+                  className="px-4 py-2 text-[12px] font-[600] bg-[#1a1210] text-white hover:bg-[#BE1F2E] rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 active:scale-95 shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[16px] animate-none">{gpsLoading ? 'progress_activity' : 'my_location'}</span>
+                  {gpsLoading ? 'Getting GPS...' : 'Get Live GPS'}
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="city-4" className="text-[13px] font-[600] text-[#685c59]">City</label>
+                    <input id="city-4"
+                      name="city"
+                      value={profile.city}
+                      onChange={handleChange}
+                      className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="district-desktop" className="text-[13px] font-[600] text-[#685c59]">District</label>
+                    <input id="district-desktop"
+                      name="district"
+                      value={profile.district || ''}
+                      onChange={handleChange}
+                      className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="pincode-5" className="text-[13px] font-[600] text-[#685c59]">Pincode</label>
+                    <input id="pincode-5"
+                      name="pincode"
+                      value={profile.pincode}
+                      onChange={handleChange}
+                      className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
-                  <label htmlFor="pincode-5" className="text-[13px] font-[600] text-[#685c59]">Pincode</label>
-                  <input id="pincode-5"
-                    name="pincode"
-                    value={profile.pincode}
+                  <label htmlFor="address-desktop" className="text-[13px] font-[600] text-[#685c59]">Street Address / Landmark</label>
+                  <textarea id="address-desktop"
+                    name="address"
+                    value={profile.address}
                     onChange={handleChange}
-                    className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                    rows="2"
+                    placeholder="Capture live location or enter manually..."
+                    className="w-full border border-[#D8D0CA] rounded-xl px-4 py-3 text-[15px] bg-[#faf8f5] outline-none resize-none"
                   />
                 </div>
               </div>
@@ -507,7 +614,15 @@ const EditProfile = () => {
             <section className="space-y-6">
               <div className="flex items-end justify-between border-b border-[#e5bdbb] pb-2">
                 <h2 className="text-[32px] font-serif text-[#9e001f] italic leading-none">Geography</h2>
-                <span className="text-[12px] font-semibold text-[#737373] uppercase tracking-widest">Section 02</span>
+                <button
+                  type="button"
+                  onClick={handleGetGps}
+                  disabled={gpsLoading}
+                  className="px-3.5 py-1.5 text-[11px] font-[600] bg-[#9e001f] text-white hover:opacity-90 rounded-full transition-all disabled:opacity-50 flex items-center gap-1 active:scale-95 shadow-md shadow-[#9e001f]/10"
+                >
+                  <span className="material-symbols-outlined text-[14px] animate-none">{gpsLoading ? 'progress_activity' : 'my_location'}</span>
+                  {gpsLoading ? 'GPS...' : 'Live GPS'}
+                </button>
               </div>
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
@@ -517,6 +632,18 @@ const EditProfile = () => {
                     value={profile.city}
                     onChange={handleChange}
                     onFocus={() => setFocusedField('city')}
+                    onBlur={() => setFocusedField(null)}
+                    type="text"
+                    className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
+                  />
+                </div>
+                 <div className="flex flex-col gap-2">
+                  <label htmlFor="district-mobile-input" className={`text-[14px] font-medium transition-colors ${focusedField === 'district' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>District</label>
+                  <input id="district-mobile-input"
+                    name="district"
+                    value={profile.district || ''}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('district')}
                     onBlur={() => setFocusedField(null)}
                     type="text"
                     className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
@@ -532,6 +659,19 @@ const EditProfile = () => {
                     onBlur={() => setFocusedField(null)}
                     type="text"
                     className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f]"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="address-mobile" className={`text-[14px] font-medium transition-colors ${focusedField === 'address' ? 'text-[#9e001f]' : 'text-[#5c403f]'}`}>Street Address / Landmark</label>
+                  <textarea id="address-mobile"
+                    name="address"
+                    value={profile.address}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField('address')}
+                    onBlur={() => setFocusedField(null)}
+                    rows="2"
+                    placeholder="Capture live location or enter manually..."
+                    className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[16px] outline-none transition-all focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] resize-none"
                   />
                 </div>
               </div>

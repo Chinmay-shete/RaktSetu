@@ -74,6 +74,7 @@ export const PendingApprovals = () => {
                       <th className="py-3 px-4">License / Registration Number</th>
                       <th className="py-3 px-4">Area / Zone</th>
                       <th className="py-3 px-4">Contact Phone</th>
+                      <th className="py-3 px-4">Stage</th>
                       <th className="py-3 px-4">Requested</th>
                       <th className="py-3 pl-4 text-right">Actions</th>
                     </tr>
@@ -88,6 +89,17 @@ export const PendingApprovals = () => {
                           {hospital.city && hospital.state ? `${hospital.city}, ${hospital.state}` : hospital.area || 'N/A'}
                         </td>
                         <td className="py-4 px-4 font-mono">{hospital.contact}</td>
+                        <td className="py-4 px-4">
+                          {hospital.verificationStatus === 'pending' ? (
+                            <span className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-2 py-0.5 rounded-full font-semibold text-[10px] whitespace-nowrap">
+                              Awaiting District Review
+                            </span>
+                          ) : (
+                            <span className="bg-green-50 border border-green-200 text-green-700 px-2 py-0.5 rounded-full font-semibold text-[10px] whitespace-nowrap">
+                              District Approved (Ready)
+                            </span>
+                          )}
+                        </td>
                         <td className="py-4 px-4 text-[#9A9A9A]">Recent</td>
                         <td className="py-4 pl-4 text-right flex items-center justify-end gap-2">
                           <button type="button"

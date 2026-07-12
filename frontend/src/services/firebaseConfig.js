@@ -73,4 +73,6 @@ export async function sendFirebaseOtp(phoneNumber, recaptchaVerifier) {
   return signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
 }
 
+export const isFirebaseConfigured = !!auth;
+
 export { auth, RecaptchaVerifier };

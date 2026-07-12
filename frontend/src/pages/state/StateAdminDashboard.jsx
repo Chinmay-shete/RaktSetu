@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStateAdmin } from '../../context/StateAdminContext';
+import { INDIA_STATES_DISTRICTS } from '../../utils/indiaData';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   LineChart, Line,
@@ -42,9 +43,45 @@ function useCountUp(target, duration = 1200) {
 
 const BLOOD_GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
+const STATE_MAP_CONFIGS = {
+  "Maharashtra": { center: [19.7515, 75.7139], zoom: 6.5 },
+  "Delhi": { center: [28.6139, 77.2090], zoom: 10 },
+  "Goa": { center: [15.2993, 74.1240], zoom: 9.5 },
+  "Gujarat": { center: [22.2587, 71.1924], zoom: 7 },
+  "Karnataka": { center: [15.3173, 75.7139], zoom: 6.8 },
+  "Himachal Pradesh": { center: [31.1048, 77.1734], zoom: 7.8 },
+  "Andhra Pradesh": { center: [15.9129, 79.7400], zoom: 7 },
+  "Tamil Nadu": { center: [11.1271, 78.6569], zoom: 7 },
+  "Kerala": { center: [10.8505, 76.2711], zoom: 7.5 },
+  "Uttar Pradesh": { center: [26.8467, 80.9462], zoom: 6.5 },
+  "West Bengal": { center: [22.9868, 87.8550], zoom: 7 }
+};
+
 const StateAdminDashboard = () => {
   const navigate = useNavigate();
-  const { appState, isLoading, error, refetchData } = useStateAdmin();
+  const { appState, isLoading, error, refetchData, createDistrictOfficer } = useStateAdmin();
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({ email: '', fullName: '', districtName: '', designation: 'District Health Officer' });
+  const [createResult, setCreateResult] = useState(null);
+  const [createError, setCreateError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    setCreateError('');
+    setCreateResult(null);
+    setIsSubmitting(true);
+    try {
+      const res = await createDistrictOfficer(createForm);
+      setCreateResult(res);
+      setCreateForm({ email: '', fullName: '', districtName: '', designation: 'District Health Officer' });
+    } catch (err) {
+      setCreateError(err.response?.data?.message || 'Failed to commission District Officer. Try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     refetchData();
@@ -67,14 +104,18 @@ const StateAdminDashboard = () => {
   const watchCount = useCountUp(watchDistricts);
   const transferCount = useCountUp(appState.transfers?.length || 0);
 
-  // Dynamic Map Center Calculation based on district coordinates
+  // Resolve map center and zoom level based on active state name and district coordinates
   const stateDistricts = districts.filter(d => d.lat && d.lng);
+  const stateConfig = STATE_MAP_CONFIGS[stateName] || { center: [20.5937, 78.9629], zoom: 5 }; // Fallback to center of India
+
   const mapCenter = stateDistricts.length > 0
     ? [
         stateDistricts.reduce((sum, d) => sum + d.lat, 0) / stateDistricts.length,
         stateDistricts.reduce((sum, d) => sum + d.lng, 0) / stateDistricts.length
       ]
-    : [18.5204, 73.8567]; // fallback to Pune
+    : stateConfig.center;
+
+  const mapZoom = stateDistricts.length > 0 ? 6.5 : stateConfig.zoom;
 
   if (isLoading) {
     return <Loader message="Loading state health statistics..." />;
@@ -167,7 +208,7 @@ const StateAdminDashboard = () => {
             </div>
             
             <div className="h-[400px] w-full bg-[#fbf9f6] rounded-xl border border-[#EDE7E1] relative overflow-hidden z-10">
-              <MapContainer center={mapCenter} zoom={6.5} style={{ height: '100%', width: '100%' }}>
+              <MapContainer center={mapCenter} zoom={mapZoom} style={{ height: '100%', width: '100%' }}>
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -255,10 +296,24 @@ const StateAdminDashboard = () => {
                 <h3 className="text-[22px] font-[500] italic">District Health Status</h3>
                 <p className="text-[13px] text-[#737373] mt-0.5">Live status across all {districts.length} {stateName} districts.</p>
               </div>
-              <div className="flex items-center gap-2 text-[11px] font-[600] flex-wrap">
-                <span className="badge-danger text-[10px]">Critical</span>
-                <span className="badge-warning text-[10px]">Watch</span>
-                <span className="badge-success text-[10px]">Healthy</span>
+              <div className="flex items-center gap-4 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateError('');
+                    setCreateResult(null);
+                    setShowCreateModal(true);
+                  }}
+                  className="px-4 py-2 bg-[#9e001f] text-white rounded-full text-[12px] font-[600] hover:bg-[#BE1F2E] transition-all flex items-center gap-1.5 shadow-sm active:scale-95 duration-200 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  Add District Officer
+                </button>
+                <div className="flex items-center gap-2 text-[11px] font-[600] flex-wrap">
+                  <span className="badge-danger text-[10px]">Critical</span>
+                  <span className="badge-warning text-[10px]">Watch</span>
+                  <span className="badge-success text-[10px]">Healthy</span>
+                </div>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -424,6 +479,133 @@ const StateAdminDashboard = () => {
 
         </aside>
       </div>
+
+      {/* Create District Officer Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999] backdrop-blur-sm">
+          <div className="bg-white rounded-2xl border border-[#EDE7E1] max-w-lg w-full p-8 shadow-2xl space-y-6 relative overflow-hidden animate-page-enter">
+            <div className="flex justify-between items-center pb-4 border-b border-[rgba(26,18,16,0.09)]">
+              <h3 className="font-serif text-[24px] italic text-[#1A1210]">Register New District Officer</h3>
+              <button
+                type="button"
+                onClick={() => { setShowCreateModal(false); setCreateResult(null); setCreateError(''); }}
+                className="text-[#9A9A9A] hover:text-[#BE1F2E] transition-colors cursor-pointer border-none bg-transparent"
+                aria-label="Close modal"
+              >
+                <span className="material-symbols-outlined text-[24px]">close</span>
+              </button>
+            </div>
+
+            {createError && (
+              <div className="p-4 bg-red-50 border border-red-200 text-[#BE1F2E] text-xs font-semibold rounded-xl flex items-center gap-2">
+                <span className="material-symbols-outlined">error</span>
+                <span>{createError}</span>
+              </div>
+            )}
+
+            {createResult ? (
+              <div className="space-y-6">
+                <div className="p-4 bg-green-50 border border-green-200 text-[#22A06B] text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <span className="material-symbols-outlined">check_circle</span>
+                  <span>District Officer registered and commissioned successfully!</span>
+                </div>
+
+                <div className="bg-[#FAF8F5] border border-[#EDE7E1] rounded-xl p-5 font-sans space-y-4 text-xs text-[#5A5A5A]">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#9A9A9A] tracking-wider block">Officer Name</span>
+                    <span className="text-sm font-semibold text-[#1A1A1A]">{createResult.user?.fullName}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#9A9A9A] tracking-wider block">Authorized Email</span>
+                    <span className="text-sm font-semibold text-[#1A1A1A]">{createResult.user?.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-[#9A9A9A] tracking-wider block">District Jurisdiction</span>
+                    <span className="text-sm font-semibold text-[#1A1A1A]">{createResult.user?.districtName}</span>
+                  </div>
+                  <div className="p-4 bg-[#fff6f5] border border-[#ffdad8] rounded-lg">
+                    <span className="text-[10px] uppercase font-bold text-[#BE1F2E] tracking-wider block mb-1">Temporary Login Password</span>
+                    <span className="font-mono text-lg font-bold text-[#BE1F2E] tracking-wider">{createResult.tempPassword}</span>
+                    <p className="text-[11px] text-[#737373] mt-2 leading-relaxed font-sans">
+                      Please copy this password and share it with the officer. They will be required to change it on their first login.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateModal(false); setCreateResult(null); }}
+                  className="btn-state w-full py-3"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs text-[#5A5A5A]">
+                <div className="mb-2">
+                  <label htmlFor="create-officer-name" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Full Name *</label>
+                  <input id="create-officer-name"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="e.g. Dr. Rajesh Kulkarni"
+                    value={createForm.fullName}
+                    onChange={(e) => setCreateForm(p => ({ ...p, fullName: e.target.value }))}
+                  />
+                </div>
+
+                <div className="mb-2">
+                  <label htmlFor="create-officer-email" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Email Address *</label>
+                  <input id="create-officer-email"
+                    type="email"
+                    required
+                    className="input-field"
+                    placeholder="e.g. rajesh.kulkarni@health.gov.in"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm(p => ({ ...p, email: e.target.value }))}
+                  />
+                </div>
+
+                <div className="mb-2">
+                  <label htmlFor="create-officer-district" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">District Jurisdiction *</label>
+                  <div className="relative">
+                    <select id="create-officer-district"
+                      required
+                      className="input-field custom-select"
+                      value={createForm.districtName}
+                      onChange={(e) => setCreateForm(p => ({ ...p, districtName: e.target.value }))}
+                    >
+                      <option value="">— Select District —</option>
+                      {(INDIA_STATES_DISTRICTS[stateName] || []).sort().map(dist => (
+                        <option key={dist} value={dist}>{dist}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mb-2">
+                  <label htmlFor="create-officer-designation" className="text-[11px] font-[600] uppercase tracking-widest text-[#9A9A9A] ml-1 block mb-2">Designation</label>
+                  <input id="create-officer-designation"
+                    type="text"
+                    className="input-field"
+                    placeholder="e.g. District Health Officer"
+                    value={createForm.designation}
+                    onChange={(e) => setCreateForm(p => ({ ...p, designation: e.target.value }))}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-state w-full py-3 mt-4 animate-pulse"
+                >
+                  {isSubmitting ? 'Registering...' : 'Commission District Officer'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

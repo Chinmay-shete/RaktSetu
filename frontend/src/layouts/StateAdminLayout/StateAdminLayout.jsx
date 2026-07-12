@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChangePasswordModal } from '../../components/ui/ChangePasswordModal';
 
 const StateAdminLayout = ({ children }) => {
   const { appState, logoutStateAdmin, syncState } = useStateAdmin();
@@ -20,6 +21,8 @@ const StateAdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   React.useEffect(() => {
     syncState();
@@ -39,8 +42,9 @@ const StateAdminLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const officialName = appState.officialDetails?.name || 'Dr. Anita Deshmukh';
-  const stateName = appState.officialDetails?.state || 'Maharashtra';
+  const officialName = appState.user?.name || appState.officialDetails?.name || 'Dr. Anita Deshmukh';
+  const stateName = appState.user?.state || appState.officialDetails?.state || 'Maharashtra';
+  const designationName = appState.user?.designation || appState.officialDetails?.designation || 'Principal Secretary, Health';
 
   const activeAlerts = appState.policyAlerts?.filter(a => a.status === 'Active' && a.severity === 'Critical') || [];
 
@@ -103,24 +107,65 @@ const StateAdminLayout = ({ children }) => {
             </AnimatePresence>
           </div>
 
-          {/* User Profile (matching donor dashboard style) */}
-          <div 
-            className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center shrink-0 shadow-sm"
-            style={{ borderColor: 'rgba(200,16,46,0.20)', background: '#eae8e5' }}
-          >
-            <span className="text-[13px] font-bold" style={{ color: '#C8102E' }}>
-              {officialName.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          {/* User Profile dropdown */}
+          <div className="relative flex items-center">
+            <button
+              type="button"
+              onClick={() => setShowProfileMenu(prev => !prev)}
+              className="w-8 h-8 rounded-full overflow-hidden border flex items-center justify-center shrink-0 shadow-sm cursor-pointer hover:border-[#C8102E] transition-colors"
+              style={{ borderColor: 'rgba(200,16,46,0.20)', background: '#eae8e5' }}
+            >
+              <span className="text-[13px] font-bold text-[#C8102E]">
+                {officialName.charAt(0).toUpperCase()}
+              </span>
+            </button>
 
-          {/* Logout button */}
-          <button type="button" 
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
-          >
-            <LogOut size={16} />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+            <AnimatePresence>
+              {showProfileMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40 bg-transparent" 
+                    onClick={() => setShowProfileMenu(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-56 bg-white border border-[#EDE7E1] rounded-2xl shadow-xl p-2 z-50 text-xs text-[#5A5A5A]"
+                    style={{ top: '100%' }}
+                  >
+                    <div className="px-3 py-2 border-b border-[rgba(26,18,16,0.06)] mb-1">
+                      <div className="font-bold text-[#1A1A1A]">{officialName}</div>
+                      <div className="text-[10px] text-[#9A9A9A]">{designationName}</div>
+                      <div className="text-[10px] text-[#9A9A9A]">{stateName} Jurisdiction</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowChangePasswordModal(true);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-[#FAF8F5] hover:text-[#C8102E] transition-all flex items-center gap-2 cursor-pointer font-semibold"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">key</span>
+                      Change Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        handleLogout();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-[#FAF8F5] hover:text-[#C8102E] transition-all flex items-center gap-2 cursor-pointer font-semibold"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">logout</span>
+                      Logout
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </nav>
 
@@ -257,6 +302,11 @@ const StateAdminLayout = ({ children }) => {
           );
         })}
       </div>
+
+      <ChangePasswordModal 
+        isOpen={showChangePasswordModal} 
+        onClose={() => setShowChangePasswordModal(false)} 
+      />
     </div>
   );
 };

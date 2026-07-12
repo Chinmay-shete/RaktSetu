@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import DonorNavbar from './layout/DonorNavbar';
 import DonorFooter from './layout/DonorFooter';
 import { useToast } from '../hooks/useToast';
+import api from '../services/api';
 
 // Leaflet marker icon configurations
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -96,6 +97,68 @@ const STATE_COORDS = {
   "Ladakh": [34.1526, 77.5771]
 };
 
+const DISTRICT_COORDS = {
+  // Maharashtra
+  "Pune": [18.5204, 73.8567],
+  "Mumbai": [19.0760, 72.8777],
+  "Mumbai City": [19.0760, 72.8777],
+  "Mumbai Suburban": [19.0760, 72.8777],
+  "Satara": [17.6805, 73.9918],
+  "Nashik": [19.9975, 73.7898],
+  "Nagpur": [21.1458, 79.0882],
+  "Thane": [19.2183, 72.9781],
+  "Aurangabad": [19.8762, 75.3433],
+  "Jalgaon": [21.0077, 75.5626],
+  "Kolhapur": [16.7050, 74.2433],
+  "Solapur": [17.6599, 75.9064],
+  "Amravati": [20.9374, 77.7796],
+  "Nanded": [19.1383, 77.3210],
+  "Sangli": [16.8524, 74.5815],
+  "Latur": [18.4088, 76.5604],
+  "Ahmednagar": [19.0948, 74.7480],
+  "Akola": [20.7002, 77.0082],
+  "Jalna": [19.8410, 75.8864],
+  
+  // Gujarat
+  "Ahmedabad": [23.0225, 72.5714],
+  "Surat": [21.1702, 72.8311],
+  "Vadodara": [22.3072, 73.1812],
+  "Rajkot": [22.3039, 70.8022],
+  
+  // Karnataka
+  "Bengaluru": [12.9716, 77.5946],
+  "Bengaluru Urban": [12.9716, 77.5946],
+  "Mysuru": [12.2958, 76.6394],
+  "Belagavi": [15.8497, 74.4977],
+  "Hubli": [15.3647, 75.1240],
+  "Dharwad": [15.4589, 75.0078],
+  
+  // Delhi
+  "New Delhi": [28.6139, 77.2090],
+  "Central Delhi": [28.6448, 77.2167],
+  "South Delhi": [28.4817, 77.1873],
+};
+
+const getDistrictCoords = (district, state) => {
+  if (!district) return STATE_COORDS[state] || [19.7515, 75.7139];
+  
+  // 1. Direct match
+  if (DISTRICT_COORDS[district]) return DISTRICT_COORDS[district];
+  
+  // 2. Substring match (e.g. "Punawale" contains "Pune")
+  const normalizedDistrict = district.toLowerCase().trim();
+  const keys = Object.keys(DISTRICT_COORDS);
+  for (const key of keys) {
+    const normalizedKey = key.toLowerCase();
+    if (normalizedDistrict.includes(normalizedKey) || normalizedKey.includes(normalizedDistrict)) {
+      return DISTRICT_COORDS[key];
+    }
+  }
+  
+  // 3. Fallback to State coords
+  return STATE_COORDS[state] || [19.7515, 75.7139];
+};
+
 const getDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // km
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -112,13 +175,16 @@ const FindCamps = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const [selectedState, setSelectedState] = useState('Maharashtra');
-  const [selectedDistrict, setSelectedDistrict] = useState('Kolhapur');
-  const [activeDistrict, setActiveDistrict] = useState('Kolhapur');
-  const [activeState, setActiveState] = useState('Maharashtra');
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [activeDistrict, setActiveDistrict] = useState('');
+  const [activeState, setActiveState] = useState('');
   const [campDate, setCampDate] = useState('');
   const [gpsLoading, setGpsLoading] = useState(false);
   const [userCoords, setUserCoords] = useState(null);
+  const [dbCamps, setDbCamps] = useState([]);
+  const [dbHospitals, setDbHospitals] = useState([]);
+  const [apiLoading, setApiLoading] = useState(false);
 
   // Mobile navigation tabs: 'requests' | 'map'
   const [mobileTab, setMobileTab] = useState('requests');
@@ -148,28 +214,29 @@ const FindCamps = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Load user profile & auto-detect location
+  // Load user profile avatar/name & get GPS coords for proximity sorting only
   useEffect(() => {
-    const stored = localStorage.getItem('raktsetu_donor_profile');
-    if (!stored) {
-      navigate('/');
-      return;
-    }
-    const data = JSON.parse(stored);
-    if (data.fullName) setInitialLetter(data.fullName.charAt(0).toUpperCase());
-    if (data.photoUrl) setProfilePhoto(data.photoUrl);
-
-    if (data.city) {
-      Object.keys(INDIA_STATES_DISTRICTS).forEach(st => {
-        if (INDIA_STATES_DISTRICTS[st].includes(data.city)) {
-          setSelectedState(st);
-          setSelectedDistrict(data.city);
-          setActiveState(st);
-          setActiveDistrict(data.city);
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/donor/profile');
+        const data = response.data;
+        // Only load display info — location dropdowns are NEVER auto-filled
+        if (data.fullName) setInitialLetter(data.fullName.charAt(0).toUpperCase());
+        if (data.photoUrl) setProfilePhoto(data.photoUrl);
+      } catch (err) {
+        console.error('Failed to fetch profile in FindCamps:', err);
+        const stored = localStorage.getItem('raktsetu_donor_profile');
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.fullName) setInitialLetter(data.fullName.charAt(0).toUpperCase());
+          if (data.photoUrl) setProfilePhoto(data.photoUrl);
         }
-      });
-    }
+      }
+    };
 
+    fetchProfile();
+
+    // GPS is used ONLY for proximity distance sorting — never auto-selects state/district
     if (navigator.geolocation) {
       setGpsLoading(true);
       navigator.geolocation.getCurrentPosition(
@@ -181,6 +248,7 @@ const FindCamps = () => {
             toast.success("Location detected. Proximity sorting active!");
             sessionStorage.setItem('raktsetu_location_toast_shown', 'true');
           }
+          // No auto-select — user always chooses state & district manually
         },
         () => {
           setGpsLoading(false);
@@ -189,70 +257,88 @@ const FindCamps = () => {
     }
   }, [navigate]);
 
-  // Generate 3 camps dynamically based on active state and district
-  const getCamps = () => {
-    const coords = STATE_COORDS[activeState] || [19.7515, 75.7139];
-    const baseLat = coords[0];
-    const baseLng = coords[1];
+  // Fetch real camps and hospitals in the district from the database
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      setApiLoading(true);
+      try {
+        const [campsRes, hospitalsRes] = await Promise.all([
+          api.get('/landing/camps', { params: { state: activeState, district: activeDistrict } }),
+          api.get('/landing/hospitals', { params: { state: activeState, district: activeDistrict } })
+        ]);
+        
+        if (!isMounted) return;
+        
+        setDbCamps(campsRes.data || []);
+        setDbHospitals(hospitalsRes.data || []);
+      } catch (err) {
+        console.error('Error fetching real camps/hospitals:', err);
+      } finally {
+        if (isMounted) setApiLoading(false);
+      }
+    };
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeState, activeDistrict]);
 
-    const list = [
-      {
-        id: 1,
-        name: `${activeDistrict} District Red Cross Camp`,
-        type: 'High Need',
+  // Combine real camps and hospitals with exact GPS distance calculation
+  const getCombinedItems = () => {
+    const items = [
+      ...dbCamps.map(c => ({
+        id: `camp-${c.id}`,
+        name: c.name,
+        type: 'Camp (Upcoming)',
         typeColor: '#ffdad8',
         typeTextColor: '#92001c',
-        location: `Civil Lines Area, ${activeDistrict}`,
-        lat: baseLat + 0.008,
-        lng: baseLng + 0.012,
-        date: 'Tomorrow, 9 AM - 5 PM'
-      },
-      {
-        id: 2,
-        name: `${activeDistrict} Community Blood Drive`,
-        type: 'Standard',
-        typeColor: '#eae8e5',
-        typeTextColor: '#685c59',
-        location: `Central Park Ground, ${activeDistrict}`,
-        lat: baseLat - 0.012,
-        lng: baseLng - 0.005,
-        date: 'Oct 24, 10 AM - 4 PM'
-      },
-      {
-        id: 3,
-        name: `Apex Hospital Donor Center`,
-        type: 'Standard',
-        typeColor: '#eae8e5',
-        typeTextColor: '#685c59',
-        location: `Sector-3 bypass, ${activeDistrict}`,
-        lat: baseLat + 0.004,
-        lng: baseLng - 0.015,
-        date: 'Oct 26, 8 AM - 8 PM'
-      }
+        location: c.address,
+        lat: parseFloat(c.lat),
+        lng: parseFloat(c.lng),
+        date: new Date(c.camp_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` (${c.organizer || 'Upcoming'})`,
+        isCamp: true,
+        original: c
+      })),
+      ...dbHospitals.map(h => ({
+        id: `hosp-${h.id}`,
+        name: h.name,
+        type: `Hospital (${h.type})`,
+        typeColor: '#e0f2fe',
+        typeTextColor: '#0369a1',
+        location: h.address,
+        lat: parseFloat(h.lat),
+        lng: parseFloat(h.lng),
+        date: `Contact: ${h.contact || 'N/A'}`,
+        isHospital: true,
+        original: h
+      }))
     ];
 
+    // Filter out items that have invalid coordinates
+    const validItems = items.filter(item => !isNaN(item.lat) && !isNaN(item.lng));
+
     if (userCoords) {
-      return list.map(c => {
-        const dist = getDistance(userCoords.lat, userCoords.lng, c.lat, c.lng);
+      return validItems.map(item => {
+        const dist = getDistance(userCoords.lat, userCoords.lng, item.lat, item.lng);
         return {
-          ...c,
+          ...item,
           distance: dist,
           distanceStr: `${dist.toFixed(1)} km away`
         };
       }).sort((a, b) => a.distance - b.distance);
     }
 
-    return list.map((c, idx) => ({
-      ...c,
-      distanceStr: `${(idx + 1.2).toFixed(1)} km away`
+    return validItems.map((item, idx) => ({
+      ...item,
+      distanceStr: 'Location unknown'
     }));
   };
 
-  const activeCamps = getCamps();
+  const activeItems = getCombinedItems();
 
-  // Initialize Map
+  // 1. Initialize Map Canvas once on mount or tab/layout shifts
   useEffect(() => {
-    // If the map container ref is not mounted in the DOM, clean up and exit
     if (!mapContainerRef.current) {
       if (mapInstance.current) {
         mapInstance.current.remove();
@@ -261,7 +347,7 @@ const FindCamps = () => {
       return;
     }
 
-    const baseCoords = STATE_COORDS[activeState] || [19.7515, 75.7139];
+    const baseCoords = getDistrictCoords(activeDistrict, activeState);
 
     // Safely remove any existing map instance to avoid container reuse errors
     if (mapInstance.current) {
@@ -269,21 +355,20 @@ const FindCamps = () => {
       mapInstance.current = null;
     }
 
-    // Initialize Map
-    mapInstance.current = L.map(mapContainerRef.current).setView(baseCoords, 13);
+    // Reset container Leaflet state to prevent container reuse crashes
+    if (mapContainerRef.current) {
+      mapContainerRef.current._leaflet_id = null;
+    }
+
+    // Initialize Map Canvas
+    const hasLocation = activeState && activeDistrict;
+    const initialZoom = hasLocation ? 13 : 6;
+    mapInstance.current = L.map(mapContainerRef.current).setView(baseCoords, initialZoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mapInstance.current);
     markersGroup.current = L.layerGroup().addTo(mapInstance.current);
 
-    // Populate markers
-    activeCamps.forEach(camp => {
-      L.marker([camp.lat, camp.lng])
-        .bindPopup(`<strong>${camp.name}</strong><br/>${camp.location}`)
-        .addTo(markersGroup.current);
-    });
-
-    // Invalidate size after layout completes
     const timer = setTimeout(() => {
       if (mapInstance.current) {
         mapInstance.current.invalidateSize();
@@ -297,9 +382,55 @@ const FindCamps = () => {
         mapInstance.current = null;
       }
     };
-  }, [activeState, activeDistrict, mobileTab, isMobile]); // Re-run when mobileTab switches to render correctly!
+  }, [mobileTab, isMobile]);
+
+  // 2. Reactively update markers and map focus when district or DB items load/change
+  useEffect(() => {
+    if (!mapInstance.current || !markersGroup.current) return;
+
+    // Clear old markers
+    markersGroup.current.clearLayers();
+
+    const baseCoords = getDistrictCoords(activeDistrict, activeState);
+    const hasLocation = activeState && activeDistrict;
+    const initialZoom = hasLocation ? 13 : 6;
+    mapInstance.current.setView(baseCoords, initialZoom);
+
+    console.log('[FindCamps MARKERS UPDATE]', {
+      activeDistrict,
+      activeState,
+      baseCoords,
+      itemsCount: activeItems.length
+    });
+
+    // Populate markers
+    activeItems.forEach(item => {
+      const popupContent = `
+        <strong>${item.isCamp ? '🔴 Camp' : '🏥 Hospital'}: ${item.name}</strong><br/>
+        ${item.location}<br/>
+        <span style="color: #BE1F2E; font-weight: bold;">${item.distanceStr}</span>
+      `;
+      L.marker([item.lat, item.lng])
+        .bindPopup(popupContent)
+        .addTo(markersGroup.current);
+    });
+
+    // Automatically fit the map view to display all markers in the district
+    if (activeItems.length > 0) {
+      try {
+        const bounds = L.latLngBounds(activeItems.map(item => [item.lat, item.lng]));
+        mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+      } catch (err) {
+        console.error('Error fitting map bounds:', err);
+      }
+    }
+  }, [activeState, activeDistrict, mobileTab, isMobile, dbCamps, dbHospitals]); // Re-run when layout switches or items load!
 
   const handleSearch = () => {
+    if (!selectedState || !selectedDistrict) {
+      toast.error('Please select both a state and a district to search.');
+      return;
+    }
     setActiveState(selectedState);
     setActiveDistrict(selectedDistrict);
   };
@@ -348,14 +479,14 @@ const FindCamps = () => {
               <div className="w-full md:w-1/4">
                 <label htmlFor="select-state-1" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Select State</label>
                 <select id="select-state-1"
-                  className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
+                  className="w-full h-[48px] border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
                   value={selectedState}
                   onChange={(e) => {
                     setSelectedState(e.target.value);
-                    const firstDist = INDIA_STATES_DISTRICTS[e.target.value][0];
-                    setSelectedDistrict(firstDist);
+                    setSelectedDistrict('');
                   }}
                 >
+                  <option value="">— Select State —</option>
                   {Object.keys(INDIA_STATES_DISTRICTS).map(st => (
                     <option key={st} value={st}>{st}</option>
                   ))}
@@ -365,10 +496,14 @@ const FindCamps = () => {
               <div className="w-full md:w-1/4">
                 <label htmlFor="select-district-2" className="block text-[11px] font-[600] uppercase tracking-widest text-[#685c59] mb-2">Select District</label>
                 <select id="select-district-2"
-                  className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
+                  className={`w-full h-[48px] border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 text-[14px] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer ${
+                    !selectedState ? 'opacity-50 cursor-not-allowed text-[#9A9A9A]' : 'text-[#1a1210]'
+                  }`}
                   value={selectedDistrict}
+                  disabled={!selectedState}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
                 >
+                  <option value="">— Select District —</option>
                   {(INDIA_STATES_DISTRICTS[selectedState] || []).map(dist => (
                     <option key={dist} value={dist}>{dist}</option>
                   ))}
@@ -382,14 +517,14 @@ const FindCamps = () => {
                   min={todayStr}
                   value={campDate}
                   onChange={(e) => setCampDate(e.target.value)}
-                  className="w-full border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 py-3 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
+                  className="w-full h-[48px] border border-[#D8D0CA] bg-[#faf8f5] rounded-xl px-4 text-[14px] text-[#1a1210] font-[500] outline-none focus:border-[#BE1F2E] cursor-pointer"
                 />
               </div>
 
               <div className="w-full md:w-1/4">
                 <button type="button"
                   onClick={handleSearch}
-                  className="w-full bg-[#1a1210] text-white px-6 py-3.5 rounded-xl text-[14px] font-[600] hover:bg-[#BE1F2E] transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-[48px] bg-[#1a1210] text-white px-6 rounded-xl text-[14px] font-[600] hover:bg-[#BE1F2E] transition-colors flex items-center justify-center gap-2 active:scale-95 duration-200"
                 >
                   <span className="material-symbols-outlined text-[18px]">search</span>
                   Search Camps
@@ -404,42 +539,65 @@ const FindCamps = () => {
               </div>
               <div className="w-full lg:w-1/3 bg-white h-1/2 lg:h-full overflow-y-auto flex flex-col">
                 <div className="p-5 border-b border-[rgba(26,18,16,0.09)] sticky top-0 bg-white z-20">
-                  <h3 className="text-[20px] font-serif italic text-[#1a1210]">Available Camps ({activeDistrict})</h3>
-                  {userCoords && <p className="text-[11px] text-[#22A06B] font-semibold mt-1">Sorted by nearest proximity</p>}
+                  <h3 className="text-[20px] font-serif italic text-[#1a1210]">
+                    {activeDistrict ? `Available Places (${activeDistrict})` : 'Blood Camps & Hospitals'}
+                  </h3>
+                  {userCoords && activeDistrict && <p className="text-[11px] text-[#22A06B] font-semibold mt-1">Sorted by nearest proximity</p>}
                 </div>
 
-                <div className="divide-y divide-[rgba(26,18,16,0.07)] flex-1">
-                  {activeCamps.map((camp) => (
-                    <div key={camp.id} className="p-5 hover:bg-[#faf8f5] transition-colors flex flex-col">
-                      <div className="flex justify-between items-start gap-2 mb-2">
-                        <h4 className="text-[16px] font-[600] text-[#1a1210]">{camp.name}</h4>
-                        <span
-                          className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0"
-                          style={{ backgroundColor: camp.typeColor, color: camp.typeTextColor }}
-                        >
-                          {camp.type}
-                        </span>
+                {!activeDistrict ? (
+                  <div className="p-8 text-center flex flex-col items-center justify-center h-full text-[#685c59] my-auto">
+                    <span className="material-symbols-outlined text-[48px] text-[#BE1F2E]/40 mb-3">location_searching</span>
+                    <h4 className="text-[16px] font-semibold text-[#1a1210] mb-1">Select Your Location</h4>
+                    <p className="text-[13px] text-[#9A9A9A]">Choose a state and district from the filters above, then click <strong>Search Camps</strong> to see nearby blood donation camps and hospitals.</p>
+                  </div>
+                ) : apiLoading ? (
+                  <div className="p-8 text-center flex flex-col items-center justify-center h-full text-[#685c59]">
+                    <span className="material-symbols-outlined text-[36px] animate-spin text-[#BE1F2E] mb-3">progress_activity</span>
+                    <p className="text-[13px] text-[#9A9A9A]">Fetching registered hospitals & camps...</p>
+                  </div>
+                ) : activeItems.length === 0 ? (
+                  <div className="p-8 text-center flex flex-col items-center justify-center h-full text-[#685c59] my-auto">
+                    <span className="material-symbols-outlined text-[48px] text-[#A8A0A0] mb-3">location_off</span>
+                    <h4 className="text-[16px] font-semibold text-[#1a1210] mb-1">No Camps or Hospitals Found</h4>
+                    <p className="text-[13px] text-[#9A9A9A]">There are no registered hospitals or scheduled blood donation camps in {activeDistrict} at this time.</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[rgba(26,18,16,0.07)] flex-1">
+                    {activeItems.map((item) => (
+                      <div key={item.id} className="p-5 hover:bg-[#faf8f5] transition-colors flex flex-col">
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <h4 className="text-[16px] font-[600] text-[#1a1210]">{item.name}</h4>
+                          <span
+                            className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0"
+                            style={{ backgroundColor: item.typeColor, color: item.typeTextColor }}
+                          >
+                            {item.type}
+                          </span>
+                        </div>
+                        <p className="text-[13px] text-[#737373] mb-1">{item.location}</p>
+                        <p className="text-[12px] text-[#BE1F2E] font-medium mb-4 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">my_location</span>
+                          {item.distanceStr}
+                        </p>
+                        <div className="flex items-center justify-between mt-auto">
+                          <span className="text-[12px] text-[#685c59] flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">
+                              {item.isCamp ? 'calendar_today' : 'contact_phone'}
+                            </span>
+                            {item.date}
+                          </span>
+                          <button type="button"
+                            onClick={() => handleBookAppointment(item)}
+                            className="bg-[#1a1210] hover:bg-[#BE1F2E] text-white text-[12px] font-bold px-4 py-2 rounded-full transition-colors active:scale-95"
+                          >
+                            Book Slot
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[13px] text-[#737373] mb-1">{camp.location}</p>
-                      <p className="text-[12px] text-[#BE1F2E] font-medium mb-4 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">my_location</span>
-                        {camp.distanceStr}
-                      </p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-[12px] text-[#685c59] flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                          {camp.date}
-                        </span>
-                        <button type="button"
-                          onClick={() => handleBookAppointment(camp)}
-                          className="bg-[#1a1210] hover:bg-[#BE1F2E] text-white text-[12px] font-bold px-4 py-2 rounded-full transition-colors active:scale-95"
-                        >
-                          Book Slot
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
           </main>
@@ -522,11 +680,11 @@ const FindCamps = () => {
                           value={selectedState}
                           onChange={(e) => {
                             setSelectedState(e.target.value);
-                            const firstDist = INDIA_STATES_DISTRICTS[e.target.value][0];
-                            setSelectedDistrict(firstDist);
+                            setSelectedDistrict('');
                           }}
                           className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] appearance-none"
                         >
+                          <option value="">— Select State —</option>
                           {Object.keys(INDIA_STATES_DISTRICTS).map(st => (
                             <option key={st} value={st}>{st}</option>
                           ))}
@@ -539,9 +697,13 @@ const FindCamps = () => {
                       <div className="relative">
                         <select id="select-district-5"
                           value={selectedDistrict}
+                          disabled={!selectedState}
                           onChange={(e) => setSelectedDistrict(e.target.value)}
-                          className="w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] appearance-none"
+                          className={`w-full bg-white border border-[rgba(26,18,16,0.09)] rounded-lg px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-[#9e001f]/40 focus:border-[#9e001f] appearance-none ${
+                            !selectedState ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
+                          <option value="">— Select District —</option>
                           {(INDIA_STATES_DISTRICTS[selectedState] || []).map(dist => (
                             <option key={dist} value={dist}>{dist}</option>
                           ))}
@@ -569,40 +731,67 @@ const FindCamps = () => {
                   </div>
                 </section>
 
-                {/* Camps Card List */}
+                {/* Camps & Hospitals Card List */}
                 <section className="space-y-4">
                   <div className="flex justify-between items-end border-b border-[#e5bdbb] pb-2 mb-2">
-                    <h3 className="text-[22px] font-serif text-[#1a1210] italic">Camps in {activeDistrict}</h3>
-                    {userCoords && <span className="text-[10px] font-bold text-[#22A06B] uppercase tracking-wider">Nearby sorted</span>}
+                    <h3 className="text-[22px] font-serif text-[#1a1210] italic">
+                      {activeDistrict ? `Places in ${activeDistrict}` : 'Blood Camps & Hospitals'}
+                    </h3>
+                    {userCoords && activeDistrict && <span className="text-[10px] font-bold text-[#22A06B] uppercase tracking-wider">Nearby sorted</span>}
                   </div>
-                  {activeCamps.map((camp) => (
-                    <div key={camp.id} className="bg-white border border-[rgba(26,18,16,0.09)] p-5 rounded-xl shadow-sm relative hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="pr-2">
-                          <span className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#9e001f]/10 text-[#9e001f] mb-1.5">
-                            {camp.type}
-                          </span>
-                          <h4 className="text-[17px] font-semibold text-[#1a1210] leading-tight">{camp.name}</h4>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-[#ffdad8] text-[#9e001f] flex items-center justify-center font-bold text-[14px] shrink-0">
-                          {camp.distanceStr.split(' ')[0]}k
-                        </div>
-                      </div>
-                      <p className="text-[#5c403f] text-[13px] mb-3 leading-normal">{camp.location}</p>
-                      <div className="flex items-center justify-between border-t border-[rgba(26,18,16,0.05)] pt-3 mt-1">
-                        <span className="text-[12px] text-[#737373] flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">calendar_today</span>
-                          {camp.date.split(',')[0]}
-                        </span>
-                        <button type="button"
-                          onClick={() => handleBookAppointment(camp)}
-                          className="bg-[#1a1210] hover:bg-[#9e001f] text-white text-[12px] font-bold px-5 py-2.5 rounded-full transition-colors active:scale-95 shadow-md"
-                        >
-                          Book Slot
-                        </button>
-                      </div>
+                  
+                  {!activeDistrict ? (
+                    <div className="bg-white border border-[rgba(26,18,16,0.09)] p-8 rounded-xl text-center flex flex-col items-center justify-center text-[#5c403f] shadow-sm">
+                      <span className="material-symbols-outlined text-[40px] text-[#BE1F2E]/40 mb-2">location_searching</span>
+                      <h4 className="text-[16px] font-bold text-[#1a1210] mb-1">Select Your Location</h4>
+                      <p className="text-[13px] text-[#737373]">Choose a state and district above, then tap <strong>Find Camps</strong> to see nearby blood donation camps and hospitals.</p>
                     </div>
-                  ))}
+                  ) : apiLoading ? (
+                    <div className="bg-white border border-[rgba(26,18,16,0.09)] p-8 rounded-xl text-center flex flex-col items-center justify-center text-[#5c403f] shadow-sm">
+                      <span className="material-symbols-outlined text-[32px] animate-spin text-[#9e001f] mb-2">progress_activity</span>
+                      <p className="text-[13px] text-[#737373]">Fetching places...</p>
+                    </div>
+                  ) : activeItems.length === 0 ? (
+                    <div className="bg-white border border-[rgba(26,18,16,0.09)] p-8 rounded-xl text-center flex flex-col items-center justify-center text-[#5c403f] shadow-sm">
+                      <span className="material-symbols-outlined text-[40px] text-[#906f6e] mb-2">location_off</span>
+                      <h4 className="text-[16px] font-bold text-[#1a1210] mb-1">No Camps or Hospitals Found</h4>
+                      <p className="text-[13px] text-[#737373]">There are no registered hospitals or scheduled blood donation camps in {activeDistrict} at this time.</p>
+                    </div>
+                  ) : (
+                    activeItems.map((item) => (
+                      <div key={item.id} className="bg-white border border-[rgba(26,18,16,0.09)] p-5 rounded-xl shadow-sm relative hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="pr-2">
+                            <span
+                              className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider mb-1.5"
+                              style={{ backgroundColor: item.typeColor, color: item.typeTextColor }}
+                            >
+                              {item.type}
+                            </span>
+                            <h4 className="text-[17px] font-semibold text-[#1a1210] leading-tight">{item.name}</h4>
+                          </div>
+                          <div className="w-16 h-10 rounded-full bg-[#ffdad8] text-[#9e001f] flex items-center justify-center font-bold text-[12px] shrink-0 px-2 text-center">
+                            {item.distanceStr.split(' ')[0]} {item.distanceStr.split(' ')[1] || ''}
+                          </div>
+                        </div>
+                        <p className="text-[#5c403f] text-[13px] mb-3 leading-normal">{item.location}</p>
+                        <div className="flex items-center justify-between border-t border-[rgba(26,18,16,0.05)] pt-3 mt-1">
+                          <span className="text-[12px] text-[#737373] flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-sm">
+                              {item.isCamp ? 'calendar_today' : 'contact_phone'}
+                            </span>
+                            {item.date.split(',')[0]}
+                          </span>
+                          <button type="button"
+                            onClick={() => handleBookAppointment(item)}
+                            className="bg-[#1a1210] hover:bg-[#9e001f] text-white text-[12px] font-bold px-5 py-2.5 rounded-full transition-colors active:scale-95 shadow-md"
+                          >
+                            Book Slot
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </section>
               </div>
             ) : (
