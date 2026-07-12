@@ -47,7 +47,7 @@ async function seed() {
       (1, 'Pune Ruby Hall Clinic', 1, 'Private', 18.5323, 73.8770, ST_GeomFromText('POINT(73.8770 18.5323)', 4326), 'LIC-PUNE-001', '40 Sassoon Road, near Pune Station', 'Pune', 'Maharashtra', '411001', '020-66455100', 'verified'),
       (2, 'KEM Hospital Pune', 1, 'Trust', 18.5255, 73.8690, ST_GeomFromText('POINT(73.8690 18.5255)', 4326), 'LIC-PUNE-002', '489 Rasta Peth, Sardar Moodliar Road', 'Pune', 'Maharashtra', '411011', '020-26217300', 'verified'),
       (3, 'Sassoon General Hospital Pune', 1, 'Government', 18.5283, 73.8732, ST_GeomFromText('POINT(73.8732 18.5283)', 4326), 'LIC-PUNE-003', 'Jai Prakash Narayan Road, near Pune Station', 'Pune', 'Maharashtra', '411001', '020-26128000', 'verified'),
-      (4, 'Satara Civil Hospital', 4, 'Government', 17.6912, 74.0015, ST_GeomFromText('POINT(74.0015 17.6912)', 4326), 'LIC-SATARA-001', 'Sadar Bazar Road, Civil Lines', 'Satara', 'Maharashtra', '415001', '02162-234567', 'verified'),
+      (4, 'Surat Municipal Hospital', 3, 'Government', 21.1702, 72.8311, ST_GeomFromText('POINT(72.8311 21.1702)', 4326), 'LIC-SATARA-001', 'Surat Municipal Road', 'Surat', 'Gujarat', '395003', '0261-234567', 'verified'),
       (5, 'Apex Hospital Satara', 4, 'Private', 17.6698, 73.9854, ST_GeomFromText('POINT(73.9854 17.6698)', 4326), 'LIC-SATARA-002', 'Sector-3 bypass, Satara Road', 'Satara', 'Maharashtra', '415002', '02162-245678', 'verified'),
       (6, 'Sangli Civil Hospital', 5, 'Government', 16.8624, 74.5950, ST_GeomFromText('POINT(74.5950 16.8624)', 4326), 'LIC-SANGLI-001', 'Civil Hospital Road, Sangli Miraj Block', 'Sangli', 'Maharashtra', '416416', '0233-2374644', 'verified'),
       (7, 'Bharati Vidyapeeth Hospital Sangli', 5, 'Trust', 16.8450, 74.5780, ST_GeomFromText('POINT(74.5780 16.8450)', 4326), 'LIC-SANGLI-002', 'Sangli-Miraj Road, Wanlesswadi', 'Sangli', 'Maharashtra', '416410', '0233-2231400', 'verified'),
@@ -68,11 +68,33 @@ async function seed() {
       (7, 'BKC Mega Blood Drive', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'MMRDA Grounds, Bandra Kurla Complex, Mumbai', ST_GeomFromText('POINT(72.8643 19.0596)', 4326), 2, 'Mumbai Health Department', 500, 450, 'upcoming')
     `);
 
-    // 4. Insert Single System Admin User
-    console.log('Inserting main System Admin user...');
+    // 4. Insert Main System Admin User and Test Users
+    console.log('Inserting admin and test users...');
     await connection.query(`
       INSERT INTO users (id, email, phone, password_hash, role, hospital_id, district_id, status, full_name, designation) VALUES
-      (1, 'system@raktsetu.gov', '9876543210', '${passwordHash}', 'sysadmin', NULL, NULL, 'Active', 'System Administrator', 'Root Admin')
+      (1, 'sysadmin@example.com', '9876543211', '${passwordHash}', 'sysadmin', NULL, NULL, 'Active', 'Test SysAdmin', 'Test Root'),
+      (2, 'hospital_admin@example.com', '9876543213', '${passwordHash}', 'admin', 2, NULL, 'Active', 'Pune Life Care Admin', 'Admin'),
+      (3, 'hospital_admin1@example.com', '9876543214', '${passwordHash}', 'admin', 1, NULL, 'Active', 'Pune Ruby Hall Admin', 'Admin'),
+      (4, 'donor@example.com', '9876543212', '${passwordHash}', 'donor', NULL, NULL, 'Active', 'Test Donor', 'Volunteer'),
+      (5, 'state_admin@example.com', '9876543215', '${passwordHash}', 'state', NULL, 1, 'Active', 'State Admin Maharashtra', 'State Coordinator'),
+      (6, 'district_officer@example.com', '9876543216', '${passwordHash}', 'district', NULL, 1, 'Active', 'District Officer Pune', 'District Officer'),
+      (7, 'system@raktsetu.gov', '9876543210', '${passwordHash}', 'sysadmin', NULL, NULL, 'Active', 'System Administrator', 'Root Admin')
+    `);
+
+    // 5. Insert Donors mapping
+    console.log('Inserting test donor mapping...');
+    await connection.query(`
+      INSERT INTO donors (id, user_id, donor_code, full_name, age, gender, city, pincode, blood_group, weight, available_for_donation, lat, lng, location) VALUES
+      (1, 4, 'DONOR-TEST-001', 'Test Donor', 25, 'Male', 'Pune', '411001', 'O+', 70.0, 1, 18.5204, 73.8567, ST_GeomFromText('POINT(73.8567 18.5204)', 4326))
+    `);
+
+    // 6. Insert Test Blood Batches
+    console.log('Inserting test blood batches...');
+    await connection.query(`
+      INSERT INTO blood_batches (id, hospital_id, blood_group, units, reserved_units, collection_date, expiry_date, source) VALUES
+      (1, 2, 'A+', 50, 0, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 35 DAY), 'Donation'),
+      (4, 1, 'O+', 100, 5, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 35 DAY), 'Donation'),
+      (5, 4, 'A+', 50, 0, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 35 DAY), 'Donation')
     `);
 
     await connection.commit();

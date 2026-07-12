@@ -666,9 +666,9 @@ async function triggerBackup(req, res, next) {
     const filename = `raktsetu_backup_${Date.now()}.sql`;
     const filepath = path.join(backupDir, filename);
 
-    const dbUser = process.env.DB_USER || 'root';
+    const dbUser = process.env.DB_USER || process.env.DB_USERNAME || 'root';
     const dbHost = process.env.DB_HOST || '127.0.0.1';
-    const dbName = process.env.DB_NAME || 'raktsetu';
+    const dbName = process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu';
     const dbPort = process.env.DB_PORT || '3306';
 
     // Validate parameters

@@ -5,9 +5,10 @@ require('dotenv').config();
 const writePool = mysql.createPool({
   host:               process.env.DB_HOST || '127.0.0.1',
   port:               parseInt(process.env.DB_PORT || '3306', 10),
-  user:               process.env.DB_USER || 'root',
+  user:               process.env.DB_USER || process.env.DB_USERNAME || 'root',
   password:           process.env.DB_PASSWORD || '',
-  database:           process.env.DB_NAME || 'raktsetu',
+  database:           process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu',
+  ssl:                process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false,
   waitForConnections: true,
   connectionLimit:    parseInt(process.env.DB_POOL_SIZE || '50', 10),    // Increased from 10 → 50
   queueLimit:         200,   // Queue up to 200 requests if pool is full
@@ -19,9 +20,10 @@ const writePool = mysql.createPool({
 const readPool = mysql.createPool({
   host:               process.env.DB_READ_HOST || process.env.DB_HOST || '127.0.0.1',
   port:               parseInt(process.env.DB_PORT || '3306', 10),
-  user:               process.env.DB_USER || 'root',
+  user:               process.env.DB_USER || process.env.DB_USERNAME || 'root',
   password:           process.env.DB_PASSWORD || '',
-  database:           process.env.DB_NAME || 'raktsetu',
+  database:           process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu',
+  ssl:                process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false,
   waitForConnections: true,
   connectionLimit:    parseInt(process.env.DB_READ_POOL_SIZE || '100', 10),   // Reads can have larger pool
   queueLimit:         500,

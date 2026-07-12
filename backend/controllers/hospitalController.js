@@ -841,6 +841,10 @@ async function updateTransferStatus(req, res, next) {
 
     const transfer = transferRows[0];
 
+    if (status === transfer.status) {
+      throw new ApiError(`Transfer request is already ${transfer.status} and cannot be modified`, 400, 'INVALID_STATUS_TRANSITION');
+    }
+
     // State transitions and authorization checks
     if (transfer.status === 'pending') {
       // Only supplying hospital can accept or reject

@@ -66,26 +66,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const validateInviteToken = async (token) => {
-      // Simulate API call
-      return new Promise((resolve) => {
-          setTimeout(() => {
-              if (token === 'token-sjh') {
-                  resolve({ name: "St. Jude Memorial Hospital" });
-              } else {
-                  resolve({ name: "City Life Blood Bank & Hospital" });
-              }
-          }, 1500);
-      });
+    const res = await api.get(`/auth/validate-invite-token/${token}`);
+    return res.data;
   };
 
   const setupPassword = async (token, password) => {
-      // Simulate API call
-      return new Promise((resolve) => {
-          setTimeout(() => {
-              localStorage.setItem('raktsetu_hospital_password', password);
-              resolve(true);
-          }, 1000);
-      });
+    const res = await api.post('/auth/set-password', { token, password });
+    return res.data;
   };
 
   const syncAuth = () => {

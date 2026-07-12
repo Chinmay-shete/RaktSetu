@@ -52,112 +52,62 @@ Below is the network topology and service layout for **RaktSetu** in production:
 
 ---
 
-## 📋 PRE-DEPLOYMENT CHECKLIST
+## ☁️ Option A: 100% Free-Tier Cloud Deployment
 
-Before starting deployment, verify these are all done:
+For student and solo developers starting with zero budget, RaktSetu can be deployed entirely for free using modern serverless platforms.
 
-- [x] `npm run build` runs without errors in `/frontend`
-- [x] `node server.js` starts without errors in `/backend`
-- [x] `python app.py` starts without errors in `/backend/ai`
-- [x] All critical bugs from the audit are fixed (role bypass, mock endpoints, hardcoded coordinates, Jest ESM)
-- [x] `.env.example` file exists with all required variable names (no values)
-- [x] `.gitignore` includes: `.env`, `node_modules/`, `dist/`, `__pycache__/`, `*.pyc`
-- [x] No hardcoded URLs anywhere in the codebase (all use `process.env.VARIABLE`)
-- [x] `vite build` output is in `/frontend/dist/`
-- [x] `requirements.txt` includes `gunicorn>=21.2.0` and `gevent>=23.9.0`
-- [x] `ecosystem.config.cjs` exists for PM2 (if using VPS)
-- [x] `GET /api/health` endpoint returns `{"status":"healthy"}` locally
-- [x] Git repository is clean and pushed to GitHub/GitLab
+### 1. Database — TiDB Cloud Serverless (5GB Free)
+1. Sign up at [TiDB Cloud](https://tidbcloud.com/).
+2. Create a free **Serverless Cluster**.
+3. Under the **Connect** tab, copy your connection details:
+   - **Host:** e.g., `gateway01.ap-southeast-1.prod.aws.tidbcloud.com`
+   - **Port:** `4000`
+   - **User:** e.g., `xxxxxx.root`
+   - **Password:** `[YourPassword]`
+   - **Database Name:** `raktsetu`
 
----
-
-## 🆓 OPTION A: 100% FREE CLOUD DEPLOYMENT
-### Best for: First launch, portfolio demo, zero budget
-### Services used: Vercel + Render + Aiven MySQL + Upstash Redis
-
----
-
-### STEP 1: Set Up Free MySQL Database (Aiven)
-> Free tier: 5GB storage, 1 vCPU, sufficient for early production
-
-1. Go to: https://aiven.io → Sign up free
-2. Click **Create Service** → Choose **MySQL**
-3. Select:
-   - Cloud: **AWS**
-   - Region: **ap-south-1** (Mumbai — closest to India)
-   - Plan: **Hobbyist (Free)**
-4. Service name: `raktsetu-mysql`
-5. Wait ~2 minutes for provisioning
-6. Go to the service → **Overview** tab
-7. Copy these values (you will use them as environment variables):
-   - **Host** (e.g., `mysql-xxxx-aiven.aivencloud.com`)
-   - **Port** (e.g., `12345`)
-   - **User** (e.g., `avnadmin`)
-   - **Password** (your service password)
-   - **Database Name** (e.g., `defaultdb`)
-
-8. Run database migrations:
-   ```bash
-   mysql -h mysql-xxxx-aiven.aivencloud.com -u avnadmin -P 12345 -p defaultdb < ./backend/models/migrations/001_initial_schema.sql
-   ```
-
----
-
-### STEP 2: Set Up Free Redis Cache (Upstash)
-> Free tier: 10,000 commands/day, sufficient for session caching
-
-1. Go to: https://upstash.com → Sign up
-2. Click **Create Database**
-3. Configure:
-   - Name: `raktsetu-redis`
-   - Region: **ap-south-1** (Mumbai)
-   - Encryption (TLS): **Enabled**
-4. Copy the **Redis Connection URI** from the dashboard:
+### 2. Cache — Upstash Redis (10,000 requests/day Free)
+1. Sign up at [Upstash](https://upstash.com/).
+2. Create a **Redis Database**.
+3. Select the closest region (e.g., `ap-south-1` for India).
+4. Under the **Connection Details** tab, copy the **Redis URI**:
    - `rediss://default:password@endpoint.upstash.io:6379`
 
----
-
-### STEP 3: Deploy AI Microservice (Render)
-> Free tier: Web service with automatic runtime management
-
-1. Sign up on [Render](https://render.com/).
+### 3. AI Service — Railway or Render (Free Python Runtime)
+1. Sign up at [Render](https://render.com/).
 2. Click **New +** -> **Web Service** and connect your GitHub repository.
-3. Configure settings:
+3. Set the following configuration:
    - **Name:** `raktsetu-ai`
    - **Language:** `Python`
    - **Root Directory:** `backend/ai`
    - **Build Command:** `pip install -r requirements.txt`
    - **Start Command:** `gunicorn app:app`
-4. Add environment variables:
+4. Add the following **Environment Variables** in the UI:
    - `PORT`: `5001`
    - `REDIS_URL`: `rediss://default:password@endpoint.upstash.io:6379`
-   - `DB_HOST`: `mysql-xxxx-aiven.aivencloud.com`
-   - `DB_PORT`: `12345`
-   - `DB_USER`: `avnadmin`
+   - `DB_HOST`: `gateway01.ap-southeast-1.prod.aws.tidbcloud.com`
+   - `DB_PORT`: `4000`
+   - `DB_USER`: `xxxxxx.root`
    - `DB_PASSWORD`: `[YourPassword]`
-   - `DB_NAME`: `defaultdb`
-5. Copy the generated service URL (e.g., `https://raktsetu-ai.onrender.com`).
+   - `DB_NAME`: `raktsetu`
+5. Deploy and copy the public URL (e.g., `https://raktsetu-ai.onrender.com`).
 
----
-
-### STEP 4: Deploy Express Backend (Render)
-> Free tier: Node.js web service
-
+### 4. Express Backend — Render (Free Node Web Service)
 1. Click **New +** -> **Web Service** on Render and connect your repository.
-2. Configure settings:
+2. Set configuration:
    - **Name:** `raktsetu-backend`
    - **Language:** `Node`
    - **Root Directory:** `backend`
    - **Build Command:** `npm install`
    - **Start Command:** `node server.js`
-3. Add environment variables:
+3. Add **Environment Variables**:
    - `PORT`: `5000`
    - `NODE_ENV`: `production`
-   - `DB_HOST`: `mysql-xxxx-aiven.aivencloud.com`
-   - `DB_PORT`: `12345`
-   - `DB_USER`: `avnadmin`
+   - `DB_HOST`: `gateway01.ap-southeast-1.prod.aws.tidbcloud.com`
+   - `DB_PORT`: `4000`
+   - `DB_USER`: `xxxxxx.root`
    - `DB_PASSWORD`: `[YourPassword]`
-   - `DB_NAME`: `defaultdb`
+   - `DB_NAME`: `raktsetu`
    - `REDIS_URL`: `rediss://default:password@endpoint.upstash.io:6379`
    - `JWT_SECRET`: `[Generate a secure 32-character string]`
    - `JWT_REFRESH_SECRET`: `[Generate a secure 32-character string]`
@@ -166,36 +116,72 @@ Before starting deployment, verify these are all done:
    - `CORS_ORIGIN`: `https://raktsetu.vercel.app`
    - `EMAIL_API_KEY`: `[Your Resend API Key]`
    - `EMAIL_FROM_ADDRESS`: `onboarding@resend.dev`
-4. Copy the generated backend URL (e.g., `https://raktsetu-backend.onrender.com`).
+4. Deploy and copy the API endpoint (e.g., `https://raktsetu-backend.onrender.com`).
 
----
-
-### STEP 5: Deploy React Frontend (Vercel)
-> Free tier: Fast global static asset hosting
-
-1. Sign up at [Vercel](https://vercel.com/) and connect your repository.
+### 5. React Frontend — Vercel (Free React Host)
+1. Sign up at [Vercel](https://vercel.com/) and link your repository.
 2. Select the `/frontend` folder as the **Root Directory**.
 3. Set **Framework Preset** to `Vite`.
 4. Under **Environment Variables**, add:
    - `VITE_API_URL`: `https://raktsetu-backend.onrender.com/api/v1`
    - `VITE_API_BASE_URL`: `https://raktsetu-backend.onrender.com/api/v1`
-5. Click **Deploy**. Vercel will build the frontend assets.
-6. Copy the public frontend URL (e.g., `https://raktsetu.vercel.app`) and verify that it matches the backend's `CORS_ORIGIN` variable.
+5. Click **Deploy**. Vercel will build the files and serve them over a globally fast CDN.
 
 ---
 
-## 💵 OPTION B: CHEAP VPS DEPLOYMENT (DigitalOcean / Hetzner)
-### Best for: Large scale, custom control, low cost
-### Services used: Ubuntu 22.04 LTS VPS ($4/month) + Nginx + PM2 + MySQL + Redis
+## 🖥️ Option B: Cheap VPS Deployment (DigitalOcean / Hetzner)
 
----
+A single $4/month VPS (1 vCPU, 1GB RAM) running Ubuntu 22.04 LTS can host all five services using PM2, local MySQL, Redis, Nginx, and systemd.
 
-### STEP 1: Provision Server & Install Dependencies
-Log into your VPS and update packages:
+### 1. Server Provisioning & Initial Setup
+Log into your VPS via SSH and update package lists:
 ```bash
 ssh root@your_vps_ip
 sudo apt update && sudo apt upgrade -y
 ```
+
+### 2. Install and Secure MySQL Database
+Install MySQL Server:
+```bash
+sudo apt install mysql-server -y
+```
+Secure the installation and configure password parameters:
+```bash
+sudo mysql_secure_installation
+```
+Log in to MySQL as root:
+```bash
+sudo mysql
+```
+Execute these SQL commands inside the MySQL shell to create the database, user, and schema:
+```sql
+CREATE DATABASE raktsetu CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'raktsetu_user'@'localhost' IDENTIFIED BY 'a_very_strong_password_123';
+GRANT ALL PRIVILEGES ON raktsetu.* TO 'raktsetu_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+Import the schema files:
+```bash
+mysql -u raktsetu_user -p raktsetu < /var/www/RaktSetu/backend/models/migrations/001_initial_schema.sql
+```
+
+### 3. Install and Configure Redis
+Install Redis server:
+```bash
+sudo apt install redis-server -y
+```
+Open the Redis configuration file:
+```bash
+sudo nano /etc/redis/redis.conf
+```
+Change `supervised no` to `supervised systemd`. Save and close the file, then restart Redis:
+```bash
+sudo systemctl restart redis-server
+sudo systemctl enable redis-server
+```
+
+### 4. Install Node.js & Set Up PM2 Backend Daemon
 Install Node.js LTS (v20+):
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -205,62 +191,16 @@ Install PM2 globally:
 ```bash
 sudo npm install -g pm2
 ```
-
----
-
-### STEP 2: Configure MySQL and Import Schema
-Install MySQL Server:
-```bash
-sudo apt install mysql-server -y
-```
-Secure the server and set up credentials:
-```bash
-sudo mysql_secure_installation
-```
-Log in to create the database:
-```bash
-sudo mysql
-```
-Execute database script inside shell:
-```sql
-CREATE DATABASE raktsetu CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'raktsetu_user'@'localhost' IDENTIFIED BY 'a_very_strong_password_123';
-GRANT ALL PRIVILEGES ON raktsetu.* TO 'raktsetu_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-Import schema:
-```bash
-mysql -u raktsetu_user -p raktsetu < /var/www/RaktSetu/backend/models/migrations/001_initial_schema.sql
-```
-
----
-
-### STEP 3: Configure Redis
-Install Redis Server:
-```bash
-sudo apt install redis-server -y
-```
-Set background supervisor to systemd inside `/etc/redis/redis.conf`:
-```bash
-sudo sed -i 's/supervised no/supervised systemd/g' /etc/redis/redis.conf
-sudo systemctl restart redis-server
-sudo systemctl enable redis-server
-```
-
----
-
-### STEP 4: Setup Backend and Start Daemon
-Clone the codebase to `/var/www/RaktSetu/` and navigate to backend:
+Navigate to your backend directory and run dependencies setup:
 ```bash
 cd /var/www/RaktSetu/backend
 npm install --production
 ```
-Configure backend env variables:
+Configure backend env parameters:
 ```bash
 nano .env
 ```
-Paste variables:
+Paste these variables:
 ```env
 PORT=5000
 NODE_ENV=production
@@ -278,32 +218,31 @@ AI_SERVICE_URL=http://127.0.0.1:5001
 EMAIL_API_KEY=re_your_api_key_here
 EMAIL_FROM_ADDRESS=onboarding@resend.dev
 ```
-Start backend under PM2:
+Start backend processes using PM2:
 ```bash
 pm2 start ecosystem.config.cjs --env production
 pm2 save
 pm2 startup
 ```
 
----
-
-### STEP 5: Setup Python Flask & Celery Workers
-Install Python build libraries:
+### 5. Set Up Python Flask & Celery AI Daemon
+Install Python, virtual environment builders, and build dependencies:
 ```bash
-sudo apt install python3 python3-pip python3-venv build-essential -y
+sudo apt install python3 python3-pip python3-venv build-essential libssl-dev libffi-dev python3-dev -y
 ```
-Create a virtual environment inside `/var/www/RaktSetu/backend/ai`:
+Navigate to `/var/www/RaktSetu/backend/ai` and initialize environment:
 ```bash
 cd /var/www/RaktSetu/backend/ai
 python3 -m venv .venv
 source .venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
-Create environment file:
+Create the AI environment file:
 ```bash
 nano .env
 ```
-Paste:
+Paste these variables:
 ```env
 FLASK_ENV=production
 FLASK_DEBUG=0
@@ -316,12 +255,12 @@ DB_PASSWORD=a_very_strong_password_123
 DB_NAME=raktsetu
 ```
 
-#### Set up systemd service daemons:
-Create Flask API service unit:
+#### Define the Systemd Services for Flask & Celery Worker
+Create a systemd unit file for the Flask API service:
 ```bash
 sudo nano /etc/systemd/system/raktsetu-ai.service
 ```
-Paste:
+Paste this configuration:
 ```ini
 [Unit]
 Description=RaktSetu Flask AI Service
@@ -338,11 +277,11 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-Create Celery background worker unit:
+Create a systemd unit file for the Celery task runner daemon:
 ```bash
 sudo nano /etc/systemd/system/raktsetu-celery.service
 ```
-Paste:
+Paste this configuration:
 ```ini
 [Unit]
 Description=RaktSetu Celery Background Worker
@@ -359,25 +298,44 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-Reload and launch:
+Enable and start the services:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl start raktsetu-ai raktsetu-celery
 sudo systemctl enable raktsetu-ai raktsetu-celery
 ```
 
----
+### 6. Build the Frontend Assets
+Navigate to `/var/www/RaktSetu/frontend`:
+```bash
+cd /var/www/RaktSetu/frontend
+npm install
+```
+Create a `.env.production` file:
+```bash
+nano .env.production
+```
+Paste:
+```env
+VITE_API_URL=https://raktsetu.org/api/v1
+VITE_API_BASE_URL=https://raktsetu.org/api/v1
+```
+Build Vite assets:
+```bash
+npm run build
+```
+This generates static compiled files in `/var/www/RaktSetu/frontend/dist`.
 
-### STEP 6: Configure Nginx & Let's Encrypt SSL
+### 7. Configure Nginx Reverse Proxy & SSL (Let's Encrypt)
 Install Nginx and Certbot:
 ```bash
 sudo apt install nginx certbot python3-certbot-nginx -y
 ```
-Create site configuration:
+Create an Nginx configuration file for RaktSetu:
 ```bash
 sudo nano /etc/nginx/sites-available/raktsetu
 ```
-Paste:
+Paste this server configuration:
 ```nginx
 server {
     listen 80;
@@ -411,14 +369,14 @@ server {
     }
 }
 ```
-Enable the site block:
+Enable the site and restart Nginx:
 ```bash
 sudo ln -s /etc/nginx/sites-available/raktsetu /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 ```
-Obtain SSL Certificate:
+Obtain a free SSL certificate from Let's Encrypt:
 ```bash
 sudo certbot --nginx -d raktsetu.org -d www.raktsetu.org
 ```
@@ -427,16 +385,41 @@ sudo certbot --nginx -d raktsetu.org -d www.raktsetu.org
 
 ## 🔍 Post-Deployment Verification Tests
 
-Verify all components are functional:
+Confirm everything is fully active by running these commands on your VPS server:
 
-1. **Verify Backend Health Endpoint:**
-   ```bash
-   curl -i https://raktsetu.org/api/v1/health
-   ```
-   *Expected Response:* `200 OK` with status `"CONNECTED"` for database and Redis cache.
+### 1. Check Service Statuses
+* **Check Node.js / PM2:**
+  ```bash
+  pm2 status
+  ```
+* **Check Flask Service:**
+  ```bash
+  sudo systemctl status raktsetu-ai
+  ```
+* **Check Celery Background Worker:**
+  ```bash
+  sudo systemctl status raktsetu-celery
+  ```
+* **Check MySQL Database Connection:**
+  ```bash
+  mysqladmin -u raktsetu_user -p ping
+  ```
 
-2. **Verify AI Daemon:**
-   ```bash
-   curl -i http://127.0.0.1:5001/api/v1/forecast/status/test-task-id
-   ```
-   *Expected Response:* HTTP `200 OK` or `404 Not Found` (representing Celery integration status rather than connection timeouts).
+### 2. Verify REST APIs via cURL
+Run a test request against the backend server's health check route:
+```bash
+curl -i https://raktsetu.org/api/v1/health
+```
+**Expected JSON response:**
+```json
+{
+  "status": "UP",
+  "database": "CONNECTED",
+  "redis": "CONNECTED"
+}
+```
+Validate that the Flask AI service is active and listening locally:
+```bash
+curl -i http://127.0.0.1:5001/api/v1/forecast/status/test-task-id
+```
+**Expected Response:** `200 OK` or `404 Not Found` (representing Celery integration status rather than a gateway connection timeout).
