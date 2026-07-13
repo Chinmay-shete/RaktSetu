@@ -7,7 +7,10 @@ worker_class = "gevent"
 worker_connections = 100
 timeout = 30
 keepalive = 5
-bind = "0.0.0.0:5001"
+# Bind dynamically to the PORT environment variable (default to 5001)
+import os
+port = os.environ.get("PORT", "5001")
+bind = f"0.0.0.0:{port}"
 max_requests = 1000
 max_requests_jitter = 100
 preload_app = True  # Load model once, share across workers
