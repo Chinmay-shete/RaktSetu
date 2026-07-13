@@ -1,9 +1,8 @@
 # gunicorn.conf.py — Production config for RaktSetu AI service
 import multiprocessing
 
-# Workers: (2 × CPU cores) + 1 for I/O-bound; 
-# Use gevent for async (important for Flask)
-workers = multiprocessing.cpu_count() * 2 + 1
+# Limit workers to 1 to fit within Render Free Tier's 512MB memory limit
+workers = 1
 worker_class = "gevent"
 worker_connections = 100
 timeout = 30
