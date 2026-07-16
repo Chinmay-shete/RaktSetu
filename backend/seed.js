@@ -2,8 +2,8 @@ const { pool } = require('./config/db');
 const bcrypt = require('bcryptjs');
 
 async function seed() {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('SEVERITY HIGH WARNING: Database seeding is disabled in production to prevent data loss.');
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_PRODUCTION_SEED !== 'true') {
+    throw new Error('SEVERITY HIGH WARNING: Database seeding is disabled in production to prevent data loss. Set ALLOW_PRODUCTION_SEED=true to bypass this check.');
   }
   console.log('Starting clean database reset and seeding...');
   const connection = await pool.getConnection();
