@@ -14,6 +14,13 @@ const path  = require('path');
 
 const MIGRATIONS_DIR = path.join(__dirname, 'models', 'migrations');
 
+// Same SSL helper as config/db.js — required for Aiven MySQL (DB_SSL=true)
+function getSslConfig() {
+  if (process.env.DB_SSL !== 'true') return undefined;
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false';
+  return { rejectUnauthorized };
+}
+
 async function run() {
   const conn = await mysql.createConnection({
     host:               process.env.DB_HOST     || '127.0.0.1',
@@ -21,8 +28,9 @@ async function run() {
     user:               process.env.DB_USER     || process.env.DB_USERNAME || 'root',
     password:           process.env.DB_PASSWORD || '',
     database:           process.env.DB_NAME     || process.env.DB_DATABASE || 'raktsetu',
-    ssl:                process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    ssl:                getSslConfig(),
     multipleStatements: true,
+
   });
 
   console.log('Connected to database:', process.env.DB_HOST);

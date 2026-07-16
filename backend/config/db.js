@@ -1,6 +1,15 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+// SSL config helper — Aiven MySQL requires SSL=true
+// Set DB_SSL=true in production (Render env vars)
+// Set DB_SSL_REJECT_UNAUTHORIZED=false only if you don't have the CA cert
+function getSslConfig() {
+  if (process.env.DB_SSL !== 'true') return false;
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false';
+  return { rejectUnauthorized };
+}
+
 // Write pool (primary DB)
 const writePool = mysql.createPool({
   host:               process.env.DB_HOST || '127.0.0.1',
@@ -8,10 +17,10 @@ const writePool = mysql.createPool({
   user:               process.env.DB_USER || process.env.DB_USERNAME || 'root',
   password:           process.env.DB_PASSWORD || '',
   database:           process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu',
-  ssl:                process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ssl:                getSslConfig(),
   waitForConnections: true,
-  connectionLimit:    parseInt(process.env.DB_POOL_SIZE || '50', 10),    // Increased from 10 → 50
-  queueLimit:         200,   // Queue up to 200 requests if pool is full
+  connectionLimit:    parseInt(process.env.DB_POOL_SIZE || '50', 10),
+  queueLimit:         200,
   enableKeepAlive:    true,
   keepAliveInitialDelay: 0
 });
@@ -23,13 +32,14 @@ const readPool = mysql.createPool({
   user:               process.env.DB_USER || process.env.DB_USERNAME || 'root',
   password:           process.env.DB_PASSWORD || '',
   database:           process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu',
-  ssl:                process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ssl:                getSslConfig(),
   waitForConnections: true,
-  connectionLimit:    parseInt(process.env.DB_READ_POOL_SIZE || '100', 10),   // Reads can have larger pool
+  connectionLimit:    parseInt(process.env.DB_READ_POOL_SIZE || '100', 10),
   queueLimit:         500,
   enableKeepAlive:    true,
   keepAliveInitialDelay: 0
 });
+
 
 // Helper: use readPool for SELECT, writePool for INSERT/UPDATE/DELETE
 const db = {
