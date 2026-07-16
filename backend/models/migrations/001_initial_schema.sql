@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- 14. OTP Codes Table (Auth Support)
 CREATE TABLE IF NOT EXISTS otp_codes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  phone VARCHAR(20) NOT NULL,
+  phone VARCHAR(255) NOT NULL,
   code CHAR(6) DEFAULT NULL,
   session_id VARCHAR(255) DEFAULT NULL,
   purpose ENUM('registration', 'login') NOT NULL DEFAULT 'registration',

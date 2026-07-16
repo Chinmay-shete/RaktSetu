@@ -98,6 +98,7 @@ async function issueTokens(user) {
  * POST /auth/send-otp
  */
 async function sendOtp(req, res, next) {
+  console.log('[DEBUG] POST /auth/send-otp reached with body:', req.body);
   try {
     const { phone, email, purpose = 'registration' } = req.body;
     const target = phone || email;

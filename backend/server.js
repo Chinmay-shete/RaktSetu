@@ -49,6 +49,7 @@ const shutdown = async (signal, activeServer) => {
 };
 
 const app = express();
+app.set('trust proxy', true);
 app.use(helmet());
 const PORT = process.env.PORT || 5000;
 
@@ -66,10 +67,27 @@ if (!process.env.AI_SERVICE_URL) {
 }
 
 const allowedOrigins = corsOriginEnv
-  ? corsOriginEnv.split(',')
+  // Trim each entry and strip any trailing slashes so env-var typos don't break CORS
+  ? corsOriginEnv.split(',').map(o => o.trim().replace(/\/+$/, ''))
   : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175',
      'http://localhost:5176', 'http://localhost:5177', 'http://localhost:8080',
      'http://127.0.0.1:5173', 'http://127.0.0.1:5174', 'http://127.0.0.1:5175', 'http://127.0.0.1:3000'];
+
+// Build an expanded set that also allows "www." variants of every allowed origin
+const allowedOriginsSet = new Set(allowedOrigins);
+allowedOrigins.forEach(o => {
+  try {
+    const url = new URL(o);
+    // Add www. variant if not already present
+    if (!url.hostname.startsWith('www.')) {
+      allowedOriginsSet.add(`${url.protocol}//www.${url.hostname}${url.port ? ':' + url.port : ''}`);
+    }
+    // Add non-www variant if a www. origin was listed
+    if (url.hostname.startsWith('www.')) {
+      allowedOriginsSet.add(`${url.protocol}//${url.hostname.replace(/^www\./, '')}${url.port ? ':' + url.port : ''}`);
+    }
+  } catch (_) { /* ignore malformed entries */ }
+});
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -79,7 +97,9 @@ app.use(cors({
     if (/^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Normalize the incoming origin (strip trailing slash) before comparing
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+    if (allowedOriginsSet.has(normalizedOrigin)) {
       return callback(null, true);
     }
     console.error(`[CORS REJECTED] Origin: ${origin}`);
@@ -87,6 +107,7 @@ app.use(cors({
   },
   credentials: true
 }));
+
 
 // Custom Rate Limiting Middleware (100 req/min)
 const rateLimitWindowMs = 60 * 1000;
