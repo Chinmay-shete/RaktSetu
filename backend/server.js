@@ -162,6 +162,26 @@ if (process.env.NODE_ENV === 'production') {
 app.use('/api/v1', apiRouter);
 app.use('/', healthRouter);
 
+// ── Keep-alive ping (production only) ──────────────────────────────────────
+// Render free tier spins down after 15 min of inactivity, causing a 30-60s
+// cold start for the first user. This self-ping every 14 minutes keeps the
+// server warm so OTP emails are sent instantly.
+if (process.env.NODE_ENV === 'production') {
+  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
+  setInterval(async () => {
+    try {
+      const http = require('https');
+      http.get(`${SELF_URL}/health`, (res) => {
+        console.log(`[Keep-alive] Self-ping OK — status ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.warn('[Keep-alive] Self-ping failed:', err.message);
+      });
+    } catch (_) {}
+  }, 14 * 60 * 1000); // every 14 minutes
+  console.log('[Keep-alive] Self-ping enabled — server will stay warm on Render.');
+}
+
+
 // Register global error handler
 app.use(errorHandler);
 
