@@ -68,7 +68,12 @@ async function run() {
   await conn.end();
 }
 
-run().catch(err => {
-  console.error('Migration failed:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  run().catch(err => {
+    console.error('Migration failed:', err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { runMigrations: run };
+

@@ -192,6 +192,21 @@ async function startServer() {
     console.warn('Warning: Database connection could not be verified at startup.');
   }
 
+  // Automatically run database migrations and safe seed on startup
+  try {
+    const { runMigrations } = require('./run_migrations');
+    console.log('[Startup] Running database migrations...');
+    await runMigrations();
+    console.log('[Startup] Database migrations applied successfully.');
+
+    const { safeSeed } = require('./safe_seed');
+    console.log('[Startup] Ensuring core seed data exists...');
+    await safeSeed();
+    console.log('[Startup] Core seed data ensured.');
+  } catch (err) {
+    console.error('[Startup] Failed to run migrations/seed on startup:', err.message);
+  }
+
   let activeServer = null;
 
   const server = app.listen(PORT, () => {

@@ -157,10 +157,17 @@ async function safeSeed() {
   } catch (error) {
     console.error('\n❌ Safe seed failed:', error.message);
     console.error(error);
-    process.exit(1);
+    if (require.main === module) {
+      process.exit(1);
+    }
   } finally {
     await conn.end();
   }
 }
 
-safeSeed();
+if (require.main === module) {
+  safeSeed();
+}
+
+module.exports = { safeSeed };
+
