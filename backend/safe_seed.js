@@ -45,12 +45,12 @@ async function safeSeed() {
     // ─── 2. Districts (INSERT IGNORE — skips if name+state already exists) ───
     console.log('📍 Ensuring districts exist...');
     await conn.execute(`
-      INSERT IGNORE INTO districts (id, name, state, zone, lat, lng) VALUES
-      (1, 'Pune',    'Maharashtra', 'West', 18.5204, 73.8567),
-      (2, 'Mumbai',  'Maharashtra', 'West', 19.0760, 72.8777),
-      (3, 'Surat',   'Gujarat',     'West', 21.1702, 72.8311),
-      (4, 'Satara',  'Maharashtra', 'West', 17.6805, 73.9918),
-      (5, 'Sangli',  'Maharashtra', 'West', 16.8524, 74.5815)
+      INSERT IGNORE INTO districts (id, name, state, zone) VALUES
+      (1, 'Pune',    'Maharashtra', 'West'),
+      (2, 'Mumbai',  'Maharashtra', 'West'),
+      (3, 'Surat',   'Gujarat',     'West'),
+      (4, 'Satara',  'Maharashtra', 'West'),
+      (5, 'Sangli',  'Maharashtra', 'West')
     `);
     console.log('   ✅ Districts OK');
 
