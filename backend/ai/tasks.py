@@ -18,14 +18,19 @@ def generate_forecast_task(self, hospital_id: int, blood_group: str, days: int):
     """Background task: fit Prophet and cache result in Redis."""
     try:
         # Get historical donation data from DB
-        conn = mysql.connector.connect(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
-            port=int(os.getenv('DB_PORT', '3306')),
-            user=os.getenv('DB_USER', 'root'),
-            password=os.getenv('DB_PASSWORD', ''),
-            database=os.getenv('DB_NAME', 'raktsetu'),
-            connect_timeout=5
-        )
+        conn_args = {
+            'host': os.getenv('DB_HOST', '127.0.0.1'),
+            'port': int(os.getenv('DB_PORT', '3306')),
+            'user': os.getenv('DB_USER', 'root'),
+            'password': os.getenv('DB_PASSWORD', ''),
+            'database': os.getenv('DB_NAME', 'raktsetu'),
+            'connect_timeout': 5
+        }
+        if os.getenv('DB_SSL') == 'true':
+            conn_args['ssl_disabled'] = False
+            if os.getenv('DB_SSL_REJECT_UNAUTHORIZED') == 'false':
+                conn_args['ssl_verify_cert'] = False
+        conn = mysql.connector.connect(**conn_args)
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """SELECT DATE(dn.donation_date) as ds, COUNT(*) as y

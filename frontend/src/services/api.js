@@ -59,7 +59,7 @@ api.interceptors.response.use(
 
         // Call the refresh endpoint with ONLY the JSON body (no extra headers)
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+          `${apiBaseUrl}/auth/refresh`,
           { refreshToken }
         );
 

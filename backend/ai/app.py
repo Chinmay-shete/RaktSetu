@@ -36,14 +36,19 @@ def require_internal_token():
 
 # ─── DB helper ───
 def get_db_connection():
-    return mysql.connector.connect(
-        host=settings.db_host,
-        port=settings.db_port,
-        user=settings.db_user,
-        password=settings.db_password,
-        database=settings.db_name,
-        connect_timeout=5
-    )
+    conn_args = {
+        'host': settings.db_host,
+        'port': settings.db_port,
+        'user': settings.db_user,
+        'password': settings.db_password,
+        'database': settings.db_name,
+        'connect_timeout': 5
+    }
+    if os.getenv('DB_SSL') == 'true':
+        conn_args['ssl_disabled'] = False
+        if os.getenv('DB_SSL_REJECT_UNAUTHORIZED') == 'false':
+            conn_args['ssl_verify_cert'] = False
+    return mysql.connector.connect(**conn_args)
 
 # ─── Health check ───
 @app.route('/api/v1/health', methods=['GET'])

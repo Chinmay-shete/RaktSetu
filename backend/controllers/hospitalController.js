@@ -270,16 +270,17 @@ async function getExpiryAlerts(req, res, next) {
       throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
     }
 
-    // Retrieve all batches for this hospital
+    // Retrieve active and soon-to-expire batches for this hospital (within 30 days)
     const [rows] = await pool.query(
-      'SELECT * FROM blood_batches WHERE hospital_id = ? ORDER BY expiry_date ASC',
+      `SELECT * FROM blood_batches 
+       WHERE hospital_id = ? 
+         AND expiry_date >= CURDATE()
+         AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+       ORDER BY expiry_date ASC`,
       [hospitalId]
     );
 
-    // Map and filter where daysRemaining <= 30
-    const alerts = rows
-      .map(serializeBatch)
-      .filter(batch => batch.daysRemaining <= 30);
+    const alerts = rows.map(serializeBatch);
 
     return res.status(200).json(alerts);
   } catch (error) {
