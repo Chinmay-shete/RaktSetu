@@ -78,15 +78,18 @@ const LocationPage = () => {
       },
       (error) => {
         setGpsLoading(false);
-        let errorMsg = 'Failed to detect location automatically.';
+        let errorMsg = 'No problem – enter your city manually below.';
         if (error.code === 1) {
-          errorMsg = 'Location permission was denied. Please allow location access or continue manually.';
+          errorMsg = 'Location access denied — no worries, just enter your city below.';
         } else if (error.code === 2) {
-          errorMsg = 'Location unavailable. Please make sure location services are enabled on your device.';
+          errorMsg = 'Location unavailable on this device. Enter your city manually below.';
         } else if (error.code === 3) {
-          errorMsg = 'Location detection timed out. Please enter details manually.';
+          errorMsg = 'Location timed out. Enter your details manually below.';
         }
         setGpsError(errorMsg);
+        setGpsEnabled(false);
+        // Auto-dismiss the error after 4 seconds so it doesn't linger
+        setTimeout(() => setGpsError(''), 4000);
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
     );

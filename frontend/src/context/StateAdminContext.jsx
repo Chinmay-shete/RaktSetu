@@ -55,13 +55,24 @@ export const StateAdminProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const [dashRes, transfersRes, alertsRes] = await Promise.all([
-        api.get('/state/dashboard'),
-        api.get('/state/transfers'),
-        api.get('/state/policy-alerts')
+      // Fetch each endpoint independently so a single failure doesn't block the whole dashboard
+      const safeGet = async (url, fallback) => {
+        try {
+          const res = await api.get(url);
+          return res.data;
+        } catch (err) {
+          console.warn(`[StateAdmin] Failed to fetch ${url}:`, err?.response?.status, err?.message);
+          return fallback;
+        }
+      };
+
+      const [dashData, transfersData, alertsData] = await Promise.all([
+        safeGet('/state/dashboard', { districtBreakdown: [] }),
+        safeGet('/state/transfers', []),
+        safeGet('/state/policy-alerts', [])
       ]);
 
-      const mappedDistricts = (dashRes.data.districtBreakdown || []).map(d => ({
+      const mappedDistricts = (dashData.districtBreakdown || []).map(d => ({
         id: d.id,
         name: d.name,
         zone: d.zone || 'Western',
@@ -79,7 +90,7 @@ export const StateAdminProvider = ({ children }) => {
         lng: d.lng ? parseFloat(d.lng) : null
       }));
 
-      const mappedTransfers = (transfersRes.data || []).map(t => ({
+      const mappedTransfers = (Array.isArray(transfersData) ? transfersData : []).map(t => ({
         id: t.id,
         from: t.fromDistrictName || 'Mumbai',
         to: t.toDistrictName || 'Solapur',
@@ -91,7 +102,7 @@ export const StateAdminProvider = ({ children }) => {
         reason: t.reason || 'Critical shortage alert'
       }));
 
-      const mappedAlerts = (alertsRes.data || []).map(a => ({
+      const mappedAlerts = (Array.isArray(alertsData) ? alertsData : []).map(a => ({
         id: a.id,
         districtId: a.districtId || 1,
         district: a.district_name || 'Pune',
@@ -110,6 +121,7 @@ export const StateAdminProvider = ({ children }) => {
         escalationReports: [],
       }));
     } catch (err) {
+      // Only show error if ALL requests failed completely
       console.error("Failed to fetch state data from API", err);
       setError("Failed to load state health oversight data. Please try again.");
     } finally {

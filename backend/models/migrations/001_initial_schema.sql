@@ -5,7 +5,9 @@ CREATE TABLE IF NOT EXISTS districts (
   name VARCHAR(100) NOT NULL,
   state VARCHAR(100) NOT NULL,
   officer_id INT DEFAULT NULL,
-  zone VARCHAR(50) DEFAULT NULL
+  zone VARCHAR(50) DEFAULT NULL,
+  lat DECIMAL(10, 7) DEFAULT NULL,
+  lng DECIMAL(11, 7) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Hospitals Table
@@ -43,6 +45,7 @@ CREATE TABLE IF NOT EXISTS users (
   status ENUM('Active', 'Suspended', 'Pending') NOT NULL DEFAULT 'Active',
   full_name VARCHAR(255) DEFAULT NULL,
   designation VARCHAR(255) DEFAULT NULL,
+  `state` VARCHAR(100) DEFAULT NULL,
   must_change_password TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

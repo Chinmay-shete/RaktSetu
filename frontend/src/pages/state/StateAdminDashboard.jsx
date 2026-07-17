@@ -121,9 +121,7 @@ const StateAdminDashboard = () => {
     return <Loader message="Loading state health statistics..." />;
   }
 
-  if (error) {
-    return <ErrorState message={error} onRetry={refetchData} />;
-  }
+  // Don't block the entire dashboard on error — show a soft warning banner instead
 
   const stateStock = BLOOD_GROUPS.map(g => ({
     group: g,
@@ -154,6 +152,20 @@ const StateAdminDashboard = () => {
           State-wide blood supply intelligence across all {districts.length} {stateName} districts. Monitor shortages, enforce policy KPIs, and coordinate cross-district interventions.
         </p>
       </section>
+
+      {/* Soft warning banner — shown when some data failed to load, doesn't block the page */}
+      {error && (
+        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-sm text-amber-800">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+          <span className="flex-1">{error}</span>
+          <button
+            onClick={refetchData}
+            className="text-amber-700 font-semibold hover:underline ml-2 shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content */}
