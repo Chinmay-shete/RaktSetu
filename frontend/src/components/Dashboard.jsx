@@ -52,8 +52,8 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  const fetchDashboardData = useCallback(async () => {
-    setIsLoading(true);
+  const fetchDashboardData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsLoading(true);
     setError(null);
     try {
       const [statsRes, donationsRes, urgentRes] = await Promise.all([
@@ -61,15 +61,21 @@ const Dashboard = () => {
         api.get('/donor/donations'),
         api.get('/donor/urgent-requests')
       ]);
-      setStats({
+      const newStats = {
         totalDonations:  statsRes.data.totalDonations,
         livesImpacted:   statsRes.data.livesImpacted,
         nextEligibleDate: statsRes.data.nextEligibleDate
           ? new Date(statsRes.data.nextEligibleDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
           : 'Eligible Now'
-      });
+      };
+      setStats(newStats);
       setDonations(donationsRes.data.donations || []);
       setUrgentRequests(urgentRes.data.requests || []);
+
+      // Cache the loaded dashboard data
+      localStorage.setItem('raktsetu_cached_stats', JSON.stringify(newStats));
+      localStorage.setItem('raktsetu_cached_donations', JSON.stringify(donationsRes.data.donations || []));
+      localStorage.setItem('raktsetu_cached_urgent', JSON.stringify(urgentRes.data.requests || []));
     } catch (err) {
       console.error('Dashboard load error', err);
       const status = err?.response?.status;
@@ -88,9 +94,11 @@ const Dashboard = () => {
         return;
       }
 
-      setError('Failed to load your dashboard. Please try again.');
+      if (!isSilent) {
+        setError('Failed to load your dashboard. Please try again.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!isSilent) setIsLoading(false);
     }
   }, [navigate]);
 
@@ -105,7 +113,26 @@ const Dashboard = () => {
     if (data.photoUrl) {
       setProfilePhoto(data.photoUrl);
     }
-    fetchDashboardData();
+
+    // Try loading from SWR cache first for instant render
+    const cachedStats = localStorage.getItem('raktsetu_cached_stats');
+    const cachedDonations = localStorage.getItem('raktsetu_cached_donations');
+    const cachedUrgent = localStorage.getItem('raktsetu_cached_urgent');
+
+    if (cachedStats && cachedDonations && cachedUrgent) {
+      try {
+        setStats(JSON.parse(cachedStats));
+        setDonations(JSON.parse(cachedDonations));
+        setUrgentRequests(JSON.parse(cachedUrgent));
+        setIsLoading(false); // Bypass loading spinner!
+        fetchDashboardData(true); // Silent validation in background
+        return;
+      } catch (e) {
+        // Parse error fallback to full load
+      }
+    }
+
+    fetchDashboardData(false);
   }, [navigate, fetchDashboardData]);
 
   const handlePledge = async (emergencyId) => {

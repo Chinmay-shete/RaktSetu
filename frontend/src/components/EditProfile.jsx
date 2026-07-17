@@ -42,7 +42,7 @@ const EditProfile = () => {
 
   /* ── Fetch profile on mount ─────────────────────────────────────── */
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfile = async (isSilent = false) => {
       try {
         const response = await api.get('/donor/profile');
         const data = response.data;
@@ -67,35 +67,74 @@ const EditProfile = () => {
         };
         setProfile(merged);
         setInitialProfile(merged);
+        localStorage.setItem('raktsetu_donor_profile', JSON.stringify(merged));
       } catch (err) {
         console.error('Failed to fetch donor profile', err);
         const stored = localStorage.getItem('raktsetu_donor_profile');
         if (stored) {
-          const data = JSON.parse(stored);
-          const merged = {
-            fullName:      data.fullName || '',
-            age:           data.age?.toString() || '',
-            gender:        data.gender || 'Male',
-            city:          data.city || '',
-            pincode:       data.pincode || '',
-            address:       data.address || '',
-            lat:           data.lat || 0,
-            lng:           data.lng || 0,
-            bloodGroup:    data.bloodGroup || 'O+',
-            weight:        data.weight ? data.weight.toString() : '',
-            chronicIllness: !!data.chronicIllness,
-            donorCode:     data.donorCode || '',
-            pastDonations: data.pastDonations || 0,
-            notifySMS:     true,
-            notifyWhatsApp: false,
-            notifyEmail:   true
-          };
-          setProfile(merged);
-          setInitialProfile(merged);
+          try {
+            const data = JSON.parse(stored);
+            const merged = {
+              fullName:      data.fullName || '',
+              age:           data.age?.toString() || '',
+              gender:        data.gender || 'Male',
+              city:          data.city || '',
+              pincode:       data.pincode || '',
+              address:       data.address || '',
+              lat:           data.lat || 0,
+              lng:           data.lng || 0,
+              bloodGroup:    data.bloodGroup || 'O+',
+              weight:        data.weight ? data.weight.toString() : '',
+              chronicIllness: !!data.chronicIllness,
+              donorCode:     data.donorCode || '',
+              pastDonations: data.pastDonations || 0,
+              notifySMS:     true,
+              notifyWhatsApp: false,
+              notifyEmail:   true
+            };
+            setProfile(merged);
+            setInitialProfile(merged);
+          } catch (e) {
+            // parsing error fallback
+          }
         }
       }
     };
-    fetchProfile();
+
+    // Stale-While-Revalidate for EditProfile
+    const stored = localStorage.getItem('raktsetu_donor_profile');
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        const merged = {
+          fullName:      data.fullName || '',
+          age:           data.age?.toString() || '',
+          gender:        data.gender || 'Male',
+          city:          data.city || '',
+          pincode:       data.pincode || '',
+          address:       data.address || '',
+          district:      data.district || '',
+          lat:           data.lat || 0,
+          lng:           data.lng || 0,
+          bloodGroup:    data.bloodGroup || 'O+',
+          weight:        data.weight ? data.weight.toString() : '',
+          chronicIllness: !!data.chronicIllness,
+          donorCode:     data.donorCode || '',
+          pastDonations: data.pastDonations || 0,
+          notifySMS:     true,
+          notifyWhatsApp: false,
+          notifyEmail:   true
+        };
+        setProfile(merged);
+        setInitialProfile(merged); // Instantly bypass loading spinner!
+        fetchProfile(true); // Silent validation in background
+        return;
+      } catch (e) {
+        // Fallback to loading screen fetch
+      }
+    }
+
+    fetchProfile(false);
   }, []);
 
   const [gpsLoading, setGpsLoading] = useState(false);
