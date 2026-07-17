@@ -7,7 +7,8 @@ import { Loader } from '../../../components/ui/Loader';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { Modal } from '../../../components/ui/Modal';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useAuth } from '../../../context/AuthContext';
 import {
   ArrowLeftRight,
   MapPin,
@@ -17,12 +18,14 @@ import {
   Send,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Truck
 } from 'lucide-react';
 
 export const TransferRequests = () => {
   const toast = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('Incoming');
   const [rejectId, setRejectId] = useState(null);
   const [rejectionRemarks, setRejectionRemarks] = useState('');
@@ -33,12 +36,31 @@ export const TransferRequests = () => {
     queryFn: hospitalApi.getTransferRequests
   });
 
+  const { data: hospitalsList = [] } = useQuery({
+    queryKey: ['hospitals'],
+    queryFn: async () => {
+      const res = await api.get('/landing/hospitals');
+      return res.data || [];
+    }
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }) => hospitalApi.updateTransferStatus(id, status),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['transfers'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success(`Request has been ${data.status === 'Approved' ? 'accepted and blood units reserved' : 'declined'}.`);
+      
+      const s = data.status || '';
+      if (s === 'accepted') {
+        toast.success("Request approved and blood units reserved for transit.");
+      } else if (s === 'completed') {
+        toast.success("Delivery confirmed! Blood inventory synchronized successfully.");
+      } else if (s === 'cancelled') {
+        toast.success("Transfer request cancelled and reservation released.");
+      } else {
+        toast.success("Transfer request declined.");
+      }
+      
       setRejectId(null);
       setRejectionRemarks('');
     },
@@ -50,7 +72,7 @@ export const TransferRequests = () => {
 
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
-      fromHospitalId: '2',
+      fromHospitalId: '',
       bloodGroup: 'O-',
       units: 5,
       priority: 'High',
@@ -80,9 +102,12 @@ export const TransferRequests = () => {
   if (isLoading) return <Loader message="Fetching transfer registry..." />;
   if (isError) return <ErrorState message="Could not load transfer request database." onRetry={refetch} />;
 
-  const filteredTransfers = transfers.filter(t => 
-    t.type?.toLowerCase() === activeTab.toLowerCase()
-  );
+  const filteredTransfers = transfers.filter(t => {
+    if (activeTab === 'Transit') {
+      return t.status?.toLowerCase() === 'accepted' || t.status?.toLowerCase() === 'completed';
+    }
+    return t.type?.toLowerCase() === activeTab.toLowerCase() && t.status?.toLowerCase() !== 'accepted' && t.status?.toLowerCase() !== 'completed';
+  });
 
   const handleApprove = (id) => {
     updateStatusMutation.mutate({ id, status: 'accepted' });
@@ -97,6 +122,10 @@ export const TransferRequests = () => {
   };
 
   const onReqSubmit = (data) => {
+    if (!data.fromHospitalId) {
+      toast.warning("Please select a target hospital");
+      return;
+    }
     createRequestMutation.mutate({
       fromHospitalId: parseInt(data.fromHospitalId, 10),
       bloodGroup: data.bloodGroup,
@@ -107,9 +136,10 @@ export const TransferRequests = () => {
   };
 
   const getPriorityStyle = (priority) => {
-    switch (priority) {
-      case 'Critical': return 'bg-[#BE1F2E]/10 text-[#BE1F2E] border-[#BE1F2E]/15';
-      case 'High': return 'bg-[#E07B00]/10 text-[#E07B00] border-[#E07B00]/15';
+    const p = priority?.toLowerCase();
+    switch (p) {
+      case 'critical': return 'bg-[#BE1F2E]/10 text-[#BE1F2E] border-[#BE1F2E]/15';
+      case 'high': return 'bg-[#E07B00]/10 text-[#E07B00] border-[#E07B00]/15';
       default: return 'bg-blue-500/10 text-blue-600 border-blue-500/15';
     }
   };
@@ -166,7 +196,7 @@ export const TransferRequests = () => {
 
       {/* Navigation tabs */}
       <div className="flex border-b border-[#EDE7E1] gap-6 text-sm font-bold select-none">
-        {['Incoming', 'Outgoing'].map(tab => (
+        {['Incoming', 'Outgoing', 'Transit'].map(tab => (
           <button type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -176,7 +206,7 @@ export const TransferRequests = () => {
                 : 'text-[#7A5F5F] hover:text-[#1A1210]'
             }`}
           >
-            {tab === 'Incoming' ? 'Incoming Requests' : 'My Requests (Outgoing)'}
+            {tab === 'Incoming' ? 'Incoming Requests' : tab === 'Outgoing' ? 'My Requests (Outgoing)' : 'Transit Tracker'}
             {activeTab === tab && (
               <motion.div
                 layoutId="active-tab-indicator"
@@ -187,83 +217,240 @@ export const TransferRequests = () => {
         ))}
       </div>
 
-      {filteredTransfers.length === 0 ? (
-        <EmptyState
-          title={`No ${activeTab.toLowerCase()} transfers`}
-          description={
-            activeTab === 'Incoming'
-              ? 'No external hospitals are currently requesting stock allocations from your bank.'
-              : 'You have not broadcasted any request notices to external banks yet.'
-          }
-          icon={ArrowLeftRight}
-        />
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-[#EDE7E1] overflow-hidden">
-          <div className="overflow-x-auto p-2">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#EDE7E1]">
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Hospital</th>
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Blood Group</th>
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Bags</th>
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Distance</th>
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Priority</th>
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Status</th>
-                  <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransfers.map(req => (
-                  <tr key={req.id} className="border-b border-[#EDE7E1] hover:bg-[#FAF8F5] transition-colors text-[13px]">
-                    <td className="px-4 py-4">
-                      <div>
-                        <p className="font-[600] text-[#1A1210]">{req.hospitalName}</p>
-                        {req.message && <p className="text-[10px] text-[#7A5F5F] italic mt-0.5">"{req.message}"</p>}
+      {activeTab === 'Transit' ? (
+        filteredTransfers.length === 0 ? (
+          <EmptyState
+            title="No Active Transits"
+            description="There are currently no blood transfer requests in transit or recently completed."
+            icon={ArrowLeftRight}
+          />
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {filteredTransfers.map(req => {
+              const transitTimeMins = Math.max(10, Math.round(req.distance * 1.2)); // 50km/h average speed (1.2 mins per km)
+              const isSender = req.type === 'incoming'; // if incoming, current hospital is target (from_hospital)
+              const isCompleted = req.status?.toLowerCase() === 'completed';
+              
+              const formatTime = (isoString) => {
+                if (!isoString) return '';
+                try {
+                  const d = new Date(isoString);
+                  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } catch {
+                  return '';
+                }
+              };
+
+              // Timeline milestones
+              const milestones = [
+                { title: 'Request Placed', desc: `Submitted on ${req.date} ${formatTime(req.createdAt)}`, done: true },
+                { title: 'Approved & Dispatched', desc: `Approved by supplying hospital`, done: req.status !== 'pending' },
+                { title: 'In Transit', desc: `Ambulance traveling ${req.distance} km · Est. ${transitTimeMins} mins`, done: isCompleted, active: req.status === 'accepted' },
+                { title: 'Delivered & Received', desc: isCompleted ? 'Verified and added to inventory' : 'Awaiting receipt confirmation', done: isCompleted }
+              ];
+
+              return (
+                <div key={req.id} className="bg-white rounded-3xl p-6 border border-[#EDE7E1] shadow-sm flex flex-col gap-6 hover:shadow-md transition-all duration-300">
+                  <div className="flex justify-between items-start border-b border-[#EDE7E1] pb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[11px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-[#BE1F2E]/10 text-[#BE1F2E]">
+                          {req.bloodGroup}
+                        </span>
+                        <span className="text-xs font-bold text-[#5A5A5A]">
+                          {req.unitsRequired} Bags
+                        </span>
+                        {req.priority && (
+                          <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${getPriorityStyle(req.priority)}`}>
+                            {req.priority}
+                          </span>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 bg-[#BE1F2E]/10 text-[#BE1F2E] text-[11px] font-[700] rounded uppercase tracking-wider">
-                        {req.bloodGroup}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-[#5A5A5A] font-semibold">{req.unitsRequired} Units</td>
-                    <td className="px-4 py-4 text-[#5A5A5A]">{req.distance} km</td>
-                    <td className="px-4 py-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${getPriorityStyle(req.priority)}`}>
-                        {req.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">{getStatusBadge(req.status)}</td>
-                    <td className="px-4 py-4 text-right">
-                      {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'incoming' && (
-                        <div className="flex gap-2 justify-end">
-                          <button type="button"
-                            onClick={() => setRejectId(req.id)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full border border-[#EDE7E1] text-[11px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
-                          >
-                            <ThumbsDown className="h-3 w-3" /> Decline
-                          </button>
-                          <button type="button"
-                            onClick={() => handleApprove(req.id)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full bg-[#22A06B] hover:bg-[#1B8459] text-white text-[11px] font-bold cursor-pointer transition-colors"
-                          >
-                            <ThumbsUp className="h-3 w-3" /> Approve
-                          </button>
+                      <h3 className="font-serif text-lg font-bold text-[#1A1210]">
+                        {isSender ? `To: ${req.hospitalName}` : `From: ${req.hospitalName}`}
+                      </h3>
+                      <p className="text-xs text-[#7A5F5F] flex items-center gap-1 mt-1 font-semibold">
+                        <MapPin className="h-3 w-3" /> Distance: {req.distance} km
+                      </p>
+                    </div>
+
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
+                      isCompleted 
+                        ? 'bg-[#22A06B]/10 text-[#22A06B]' 
+                        : 'bg-[#E07B00]/10 text-[#E07B00] animate-pulse'
+                    }`}>
+                      {isCompleted ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Completed
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="h-3.5 w-3.5" /> In Transit
+                        </>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Amazon style vertical timeline */}
+                  <div className="flex flex-col gap-5 relative pl-8 border-l border-[#EDE7E1] ml-4">
+                    {milestones.map((ms, index) => {
+                      const isActive = ms.active;
+                      const isDone = ms.done;
+                      
+                      return (
+                        <div key={index} className="relative">
+                          {/* Circle Marker */}
+                          <div className={`absolute -left-[41px] top-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isDone 
+                              ? 'bg-[#22A06B] border-[#22A06B] text-white shadow-sm'
+                              : isActive
+                                ? 'bg-white border-[#E07B00] text-[#E07B00] shadow-sm animate-pulse'
+                                : 'bg-white border-[#EDE7E1] text-[#A8A0A0]'
+                          }`}>
+                            {isDone ? (
+                              <svg className="w-3.5 h-3.5 animate-fade-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : index === 2 ? (
+                              <Truck className="h-3.5 w-3.5" />
+                            ) : (
+                              <span className="text-[10px] font-bold">{index + 1}</span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col">
+                            <span className={`text-xs font-bold ${
+                              isDone ? 'text-[#1A1210]' : isActive ? 'text-[#E07B00]' : 'text-[#A8A0A0]'
+                            }`}>
+                              {ms.title}
+                            </span>
+                            <span className="text-[11px] text-[#7A5F5F] mt-0.5 leading-relaxed">
+                              {ms.desc}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                      {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'outgoing' && (
-                        <span className="text-[11px] text-[#7A5F5F] font-semibold italic">Broadcast active...</span>
-                      )}
-                      {req.status?.toLowerCase() !== 'pending' && (
-                        <span className="text-[11px] text-[#9A9A9A]">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      );
+                    })}
+                  </div>
+
+                  {/* Ambulance progress bar */}
+                  {!isCompleted && (
+                    <div className="bg-[#FAF8F5] border border-[#EDE7E1] rounded-2xl p-4 flex flex-col gap-3 shadow-inner">
+                      <div className="flex justify-between items-center text-xxs font-extrabold text-[#7A5F5F] uppercase tracking-wider">
+                        <span>Ambulance Dispatched (50 km/h)</span>
+                        <span>Est. arrival: {transitTimeMins} mins</span>
+                      </div>
+                      <div className="relative w-full h-2 bg-[#EDE7E1] rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: "20%" }}
+                          animate={{ width: "65%" }}
+                          transition={{ duration: 2, ease: "easeInOut" }}
+                          className="absolute top-0 bottom-0 left-0 bg-[#E07B00] rounded-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action button */}
+                  {!isCompleted && !isSender && (
+                    <button type="button"
+                      onClick={() => updateStatusMutation.mutate({ id: req.id, status: 'completed' })}
+                      className="w-full btn-primary bg-[#22A06B] hover:bg-[#1B8459] border-[#22A06B] flex items-center justify-center gap-1.5 shadow-sm text-white"
+                      style={{ minHeight: 40, fontSize: 13, cursor: 'pointer' }}
+                    >
+                      <CheckCircle2 className="h-4 w-4" /> Confirm Receipt & Update Inventory
+                    </button>
+                  )}
+                  
+                  {!isCompleted && isSender && (
+                    <div className="p-3 bg-[#FAF8F5] border border-dashed border-[#EDE7E1] rounded-2xl text-center text-xs font-semibold text-[#7A5F5F]">
+                      Ambulance courier is currently en route.
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </div>
+        )
+      ) : (
+        filteredTransfers.length === 0 ? (
+          <EmptyState
+            title={`No ${activeTab.toLowerCase()} transfers`}
+            description={
+              activeTab === 'Incoming'
+                ? 'No external hospitals are currently requesting stock allocations from your bank.'
+                : 'You have not broadcasted any request notices to external banks yet.'
+            }
+            icon={ArrowLeftRight}
+          />
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#EDE7E1] overflow-hidden">
+            <div className="overflow-x-auto p-2">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[#EDE7E1]">
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Hospital</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Blood Group</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Bags</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Distance</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Priority</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F]">Status</th>
+                    <th className="px-4 py-3 text-[11px] font-[600] uppercase tracking-widest text-[#7A5F5F] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransfers.map(req => (
+                    <tr key={req.id} className="border-b border-[#EDE7E1] hover:bg-[#FAF8F5] transition-colors text-[13px]">
+                      <td className="px-4 py-4">
+                        <div>
+                          <p className="font-[600] text-[#1A1210]">{req.hospitalName}</p>
+                          {req.message && <p className="text-[10px] text-[#7A5F5F] italic mt-0.5">"{req.message}"</p>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 bg-[#BE1F2E]/10 text-[#BE1F2E] text-[11px] font-[700] rounded uppercase tracking-wider">
+                          {req.bloodGroup}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-[#5A5A5A] font-semibold">{req.unitsRequired} Units</td>
+                      <td className="px-4 py-4 text-[#5A5A5A]">{req.distance} km</td>
+                      <td className="px-4 py-4">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${getPriorityStyle(req.priority)}`}>
+                          {req.priority}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">{getStatusBadge(req.status)}</td>
+                      <td className="px-4 py-4 text-right">
+                        {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'incoming' && (
+                          <div className="flex gap-2 justify-end">
+                            <button type="button"
+                              onClick={() => setRejectId(req.id)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full border border-[#EDE7E1] text-[11px] font-bold text-[#5A5A5A] hover:bg-[#FAF8F5] cursor-pointer transition-colors"
+                            >
+                              <ThumbsDown className="h-3 w-3" /> Decline
+                            </button>
+                            <button type="button"
+                              onClick={() => handleApprove(req.id)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1  rounded-full bg-[#22A06B] hover:bg-[#1B8459] text-white text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              <ThumbsUp className="h-3 w-3" /> Approve
+                            </button>
+                          </div>
+                        )}
+                        {req.status?.toLowerCase() === 'pending' && activeTab.toLowerCase() === 'outgoing' && (
+                          <span className="text-[11px] text-[#7A5F5F] font-semibold italic animate-pulse">Broadcast active...</span>
+                        )}
+                        {req.status?.toLowerCase() !== 'pending' && (
+                          <span className="text-[11px] text-[#9A9A9A]">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
       )}
 
       {/* Decline Remarks Modal */}
@@ -319,10 +506,12 @@ export const TransferRequests = () => {
               {...register("fromHospitalId", { required: true })}
               className="input-field custom-select"
             >
-              <option value="2">Pune Life Care Hospital</option>
-              <option value="3">Mumbai General Hospital</option>
-              <option value="4">Surat Municipal Hospital</option>
-              <option value="1">Koregaon Park City Life Hospital</option>
+              <option value="">— Select Target Bank —</option>
+              {hospitalsList
+                .filter(h => String(h.id) !== String(user?.hospital_id || user?.hospitalId))
+                .map(h => (
+                  <option key={h.id} value={h.id}>{h.name} ({h.city})</option>
+                ))}
             </select>
           </div>
 

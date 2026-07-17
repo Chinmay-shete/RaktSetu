@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, UserPlus, ShieldAlert, CheckCircle2, Loader2, AlertCircle, Copy } from 'lucide-react';
+import { UserPlus, ShieldAlert, CheckCircle2, Loader2, AlertCircle, Copy } from 'lucide-react';
 import { useToast } from '../../../hooks/useToast';
 import api from '../../../services/api';
 

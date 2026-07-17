@@ -1,23 +1,73 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'raktsetu',
+// SSL config helper — Aiven MySQL requires SSL=true
+// Set DB_SSL=true in production (Render env vars)
+// Set DB_SSL_REJECT_UNAUTHORIZED=false only if you don't have the CA cert
+function getSslConfig() {
+  if (process.env.DB_SSL !== 'true') return false;
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false';
+  return { rejectUnauthorized };
+}
+
+// Write pool (primary DB)
+const writePool = mysql.createPool({
+  host:               process.env.DB_HOST || '127.0.0.1',
+  port:               parseInt(process.env.DB_PORT || '3306', 10),
+  user:               process.env.DB_USER || process.env.DB_USERNAME || 'root',
+  password:           process.env.DB_PASSWORD || '',
+  database:           process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu',
+  ssl:                getSslConfig(),
   waitForConnections: true,
-  connectionLimit: parseInt(process.env.DB_POOL_SIZE || '10', 10),
-  queueLimit: 0,
-  // Add support for spatial coordinates if needed, but standard query results are fine
+  connectionLimit:    parseInt(process.env.DB_POOL_SIZE || '50', 10),
+  queueLimit:         200,
+  enableKeepAlive:    true,
+  keepAliveInitialDelay: 0
 });
+
+// Read pool (replica — use same DB host until you add a real replica)
+const readPool = mysql.createPool({
+  host:               process.env.DB_READ_HOST || process.env.DB_HOST || '127.0.0.1',
+  port:               parseInt(process.env.DB_PORT || '3306', 10),
+  user:               process.env.DB_USER || process.env.DB_USERNAME || 'root',
+  password:           process.env.DB_PASSWORD || '',
+  database:           process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu',
+  ssl:                getSslConfig(),
+  waitForConnections: true,
+  connectionLimit:    parseInt(process.env.DB_READ_POOL_SIZE || '100', 10),
+  queueLimit:         500,
+  enableKeepAlive:    true,
+  keepAliveInitialDelay: 0
+});
+
+
+// Helper: use readPool for SELECT, writePool for INSERT/UPDATE/DELETE
+const db = {
+  query: (sql, params) => {
+    const isWrite = /^\s*(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|REPLACE)/i.test(sql);
+    return isWrite ? writePool.query(sql, params) : readPool.query(sql, params);
+  },
+  transaction: async (callback) => {
+    const conn = await writePool.getConnection();
+    await conn.beginTransaction();
+    try {
+      const result = await callback(conn);
+      await conn.commit();
+      conn.release();
+      return result;
+    } catch (err) {
+      await conn.rollback();
+      conn.release();
+      throw err;
+    }
+  }
+};
 
 // Test connection function
 async function testConnection() {
   let connection;
   try {
-    connection = await pool.getConnection();
+    connection = await writePool.getConnection();
     console.log('Database connection pool established successfully.');
     return true;
   } catch (error) {
@@ -29,6 +79,10 @@ async function testConnection() {
 }
 
 module.exports = {
-  pool,
+  pool: writePool,
+  writePool,
+  readPool,
+  db,
   testConnection
 };
+

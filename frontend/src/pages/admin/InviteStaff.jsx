@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useHospital } from '../../context/HospitalContext';
-import { UserPlus, Copy, ShieldAlert, Check, AlertCircle, History, Loader2 } from 'lucide-react';
+import { UserPlus, Copy, ShieldAlert, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 

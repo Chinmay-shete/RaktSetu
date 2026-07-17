@@ -1,21 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
 import { hospitalApi } from '../../services/api';
 import { Loader } from '../../components/ui/Loader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { 
-  Activity, 
-  AlertTriangle, 
-  Clock, 
-  Users, 
-  Plus, 
-  Truck,
-  CheckCircle,
-  FileText,
-  UserPlus,
-  Sliders,
-  Sparkles
+import {
+  CheckCircle
 } from 'lucide-react';
 
 function useCountUp(target, duration = 1200) {

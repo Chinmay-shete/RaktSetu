@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { hospitalApi } from '../../services/api';
 import { Loader } from '../../components/ui/Loader';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { 
-  Users, 
   Mail, 
   Phone, 
   UserCheck, 
-  Shield, 
-  Clock, 
-  AlertCircle,
+  Clock,
   RefreshCw
 } from 'lucide-react';
 

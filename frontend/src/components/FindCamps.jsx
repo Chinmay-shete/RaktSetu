@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -259,6 +259,11 @@ const FindCamps = () => {
 
   // Fetch real camps and hospitals in the district from the database
   useEffect(() => {
+    if (!activeState || !activeDistrict) {
+      setDbCamps([]);
+      setDbHospitals([]);
+      return;
+    }
     let isMounted = true;
     const fetchData = async () => {
       setApiLoading(true);
@@ -396,21 +401,32 @@ const FindCamps = () => {
     const initialZoom = hasLocation ? 13 : 6;
     mapInstance.current.setView(baseCoords, initialZoom);
 
-    console.log('[FindCamps MARKERS UPDATE]', {
-      activeDistrict,
-      activeState,
-      baseCoords,
-      itemsCount: activeItems.length
-    });
+
 
     // Populate markers
+    const coordinateCounts = {};
     activeItems.forEach(item => {
+      let lat = item.lat;
+      let lng = item.lng;
+      const coordKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+
+      if (coordinateCounts[coordKey]) {
+        const count = coordinateCounts[coordKey];
+        const angle = count * (2 * Math.PI / 8); // Spread in 8 directions
+        const radius = 0.00015 * count; // Spiral outwards slightly
+        lat += Math.sin(angle) * radius;
+        lng += Math.cos(angle) * radius;
+        coordinateCounts[coordKey] = count + 1;
+      } else {
+        coordinateCounts[coordKey] = 1;
+      }
+
       const popupContent = `
         <strong>${item.isCamp ? '🔴 Camp' : '🏥 Hospital'}: ${item.name}</strong><br/>
         ${item.location}<br/>
         <span style="color: #BE1F2E; font-weight: bold;">${item.distanceStr}</span>
       `;
-      L.marker([item.lat, item.lng])
+      L.marker([lat, lng])
         .bindPopup(popupContent)
         .addTo(markersGroup.current);
     });

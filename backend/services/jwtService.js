@@ -1,23 +1,24 @@
 const jwt = require('jsonwebtoken');
 const { ApiError } = require('../middleware/errorHandler');
 const crypto = require('crypto');
+const { logger } = require('./logger');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const JWT_OTP_SECRET = process.env.JWT_OTP_SECRET;
 
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  console.error('CRITICAL ERROR: JWT_SECRET environment variable is missing or shorter than 32 characters.');
+  logger.error('CRITICAL ERROR: JWT_SECRET environment variable is missing or shorter than 32 characters.');
   process.exit(1);
 }
 
 if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 32) {
-  console.error('CRITICAL ERROR: JWT_REFRESH_SECRET environment variable is missing or shorter than 32 characters.');
+  logger.error('CRITICAL ERROR: JWT_REFRESH_SECRET environment variable is missing or shorter than 32 characters.');
   process.exit(1);
 }
 
 if (!JWT_OTP_SECRET || JWT_OTP_SECRET.length < 32) {
-  console.error('CRITICAL ERROR: JWT_OTP_SECRET environment variable is missing or shorter than 32 characters.');
+  logger.error('CRITICAL ERROR: JWT_OTP_SECRET environment variable is missing or shorter than 32 characters.');
   process.exit(1);
 }
 

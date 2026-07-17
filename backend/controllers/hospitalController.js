@@ -3,13 +3,10 @@ const { ApiError } = require('../middleware/errorHandler');
 const crypto = require('crypto');
 const { hashPassword } = require('../services/passwordService');
 const { sendEmail } = require('../services/emailService');
+const redis = require('../config/redis');
 
-// Memory caches for idempotency and forecasts
+// Memory caches for idempotency
 const idempotencyKeys = new Map();
-const forecastCache = {
-  forecast: null,
-  forecastExpiry: null
-};
 
 /**
  * Helper to calculate days remaining from expiry date to today.
@@ -273,16 +270,17 @@ async function getExpiryAlerts(req, res, next) {
       throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
     }
 
-    // Retrieve all batches for this hospital
+    // Retrieve active and soon-to-expire batches for this hospital (within 30 days)
     const [rows] = await pool.query(
-      'SELECT * FROM blood_batches WHERE hospital_id = ? ORDER BY expiry_date ASC',
+      `SELECT * FROM blood_batches 
+       WHERE hospital_id = ? 
+         AND expiry_date >= CURDATE()
+         AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+       ORDER BY expiry_date ASC`,
       [hospitalId]
     );
 
-    // Map and filter where daysRemaining <= 30
-    const alerts = rows
-      .map(serializeBatch)
-      .filter(batch => batch.daysRemaining <= 30);
+    const alerts = rows.map(serializeBatch);
 
     return res.status(200).json(alerts);
   } catch (error) {
@@ -377,6 +375,16 @@ async function searchDonors(req, res, next) {
     }
 
     const { bloodGroup, location } = req.query;
+    const cacheKey = `donors:search:${hospitalId}:${bloodGroup || 'all'}:${location || 'all'}`;
+    let cached;
+    try {
+      cached = await redis.get(cacheKey);
+    } catch (err) {
+      console.warn('[Redis] Connection failed on searchDonors:', err.message);
+    }
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
 
     let query = `
       SELECT d.id, d.user_id, d.full_name, d.blood_group, d.city, d.pincode, d.last_donated_date, u.phone, u.email 
@@ -421,6 +429,12 @@ async function searchDonors(req, res, next) {
         status
       };
     });
+
+    try {
+      await redis.setex(cacheKey, 300, JSON.stringify(serialized));
+    } catch (err) {
+      // Ignore write errors
+    }
 
     return res.status(200).json(serialized);
   } catch (error) {
@@ -711,6 +725,7 @@ async function listTransfers(req, res, next) {
         status: row.status,
         message: row.message,
         date: row.created_at ? new Date(row.created_at).toISOString().split('T')[0] : null,
+        createdAt: row.created_at,
         type
       };
     });
@@ -827,15 +842,32 @@ async function updateTransferStatus(req, res, next) {
 
     const transfer = transferRows[0];
 
-    // Access check: only supplying hospital can approve/reject
-    if (String(transfer.from_hospital) !== String(hospitalId)) {
-      throw new ApiError('Only the supplying hospital can update status', 403, 'FORBIDDEN');
+    if (status === transfer.status) {
+      throw new ApiError(`Transfer request is already ${transfer.status} and cannot be modified`, 400, 'INVALID_STATUS_TRANSITION');
     }
 
-    if (transfer.status !== 'pending') {
-      throw new ApiError(`Transfer request is already ${transfer.status}`, 400, 'INVALID_STATUS_TRANSITION');
+    // State transitions and authorization checks
+    if (transfer.status === 'pending') {
+      // Only supplying hospital can accept or reject
+      if (String(transfer.from_hospital) !== String(hospitalId)) {
+        throw new ApiError('Only the supplying hospital can approve or reject a pending request', 403, 'FORBIDDEN');
+      }
+      if (status !== 'accepted' && status !== 'rejected') {
+        throw new ApiError('Pending requests can only be transitioned to accepted or rejected', 400, 'INVALID_STATUS_TRANSITION');
+      }
+    } else if (transfer.status === 'accepted') {
+      // Only receiving hospital can mark as completed or cancelled
+      if (String(transfer.to_hospital) !== String(hospitalId)) {
+        throw new ApiError('Only the receiving hospital can confirm delivery (complete) or cancel', 403, 'FORBIDDEN');
+      }
+      if (status !== 'completed' && status !== 'cancelled') {
+        throw new ApiError('Accepted requests can only be transitioned to completed or cancelled', 400, 'INVALID_STATUS_TRANSITION');
+      }
+    } else {
+      throw new ApiError(`Transfer request is already ${transfer.status} and cannot be modified`, 400, 'INVALID_STATUS_TRANSITION');
     }
 
+    // Process logic based on target status
     if (status === 'accepted') {
       // Find matching inventory batch of supplying hospital (FEFO: First Expired First Out)
       const [batches] = await connection.query(
@@ -861,6 +893,70 @@ async function updateTransferStatus(req, res, next) {
         'UPDATE blood_batches SET reserved_units = reserved_units + ? WHERE id = ?',
         [transfer.units, batch.id]
       );
+    } else if (status === 'completed') {
+      // Transition from accepted ➔ completed
+      // 1. Find supplying hospital's batch where the units were reserved
+      const [batches] = await connection.query(
+        `SELECT * FROM blood_batches 
+         WHERE hospital_id = ? AND blood_group = ? AND reserved_units >= ? 
+         ORDER BY expiry_date ASC LIMIT 1 
+         FOR UPDATE`,
+        [transfer.from_hospital, transfer.blood_group, transfer.units]
+      );
+
+      if (batches.length > 0) {
+        // Decrement units and reserved_units from that batch
+        await connection.query(
+          `UPDATE blood_batches 
+           SET units = units - ?, reserved_units = reserved_units - ? 
+           WHERE id = ?`,
+          [transfer.units, transfer.units, batches[0].id]
+        );
+      } else {
+        // Fallback: search for any batch with enough units
+        const [fallbackBatches] = await connection.query(
+          `SELECT * FROM blood_batches 
+           WHERE hospital_id = ? AND blood_group = ? AND units >= ? 
+           ORDER BY expiry_date ASC LIMIT 1 
+           FOR UPDATE`,
+          [transfer.from_hospital, transfer.blood_group, transfer.units]
+        );
+        if (fallbackBatches.length > 0) {
+          await connection.query(
+            `UPDATE blood_batches SET units = units - ? WHERE id = ?`,
+            [transfer.units, fallbackBatches[0].id]
+          );
+        }
+      }
+
+      // 2. Fetch sender name for logging
+      const [senderHospital] = await connection.query(
+        'SELECT name FROM hospitals WHERE id = ?',
+        [transfer.from_hospital]
+      );
+      const senderName = senderHospital[0]?.name || 'Partner Hospital';
+
+      // 3. Add to receiving hospital's inventory
+      await connection.query(
+        `INSERT INTO blood_batches (hospital_id, blood_group, units, reserved_units, collection_date, expiry_date, source, remarks)
+         VALUES (?, ?, ?, 0, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 35 DAY), 'Transfer', ?)`,
+        [transfer.to_hospital, transfer.blood_group, transfer.units, `Received from ${senderName}`]
+      );
+    } else if (status === 'cancelled' && transfer.status === 'accepted') {
+      // Release reservation in the supplying hospital's inventory
+      const [batches] = await connection.query(
+        `SELECT * FROM blood_batches 
+         WHERE hospital_id = ? AND blood_group = ? AND reserved_units >= ? 
+         ORDER BY expiry_date ASC LIMIT 1 
+         FOR UPDATE`,
+        [transfer.from_hospital, transfer.blood_group, transfer.units]
+      );
+      if (batches.length > 0) {
+        await connection.query(
+          `UPDATE blood_batches SET reserved_units = reserved_units - ? WHERE id = ?`,
+          [transfer.units, batches[0].id]
+        );
+      }
     }
 
     await connection.query(
@@ -888,34 +984,122 @@ async function updateTransferStatus(req, res, next) {
  */
 async function getForecastGateway(req, res, next) {
   try {
-    const hospitalId = req.user.hospital_id || 'all';
-    const now = Date.now();
-    const cacheKey = `forecast_${hospitalId}`;
+    const hospitalId = req.user.hospital_id || 1; // Fallback to 1 if not linked
+    const days = 7;
+    const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+    const combinedCacheKey = `forecast:combined:${hospitalId}:${days}`;
     
-    if (forecastCache[cacheKey] && forecastCache[`${cacheKey}_expiry`] && now < forecastCache[`${cacheKey}_expiry`]) {
-      return res.status(200).json(forecastCache[cacheKey]);
+    // 1. Check Redis cache
+    let cachedCombined;
+    try {
+      cachedCombined = await redis.get(combinedCacheKey);
+    } catch (err) {
+      console.warn('[Redis] Connection failed on getForecastGateway:', err.message);
+    }
+    if (cachedCombined) {
+      return res.status(200).json(JSON.parse(cachedCombined));
     }
 
     const aiServiceUrl = process.env.AI_SERVICE_URL;
-    const url = hospitalId !== 'all' 
-      ? `${aiServiceUrl}/api/v1/forecast?hospitalId=${hospitalId}`
-      : `${aiServiceUrl}/api/v1/forecast`;
 
-    const response = await fetch(url, {
-      headers: {
-        'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+    // 2. Dispatch Celery tasks for all 8 blood groups in parallel
+    const taskPromises = bloodGroups.map(async (bg) => {
+      const response = await fetch(`${aiServiceUrl}/api/v1/forecast`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+        },
+        body: JSON.stringify({
+          hospital_id: hospitalId,
+          blood_group: bg,
+          days: days
+        })
+      });
+      if (!response.ok) {
+        throw new ApiError(`Failed to dispatch forecast task for ${bg}`, 502, 'AI_SERVICE_ERROR');
       }
+      return { bg, data: await response.json() };
     });
-    if (!response.ok) {
-      throw new ApiError('Failed to fetch forecast from AI service', 502, 'AI_SERVICE_ERROR');
+
+    const dispatched = await Promise.all(taskPromises);
+
+    // 3. Poll Celery task statuses until all are completed
+    const finalForecasts = {};
+    for (const item of dispatched) {
+      const { bg, data } = item;
+      if (data.status === 'ready') {
+        finalForecasts[bg] = data.data;
+      } else if (data.status === 'generating') {
+        const taskId = data.task_id;
+        let completed = false;
+        let attempts = 0;
+        let taskResult = null;
+
+        while (!completed && attempts < 30) { // Max 30 seconds timeout
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          attempts++;
+          
+          const statusResponse = await fetch(`${aiServiceUrl}/api/v1/forecast/status/${taskId}`, {
+            headers: {
+              'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+            }
+          });
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            if (statusData.status === 'ready') {
+              taskResult = statusData.data;
+              completed = true;
+            } else if (statusData.status === 'error') {
+              throw new ApiError(`Background forecast task failed for ${bg}`, 502, 'AI_SERVICE_ERROR');
+            }
+          }
+        }
+        if (!completed) {
+          throw new ApiError(`Background forecast task timed out for ${bg}`, 502, 'AI_SERVICE_ERROR');
+        }
+        finalForecasts[bg] = taskResult;
+      }
     }
 
-    const data = await response.json();
+    // 4. Combine separate blood group forecasts into a unified frontend shape
+    const combinedDaily = {};
+    const bloodGroupBreakdown = {};
 
-    forecastCache[cacheKey] = data;
-    forecastCache[`${cacheKey}_expiry`] = now + (24 * 60 * 60 * 1000); // Cache for 24h
+    for (const bg of bloodGroups) {
+      const bgData = finalForecasts[bg];
+      const forecastList = bgData?.forecast || [];
+      
+      let totalBgUnits = 0;
+      for (const day of forecastList) {
+        const dateStr = day.date;
+        if (!combinedDaily[dateStr]) {
+          combinedDaily[dateStr] = { date: dateStr, predictedUnits: 0, lowerBound: 0, upperBound: 0 };
+        }
+        combinedDaily[dateStr].predictedUnits += day.predictedUnits;
+        combinedDaily[dateStr].lowerBound += day.lowerBound;
+        combinedDaily[dateStr].upperBound += day.upperBound;
+        totalBgUnits += day.predictedUnits;
+      }
+      bloodGroupBreakdown[bg] = totalBgUnits;
+    }
 
-    return res.status(200).json(data);
+    const sortedDates = Object.keys(combinedDaily).sort();
+    const combinedForecastList = sortedDates.map(dateStr => combinedDaily[dateStr]);
+
+    const resultPayload = {
+      forecast: combinedForecastList,
+      bloodGroupBreakdown: bloodGroupBreakdown
+    };
+
+    // Cache combined result for 24 hours
+    try {
+      await redis.setex(combinedCacheKey, 86400, JSON.stringify(resultPayload));
+    } catch (err) {
+      // Ignore write errors
+    }
+
+    return res.status(200).json(resultPayload);
   } catch (error) {
     next(error);
   }
@@ -1028,27 +1212,48 @@ async function updateThresholds(req, res, next) {
         const hospital = hospRows[0];
         const pointStr = `POINT(${hospital.lng} ${hospital.lat})`;
 
+        // Calculate bounding box coordinates for 10km radius to utilize spatial index
+        const radiusKm = 10;
+        const latitude = parseFloat(hospital.lat);
+        const longitude = parseFloat(hospital.lng);
+        const deltaLat = radiusKm / 111.045;
+        const deltaLng = radiusKm / (111.045 * Math.cos(latitude * Math.PI / 180));
+        const minLat = latitude - deltaLat;
+        const maxLat = latitude + deltaLat;
+        const minLng = longitude - deltaLng;
+        const maxLng = longitude + deltaLng;
+        const envelopeStr = `POLYGON((${minLng} ${minLat}, ${maxLng} ${minLat}, ${maxLng} ${maxLat}, ${minLng} ${maxLat}, ${minLng} ${minLat}))`;
+
         // Eligible donors within 10km (90-day cooldown)
         const [eligibleDonors] = await pool.query(
           `SELECT user_id, full_name 
            FROM donors
            WHERE available_for_donation = 1
              AND (last_donated_date IS NULL OR DATEDIFF(CURDATE(), last_donated_date) >= 90)
+             AND ST_Within(location, ST_GeomFromText(?, 4326))
              AND ST_Distance_Sphere(ST_GeomFromText(?, 4326), location) <= 10000`,
-          [pointStr]
+          [envelopeStr, pointStr]
         );
 
-        for (const donor of eligibleDonors) {
-          await pool.query(
-            `INSERT INTO notifications (user_id, hospital_id, title, message, type, is_read)
-             VALUES (?, ?, 'Urgent Blood Donation Request', ?, 'alert', 0)`,
-            [
+        if (eligibleDonors.length > 0) {
+          const insertValues = [];
+          const insertParams = [];
+          for (const donor of eligibleDonors) {
+            insertValues.push('(?, ?, ?, ?, ?, 0)');
+            insertParams.push(
               donor.user_id,
               hospitalId,
-              `Dear ${donor.full_name}, ${hospital.name} is running critically low on blood stock. Please consider visiting us to donate!`
-            ]
+              'Urgent Blood Donation Request',
+              `Dear ${donor.full_name}, ${hospital.name} is running critically low on blood stock. Please consider visiting us to donate!`,
+              'alert'
+            );
+            notifiedCount++;
+          }
+          await pool.query(
+            `INSERT INTO notifications (user_id, hospital_id, title, message, type, is_read)
+             VALUES ${insertValues.join(', ')}`,
+            insertParams
           );
-          notifiedCount++;
         }
       }
     }

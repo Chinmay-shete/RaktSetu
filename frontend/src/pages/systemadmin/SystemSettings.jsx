@@ -1,5 +1,5 @@
 import { useSystemAdmin } from '../../context/SystemAdminContext';
-import { ToggleLeft, ToggleRight, Download, Server, RefreshCw, Radio } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Download, RefreshCw, Radio } from 'lucide-react';
 
 const MOCK_BACKUP_HISTORY = [
   { id: 1, timestamp: '2026-06-20 04:00:00', type: 'Automated', size: '1.24 MB', status: 'Completed' },

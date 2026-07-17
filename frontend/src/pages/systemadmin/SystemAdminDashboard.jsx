@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
 import { 
   LineChart, 
@@ -15,8 +14,7 @@ import {
   Users, 
   Cpu, 
   ArrowRight,
-  RefreshCw,
-  AlertOctagon
+  RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Loader } from '../../components/ui/Loader';

@@ -19,8 +19,37 @@ if (process.env.NODE_ENV !== 'test') {
 const { testConnection } = require('./config/db');
 const apiRouter = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
+const healthRouter = require('./routes/healthRoutes');
+
+// Graceful shutdown helper
+const shutdown = async (signal, activeServer) => {
+  console.log(`${signal} received — shutting down gracefully`);
+  if (activeServer) {
+    activeServer.close(() => {
+      console.log('HTTP server closed');
+    });
+  }
+  // Close MySQL pool
+  try {
+    const { pool } = require('./config/db');
+    await pool.end();
+    console.log('Database pool closed');
+  } catch (err) {
+    console.error('Error closing database pool:', err);
+  }
+  // Close Redis client
+  try {
+    const redis = require('./config/redis');
+    await redis.quit();
+    console.log('Redis client closed');
+  } catch (err) {
+    console.error('Error closing Redis client:', err);
+  }
+  process.exit(0);
+};
 
 const app = express();
+app.set('trust proxy', true);
 app.use(helmet());
 const PORT = process.env.PORT || 5000;
 
@@ -38,20 +67,39 @@ if (!process.env.AI_SERVICE_URL) {
 }
 
 const allowedOrigins = corsOriginEnv
-  ? corsOriginEnv.split(',')
+  // Trim each entry and strip any trailing slashes so env-var typos don't break CORS
+  ? corsOriginEnv.split(',').map(o => o.trim().replace(/\/+$/, ''))
   : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175',
      'http://localhost:5176', 'http://localhost:5177', 'http://localhost:8080',
      'http://127.0.0.1:5173', 'http://127.0.0.1:5174', 'http://127.0.0.1:5175', 'http://127.0.0.1:3000'];
+
+// Build an expanded set that also allows "www." variants of every allowed origin
+const allowedOriginsSet = new Set(allowedOrigins);
+allowedOrigins.forEach(o => {
+  try {
+    const url = new URL(o);
+    // Add www. variant if not already present
+    if (!url.hostname.startsWith('www.')) {
+      allowedOriginsSet.add(`${url.protocol}//www.${url.hostname}${url.port ? ':' + url.port : ''}`);
+    }
+    // Add non-www variant if a www. origin was listed
+    if (url.hostname.startsWith('www.')) {
+      allowedOriginsSet.add(`${url.protocol}//${url.hostname.replace(/^www\./, '')}${url.port ? ':' + url.port : ''}`);
+    }
+  } catch (_) { /* ignore malformed entries */ }
+});
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     // Allow any localhost or private IP port in development (handles Vite port shifting and mobile testing)
-    if (/^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)) {
+    if (/^http:\/\/(localhost|127\.0\.0\.1|\[::1\]|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Normalize the incoming origin (strip trailing slash) before comparing
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+    if (allowedOriginsSet.has(normalizedOrigin)) {
       return callback(null, true);
     }
     console.error(`[CORS REJECTED] Origin: ${origin}`);
@@ -59,6 +107,7 @@ app.use(cors({
   },
   credentials: true
 }));
+
 
 // Custom Rate Limiting Middleware (100 req/min)
 const rateLimitWindowMs = 60 * 1000;
@@ -111,6 +160,27 @@ if (process.env.NODE_ENV === 'production') {
 
 // Register routing prefix
 app.use('/api/v1', apiRouter);
+app.use('/', healthRouter);
+
+// ── Keep-alive ping (production only) ──────────────────────────────────────
+// Render free tier spins down after 15 min of inactivity, causing a 30-60s
+// cold start for the first user. This self-ping every 14 minutes keeps the
+// server warm so OTP emails are sent instantly.
+if (process.env.NODE_ENV === 'production') {
+  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
+  setInterval(async () => {
+    try {
+      const http = require('https');
+      http.get(`${SELF_URL}/health`, (res) => {
+        console.log(`[Keep-alive] Self-ping OK — status ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.warn('[Keep-alive] Self-ping failed:', err.message);
+      });
+    } catch (_) {}
+  }, 14 * 60 * 1000); // every 14 minutes
+  console.log('[Keep-alive] Self-ping enabled — server will stay warm on Render.');
+}
+
 
 // Register global error handler
 app.use(errorHandler);
@@ -122,9 +192,27 @@ async function startServer() {
     console.warn('Warning: Database connection could not be verified at startup.');
   }
 
+  // Automatically run database migrations and safe seed on startup
+  try {
+    const { runMigrations } = require('./run_migrations');
+    console.log('[Startup] Running database migrations...');
+    await runMigrations();
+    console.log('[Startup] Database migrations applied successfully.');
+
+    const { safeSeed } = require('./safe_seed');
+    console.log('[Startup] Ensuring core seed data exists...');
+    await safeSeed();
+    console.log('[Startup] Core seed data ensured.');
+  } catch (err) {
+    console.error('[Startup] Failed to run migrations/seed on startup:', err.message);
+  }
+
+  let activeServer = null;
+
   const server = app.listen(PORT, () => {
+    activeServer = server;
     console.log(`RaktSetu API Core Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
-    console.log(`Health check is available at: http://localhost:${PORT}/api/v1/health`);
+    console.log(`Health check is available at: http://localhost:${PORT}/health`);
   });
 
   server.on('error', (error) => {
@@ -134,8 +222,9 @@ async function startServer() {
       console.log(`Attempting to start server on fallback port ${fallbackPort}...`);
       
       const fallbackServer = app.listen(fallbackPort, () => {
+        activeServer = fallbackServer;
         console.log(`RaktSetu API Core Server successfully running on fallback port ${fallbackPort}.`);
-        console.log(`Health check is available at: http://localhost:${fallbackPort}/api/v1/health`);
+        console.log(`Health check is available at: http://localhost:${fallbackPort}/health`);
       });
       
       fallbackServer.on('error', (err) => {
@@ -146,6 +235,17 @@ async function startServer() {
       console.error('Server error:', error.message);
       process.exit(1);
     }
+  });
+
+  process.on('SIGTERM', () => shutdown('SIGTERM', activeServer));
+  process.on('SIGINT',  () => shutdown('SIGINT', activeServer));
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    shutdown('uncaughtException', activeServer);
+  });
+  process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+    shutdown('unhandledRejection', activeServer);
   });
 }
 

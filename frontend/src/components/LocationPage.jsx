@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -76,10 +76,19 @@ const LocationPage = () => {
           }
         } catch { /* silent */ }
       },
-      () => {
+      (error) => {
         setGpsLoading(false);
-        setGpsError('Location access denied. You can still continue manually.');
-      }
+        let errorMsg = 'Failed to detect location automatically.';
+        if (error.code === 1) {
+          errorMsg = 'Location permission was denied. Please allow location access or continue manually.';
+        } else if (error.code === 2) {
+          errorMsg = 'Location unavailable. Please make sure location services are enabled on your device.';
+        } else if (error.code === 3) {
+          errorMsg = 'Location detection timed out. Please enter details manually.';
+        }
+        setGpsError(errorMsg);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
     );
   };
 
@@ -107,7 +116,8 @@ const LocationPage = () => {
         bloodGroup: bloodGroupNormalized,
         weight: existing.weight ? parseFloat(existing.weight) : null,
         chronicIllness,
-        lastDonatedDate
+        lastDonatedDate,
+        pastDonations: donatedBefore ? parseInt(donationTimes || '0', 10) : 0
       };
       
       await api.post('/donor/profile', profileData);
@@ -122,19 +132,6 @@ const LocationPage = () => {
           longitude = parsedLoc.longitude || 0.0;
         } catch (e) {
           // ignore
-        }
-      }
-      
-      if (latitude === 0.0 && longitude === 0.0 && city) {
-        try {
-          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', India')}&format=json&limit=1`);
-          const geoData = await geoRes.json();
-          if (geoData && geoData.length > 0) {
-            latitude = parseFloat(geoData[0].lat);
-            longitude = parseFloat(geoData[0].lon);
-          }
-        } catch (e) {
-          console.error("Geocoding failed, using local fallback.", e);
         }
       }
 
@@ -173,7 +170,24 @@ const LocationPage = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to submit profile to backend:', err);
-      alert('Failed to save profile. Please try again.');
+      const status = err?.response?.status;
+      const code   = err?.response?.data?.code;
+
+      if (status === 401) {
+        // Session expired mid-flow — clear auth and go to login
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('raktsetu_')) localStorage.removeItem(k); });
+        navigate('/login');
+        return;
+      }
+
+      if (code === 'PROFILE_EXISTS') {
+        // Profile was already created (double-submit) — skip ahead to dashboard
+        localStorage.setItem('raktsetu_donor_authenticated', 'true');
+        navigate('/dashboard');
+        return;
+      }
+
+      alert('Failed to save profile. Please check your connection and try again.');
     }
   };
 

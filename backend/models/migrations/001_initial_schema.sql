@@ -1,7 +1,5 @@
-CREATE DATABASE IF NOT EXISTS raktsetu;
-USE raktsetu;
-
 -- 1. Districts Table
+
 CREATE TABLE IF NOT EXISTS districts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -117,7 +115,9 @@ CREATE TABLE IF NOT EXISTS donors (
   available_for_donation TINYINT(1) NOT NULL DEFAULT 1,
   lat DECIMAL(10, 8) NOT NULL DEFAULT 0.0,
   lng DECIMAL(11, 8) NOT NULL DEFAULT 0.0,
-  location POINT NOT NULL SRID 4326
+  location POINT NOT NULL SRID 4326,
+  address VARCHAR(255) DEFAULT NULL,
+  district VARCHAR(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 9. Donation Camps Table
@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- 14. OTP Codes Table (Auth Support)
 CREATE TABLE IF NOT EXISTS otp_codes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  phone VARCHAR(20) NOT NULL,
+  phone VARCHAR(255) NOT NULL,
   code CHAR(6) DEFAULT NULL,
   session_id VARCHAR(255) DEFAULT NULL,
   purpose ENUM('registration', 'login') NOT NULL DEFAULT 'registration',

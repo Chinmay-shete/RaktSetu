@@ -6,16 +6,11 @@ import { useToast } from '../../hooks/useToast';
 import { hospitalApi } from '../../services/api';
 import {
   Bell,
-  Search,
-  Menu,
-  RefreshCw,
   AlertTriangle,
-  Flame,
   ArrowLeftRight,
   PlusCircle,
   Check,
-  CheckCheck,
-  LogOut
+  CheckCheck
 } from 'lucide-react';
 
 export const Navbar = ({ onMenuOpen }) => {
@@ -129,23 +124,6 @@ export const Navbar = ({ onMenuOpen }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#FFFFFF] border border-[#EDE7E1] shadow-inner w-48 focus-within:w-56 transition-all duration-300">
-          <Search className="h-4 w-4 text-[#7A5F5F]" />
-          <input
-            type="text"
-            placeholder="Search portal..."
-            className="bg-transparent border-none outline-none text-xs w-full text-[#1A1210] placeholder-[#A8A0A0]"
-          />
-        </div>
-
-        <button aria-label="Refresh" type="button"
-          onClick={handleSync}
-          disabled={isSyncing}
-          className="p-2.5 rounded-2xl bg-white border border-[#EDE7E1] shadow-sm text-[#5A5A5A] hover:text-[#BE1F2E] cursor-pointer transition-all active:scale-95 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-[#BE1F2E]" : ""}`} />
-        </button>
-
         <div className="static sm:relative" ref={notifRef}>
           <button aria-label="Notifications" type="button"
             onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -241,18 +219,6 @@ export const Navbar = ({ onMenuOpen }) => {
             </span>
           )}
         </div>
-
-        {/* Logout button */}
-        <button type="button" 
-          onClick={() => {
-            logout();
-            navigate('/login');
-          }}
-          className="flex items-center gap-1.5 text-[#5A5A5A] hover:text-[#C8102E] text-xs font-bold transition-colors uppercase tracking-wider cursor-pointer"
-        >
-          <LogOut size={16} />
-          <span className="hidden sm:inline">Logout</span>
-        </button>
       </div>
     </header>
   );

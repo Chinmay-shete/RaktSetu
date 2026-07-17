@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, CheckCircle2, Lock, ArrowRight, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';

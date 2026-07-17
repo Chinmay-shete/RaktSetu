@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useToast } from '../hooks/useToast';
@@ -52,8 +52,8 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  const fetchDashboardData = useCallback(async () => {
-    setIsLoading(true);
+  const fetchDashboardData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsLoading(true);
     setError(null);
     try {
       const [statsRes, donationsRes, urgentRes] = await Promise.all([
@@ -61,22 +61,46 @@ const Dashboard = () => {
         api.get('/donor/donations'),
         api.get('/donor/urgent-requests')
       ]);
-      setStats({
+      const newStats = {
         totalDonations:  statsRes.data.totalDonations,
         livesImpacted:   statsRes.data.livesImpacted,
         nextEligibleDate: statsRes.data.nextEligibleDate
           ? new Date(statsRes.data.nextEligibleDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
           : 'Eligible Now'
-      });
+      };
+      setStats(newStats);
       setDonations(donationsRes.data.donations || []);
       setUrgentRequests(urgentRes.data.requests || []);
+
+      // Cache the loaded dashboard data
+      localStorage.setItem('raktsetu_cached_stats', JSON.stringify(newStats));
+      localStorage.setItem('raktsetu_cached_donations', JSON.stringify(donationsRes.data.donations || []));
+      localStorage.setItem('raktsetu_cached_urgent', JSON.stringify(urgentRes.data.requests || []));
     } catch (err) {
       console.error('Dashboard load error', err);
-      setError('Failed to load your dashboard. Please try again.');
+      const status = err?.response?.status;
+      const code   = err?.response?.data?.code;
+
+      if (status === 401) {
+        // Token expired and refresh failed — send to login
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('raktsetu_')) localStorage.removeItem(k); });
+        navigate('/login');
+        return;
+      }
+
+      if (status === 404 || code === 'PROFILE_NOT_FOUND') {
+        // Donor completed auth but never finished profile setup
+        navigate('/profile-setup');
+        return;
+      }
+
+      if (!isSilent) {
+        setError('Failed to load your dashboard. Please try again.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!isSilent) setIsLoading(false);
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const stored = localStorage.getItem('raktsetu_donor_profile');
@@ -89,7 +113,26 @@ const Dashboard = () => {
     if (data.photoUrl) {
       setProfilePhoto(data.photoUrl);
     }
-    fetchDashboardData();
+
+    // Try loading from SWR cache first for instant render
+    const cachedStats = localStorage.getItem('raktsetu_cached_stats');
+    const cachedDonations = localStorage.getItem('raktsetu_cached_donations');
+    const cachedUrgent = localStorage.getItem('raktsetu_cached_urgent');
+
+    if (cachedStats && cachedDonations && cachedUrgent) {
+      try {
+        setStats(JSON.parse(cachedStats));
+        setDonations(JSON.parse(cachedDonations));
+        setUrgentRequests(JSON.parse(cachedUrgent));
+        setIsLoading(false); // Bypass loading spinner!
+        fetchDashboardData(true); // Silent validation in background
+        return;
+      } catch (e) {
+        // Parse error fallback to full load
+      }
+    }
+
+    fetchDashboardData(false);
   }, [navigate, fetchDashboardData]);
 
   const handlePledge = async (emergencyId) => {

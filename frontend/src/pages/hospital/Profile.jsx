@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api, { hospitalApi } from '../../services/api';
-import { Loader } from '../../components/ui/Loader';
 import { 
   User, 
   Building, 
