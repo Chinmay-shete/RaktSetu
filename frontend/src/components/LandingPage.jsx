@@ -246,7 +246,7 @@ const LandingPage = () => {
                   className="py-3 text-[13px] font-[700] rounded-2xl transition-all cursor-pointer border"
                   style={{ color: '#C8102E', borderColor: '#C8102E', background: 'transparent' }}
                 >
-                  Hospital Login
+                  Login
                 </button>
                 <button type="button"
                   onClick={() => { navigate('/register-donor'); setMobileMenuOpen(false); }}
