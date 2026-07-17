@@ -177,8 +177,17 @@ const EditProfile = () => {
       },
       (error) => {
         setGpsLoading(false);
-        toast.error('Failed to get location. Please allow browser location access.');
-      }
+        let errorMsg = 'Failed to get location.';
+        if (error.code === 1) {
+          errorMsg = 'Location permission was denied. Please allow location access in your browser.';
+        } else if (error.code === 2) {
+          errorMsg = 'Location unavailable. Make sure location services are enabled on your device.';
+        } else if (error.code === 3) {
+          errorMsg = 'Location request timed out. Please enter details manually.';
+        }
+        toast.error(errorMsg);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
     );
   };
 
