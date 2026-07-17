@@ -4,6 +4,7 @@ import api from '../services/api';
 import DonorNavbar from './layout/DonorNavbar';
 import DonorFooter from './layout/DonorFooter';
 import { useToast } from '../hooks/useToast';
+import { Loader } from './ui/Loader';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const EditProfile = () => {
     weight: '',
     chronicIllness: false,
     donorCode: '',
+    pastDonations: 0,
     notifySMS: true,
     notifyWhatsApp: false,
     notifyEmail: true
@@ -58,6 +60,7 @@ const EditProfile = () => {
           weight:        data.weight ? data.weight.toString() : '',
           chronicIllness: !!data.chronicIllness,
           donorCode:     data.donorCode || '',
+          pastDonations: data.pastDonations || 0,
           notifySMS:     true,
           notifyWhatsApp: false,
           notifyEmail:   true
@@ -82,6 +85,7 @@ const EditProfile = () => {
             weight:        data.weight ? data.weight.toString() : '',
             chronicIllness: !!data.chronicIllness,
             donorCode:     data.donorCode || '',
+            pastDonations: data.pastDonations || 0,
             notifySMS:     true,
             notifyWhatsApp: false,
             notifyEmail:   true
@@ -216,6 +220,7 @@ const EditProfile = () => {
         age:           parseInt(profile.age, 10),
         gender:        profile.gender,
         chronicIllness: profile.chronicIllness,
+        pastDonations: parseInt(profile.pastDonations || '0', 10),
         availableForDonation: true
       };
       if (profile.weight !== '' && profile.weight !== null) {
@@ -244,6 +249,7 @@ const EditProfile = () => {
         gender:        data.gender || profile.gender,
         weight:        data.weight ? data.weight.toString() : '',
         chronicIllness: data.chronicIllness ?? profile.chronicIllness,
+        pastDonations: data.pastDonations ?? profile.pastDonations,
         city:          profile.city,
         pincode:       profile.pincode,
         address:       profile.address,
@@ -283,6 +289,14 @@ const EditProfile = () => {
     const label = sign === '-' ? 'Negative' : 'Positive';
     return { type, sign, label };
   };
+
+  if (initialProfile === null) {
+    return (
+      <div className="bg-[#fbf9f6] min-h-screen flex items-center justify-center">
+        <Loader message="Loading profile details..." />
+      </div>
+    );
+  }
 
   const bgParts = getBloodGroupParts(profile.bloodGroup);
 
@@ -354,7 +368,7 @@ const EditProfile = () => {
                   />
                   {errors.fullName && touched.fullName && <p className="text-[12px] text-[#BE1F2E] mt-1">{errors.fullName}</p>}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label htmlFor="age-2" className="text-[13px] font-[600] text-[#685c59]">Age</label>
                     <input id="age-2"
@@ -382,6 +396,17 @@ const EditProfile = () => {
                       <option>Non-binary</option>
                       <option>Prefer not to say</option>
                     </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="past-donations-3" className="text-[13px] font-[600] text-[#685c59]">Past Donations</label>
+                    <input id="past-donations-3"
+                      name="pastDonations"
+                      type="number"
+                      min="0"
+                      value={profile.pastDonations}
+                      onChange={handleChange}
+                      className="w-full h-[48px] border border-[#D8D0CA] rounded-xl px-4 text-[15px] bg-[#faf8f5] outline-none"
+                    />
                   </div>
                 </div>
               </div>

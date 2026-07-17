@@ -107,7 +107,8 @@ const LocationPage = () => {
         bloodGroup: bloodGroupNormalized,
         weight: existing.weight ? parseFloat(existing.weight) : null,
         chronicIllness,
-        lastDonatedDate
+        lastDonatedDate,
+        pastDonations: donatedBefore ? parseInt(donationTimes || '0', 10) : 0
       };
       
       await api.post('/donor/profile', profileData);
@@ -122,19 +123,6 @@ const LocationPage = () => {
           longitude = parsedLoc.longitude || 0.0;
         } catch (e) {
           // ignore
-        }
-      }
-      
-      if (latitude === 0.0 && longitude === 0.0 && city) {
-        try {
-          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', India')}&format=json&limit=1`);
-          const geoData = await geoRes.json();
-          if (geoData && geoData.length > 0) {
-            latitude = parseFloat(geoData[0].lat);
-            longitude = parseFloat(geoData[0].lon);
-          }
-        } catch (e) {
-          console.error("Geocoding failed, using local fallback.", e);
         }
       }
 
