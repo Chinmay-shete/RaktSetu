@@ -101,14 +101,14 @@ Create a new MySQL database service on Aiven's free tier. Here is how to configu
     *   **Build Command:** `npm run build`
     *   **Output Directory:** `dist`
 5.  Add the following **Environment Variables**:
-    *   `VITE_API_URL` = `https://<node-backend>.onrender.com/api/v1` *(your Render Node backend URL)*
-    *   `VITE_API_BASE_URL` = `https://<node-backend>.onrender.com/api/v1`
-    *   `VITE_FIREBASE_API_KEY` = *(your Firebase Web API Key)*
-    *   `VITE_FIREBASE_AUTH_DOMAIN` = *(your Firebase project domain)*
-    *   `VITE_FIREBASE_PROJECT_ID` = *(your Firebase project ID)*
-    *   `VITE_FIREBASE_STORAGE_BUCKET` = *(your Firebase storage bucket)*
-    *   `VITE_FIREBASE_MESSAGING_SENDER_ID` = *(your Firebase messaging sender ID)*
-    *   `VITE_FIREBASE_APP_ID` = *(your Firebase app ID)*
+    *   `VITE_API_URL` = `https://raktsetu-backend-fnai.onrender.com/api/v1`
+    *   `VITE_API_BASE_URL` = `https://raktsetu-backend-fnai.onrender.com/api/v1`
+    *   `VITE_FIREBASE_API_KEY` = `AIzaSyAdg3DV3NdTKx35iWzGEHX_iNT9XOaloEM`
+    *   `VITE_FIREBASE_AUTH_DOMAIN` = `racktsetu.firebaseapp.com`
+    *   `VITE_FIREBASE_PROJECT_ID` = `racktsetu`
+    *   `VITE_FIREBASE_STORAGE_BUCKET` = `racktsetu.firebasestorage.app`
+    *   `VITE_FIREBASE_MESSAGING_SENDER_ID` = `819176633862`
+    *   `VITE_FIREBASE_APP_ID` = `1:819176633862:web:241e2c8de231c8280eb587`
 6.  Click **Deploy**.
 
 ---
