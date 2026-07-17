@@ -150,7 +150,9 @@ CREATE TABLE donors (
   available_for_donation TINYINT(1) NOT NULL DEFAULT 1,
   lat DECIMAL(10, 8) NOT NULL DEFAULT 0.0,
   lng DECIMAL(11, 8) NOT NULL DEFAULT 0.0,
-  location POINT NOT NULL SRID 4326
+  location POINT NOT NULL SRID 4326,
+  address VARCHAR(255) DEFAULT NULL,
+  district VARCHAR(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 9. Donation Camps Table
