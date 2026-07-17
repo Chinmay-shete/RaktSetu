@@ -1,7 +1,5 @@
-CREATE DATABASE IF NOT EXISTS raktsetu;
-USE raktsetu;
-
 -- 1. Districts Table
+
 CREATE TABLE IF NOT EXISTS districts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
