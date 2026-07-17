@@ -181,7 +181,12 @@ async function approveOrRejectHospital(req, res, next) {
         const adminEmail = adminUserRows[0].email;
         const adminName = adminUserRows[0].full_name || 'Hospital Representative';
         const hospitalName = hospRows[0].name;
-        const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
+        const getFrontendOrigin = () => {
+          const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+          const firstOrigin = corsOrigin.split(',')[0].trim();
+          return firstOrigin.replace(/\/+$/, '');
+        };
+        const loginUrl = `${getFrontendOrigin()}/login`;
         const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
         const approvalHtml = `
@@ -478,7 +483,12 @@ async function updateUser(req, res, next) {
 
         // Send welcome email to district officer
         if (currentUser.email) {
-          const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
+          const getFrontendOrigin = () => {
+            const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+            const firstOrigin = corsOrigin.split(',')[0].trim();
+            return firstOrigin.replace(/\/+$/, '');
+          };
+          const loginUrl = `${getFrontendOrigin()}/login`;
           const designationLabel = currentUser.designation || 'District Health Officer';
           const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -766,7 +776,12 @@ async function createStateAdmin(req, res, next) {
     );
 
     // ── Send welcome / appointment letter email ──────────────────────────────
-    const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/state/login`;
+    const getFrontendOrigin = () => {
+      const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+      const firstOrigin = corsOrigin.split(',')[0].trim();
+      return firstOrigin.replace(/\/+$/, '');
+    };
+    const loginUrl = `${getFrontendOrigin()}/state/login`;
     const designationLabel = designation || 'State Health Coordinator';
     const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
