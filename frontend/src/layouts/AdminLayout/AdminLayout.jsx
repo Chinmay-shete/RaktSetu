@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHospital } from '../../context/HospitalContext';
 import { 
   LayoutDashboard, 
@@ -9,7 +9,9 @@ import {
   Sliders, 
   LogOut, 
   Bell, 
+  Menu, 
   X, 
+  Activity, 
   Tent, 
   Settings,
   Users

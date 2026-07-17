@@ -1,3 +1,4 @@
+import React from 'react';
 import { AlertCircle, RotateCcw } from 'lucide-react';
 
 export const ErrorState = ({ 

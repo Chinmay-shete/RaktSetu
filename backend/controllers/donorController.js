@@ -38,7 +38,6 @@ function serializeProfile(donor) {
     availableForDonation: !!donor.available_for_donation,
     address: donor.address || null,
     district: donor.district || null,
-    pastDonations: donor.past_donations || 0,
     createdAt: donor.created_at,
     updatedAt: donor.updated_at
   };
@@ -76,16 +75,16 @@ async function createProfile(req, res, next) {
       throw new ApiError('Donor profile already exists', 409, 'PROFILE_EXISTS');
     }
 
-    const { fullName, age, gender, bloodGroup, weight, chronicIllness, lastDonatedDate, pastDonations } = req.body;
+    const { fullName, age, gender, bloodGroup, weight, chronicIllness, lastDonatedDate } = req.body;
     const finalLastDonated = lastDonatedDate && lastDonatedDate.trim() !== '' ? lastDonatedDate : null;
 
     // Insert donor profile with default coordinates (0, 0)
     const [result] = await connection.query(
       `INSERT INTO donors (
         user_id, full_name, age, gender, city, pincode, blood_group,
-        weight, chronic_illness, last_donated_date, past_donations, lat, lng, location
+        weight, chronic_illness, last_donated_date, lat, lng, location
       )
-      VALUES (?, ?, ?, ?, 'Unknown', '000000', ?, ?, ?, ?, ?, 0.0, 0.0, ST_GeomFromText('POINT(0 0)', 4326))`,
+      VALUES (?, ?, ?, ?, 'Unknown', '000000', ?, ?, ?, ?, 0.0, 0.0, ST_GeomFromText('POINT(0 0)', 4326))`,
       [
         req.user.id,
         fullName,
@@ -94,8 +93,7 @@ async function createProfile(req, res, next) {
         bloodGroup,
         weight,
         chronicIllness ? 1 : 0,
-        finalLastDonated,
-        parseInt(pastDonations || '0', 10)
+        finalLastDonated
       ]
     );
 
@@ -135,7 +133,7 @@ async function updateProfile(req, res, next) {
       throw new ApiError('Donor profile not found', 404, 'PROFILE_NOT_FOUND');
     }
 
-    const { fullName, age, gender, weight, chronicIllness, availableForDonation, lastDonatedDate, pastDonations } = req.body;
+    const { fullName, age, gender, weight, chronicIllness, availableForDonation, lastDonatedDate } = req.body;
     
     const updates = [];
     const params = [];
@@ -167,10 +165,6 @@ async function updateProfile(req, res, next) {
     if (lastDonatedDate !== undefined) {
       updates.push('last_donated_date = ?');
       params.push(lastDonatedDate && lastDonatedDate.trim() !== '' ? lastDonatedDate : null);
-    }
-    if (pastDonations !== undefined) {
-      updates.push('past_donations = ?');
-      params.push(parseInt(pastDonations || '0', 10));
     }
 
     if (updates.length === 0) {
@@ -289,8 +283,8 @@ async function getStats(req, res, next) {
       [donor.id]
     );
 
-    const totalDonations = parseInt(rows[0].donation_count, 10) + (donor.past_donations || 0);
-    const totalUnits = parseInt(rows[0].total_units, 10) + (donor.past_donations || 0);
+    const totalDonations = parseInt(rows[0].donation_count, 10);
+    const totalUnits = parseInt(rows[0].total_units, 10);
     const livesImpacted = totalUnits * 3;
 
     let lastDonatedDate = donor.last_donated_date;

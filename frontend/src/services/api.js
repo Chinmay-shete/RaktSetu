@@ -1,24 +1,8 @@
 import axios from 'axios';
 
-const rawApiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-if (!rawApiBaseUrl) {
+const apiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+if (!apiBaseUrl) {
   throw new Error('VITE_API_URL or VITE_API_BASE_URL is not set.');
-}
-
-// Safety normalization:
-// 1. Strip any trailing slashes from the configured URL
-// 2. If the URL does not end with /api/v1, append it automatically
-//    This prevents a 404 if the env var was set to /v1 instead of /api/v1 on Vercel
-let apiBaseUrl = rawApiBaseUrl.replace(/\/+$/, ''); // strip trailing slash
-if (!apiBaseUrl.endsWith('/api/v1')) {
-  // If it ends with /v1 (missing the /api prefix) → fix it
-  if (apiBaseUrl.endsWith('/v1')) {
-    apiBaseUrl = apiBaseUrl.replace(/\/v1$/, '/api/v1');
-    console.warn('[API] VITE_API_URL was missing the /api prefix. Auto-corrected to:', apiBaseUrl);
-  } else if (!apiBaseUrl.includes('/api/v1')) {
-    apiBaseUrl = `${apiBaseUrl}/api/v1`;
-    console.warn('[API] VITE_API_URL did not include /api/v1. Auto-appended. Result:', apiBaseUrl);
-  }
 }
 
 const api = axios.create({
@@ -27,7 +11,6 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
 
 // Request Interceptor — attach JWT to every outgoing request
 api.interceptors.request.use(
@@ -59,7 +42,7 @@ api.interceptors.response.use(
 
         // Call the refresh endpoint with ONLY the JSON body (no extra headers)
         const { data } = await axios.post(
-          `${apiBaseUrl}/auth/refresh`,
+          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
           { refreshToken }
         );
 

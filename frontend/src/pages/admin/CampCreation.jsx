@@ -99,16 +99,7 @@ export const CampCreation = () => {
               <div className="relative">
                 <input id="date-2"
                   type="date"
-                  {...register("date", { 
-                    required: "Date is required",
-                    validate: (value) => {
-                      const selected = new Date(value);
-                      const tomorrow = new Date();
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      tomorrow.setHours(0, 0, 0, 0);
-                      return selected >= tomorrow || 'Camp date must be at least 1 day in the future';
-                    }
-                  })}
+                  {...register("date", { required: "Date is required" })}
                   className={`input-field !pl-10 ${errors.date ? 'error' : ''}`}
                 />
                 <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7A5F5F]" />

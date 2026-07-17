@@ -98,7 +98,6 @@ async function issueTokens(user) {
  * POST /auth/send-otp
  */
 async function sendOtp(req, res, next) {
-  console.log('[DEBUG] POST /auth/send-otp reached with body:', req.body);
   try {
     const { phone, email, purpose = 'registration' } = req.body;
     const target = phone || email;
@@ -496,15 +495,6 @@ async function logout(req, res, next) {
       [parseInt(payload.sub, 10)]
     );
 
-    const redis = require('../config/redis');
-    const userId = parseInt(payload.sub, 10);
-    try {
-      await redis.del(`user:${userId}`);
-      await redis.del(`token_version:${userId}`);
-    } catch (redisErr) {
-      console.warn('[Redis] Connection failed on logout:', redisErr.message);
-    }
-
     return res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
     next(error);
@@ -696,14 +686,6 @@ async function changePassword(req, res, next) {
       'UPDATE users SET password_hash = ?, must_change_password = 0, token_version = token_version + 1 WHERE id = ?',
       [hashedNew, userId]
     );
-
-    const redis = require('../config/redis');
-    try {
-      await redis.del(`user:${userId}`);
-      await redis.del(`token_version:${userId}`);
-    } catch (redisErr) {
-      console.warn('[Redis] Connection failed on password change:', redisErr.message);
-    }
 
     return res.status(200).json({
       success: true,

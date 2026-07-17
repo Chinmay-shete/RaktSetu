@@ -181,16 +181,7 @@ async function approveOrRejectHospital(req, res, next) {
         const adminEmail = adminUserRows[0].email;
         const adminName = adminUserRows[0].full_name || 'Hospital Representative';
         const hospitalName = hospRows[0].name;
-        const getFrontendOrigin = (req) => {
-          const origin = req.headers.origin || req.get('origin');
-          if (origin) {
-            return origin.split(',')[0].trim().replace(/\/+$/, '');
-          }
-          const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-          const firstOrigin = corsOrigin.split(',')[0].trim();
-          return firstOrigin.replace(/\/+$/, '');
-        };
-        const loginUrl = `${getFrontendOrigin(req)}/login`;
+        const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
         const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
         const approvalHtml = `
@@ -287,15 +278,11 @@ async function approveOrRejectHospital(req, res, next) {
 </body>
 </html>`;
 
-        try {
-          await sendEmail({
-            to: adminEmail,
-            subject: `RaktSetu – Hospital Application Approved: ${hospitalName}`,
-            html: approvalHtml
-          });
-        } catch (emailErr) {
-          console.error('[Welcome Email] Failed to send hospital approval email:', emailErr);
-        }
+        await sendEmail({
+          to: adminEmail,
+          subject: `RaktSetu – Hospital Application Approved: ${hospitalName}`,
+          html: approvalHtml
+        });
       }
     } else if (status === 'rejected') {
       // Suspend linked admin/staff users in DB
@@ -491,16 +478,7 @@ async function updateUser(req, res, next) {
 
         // Send welcome email to district officer
         if (currentUser.email) {
-          const getFrontendOrigin = (req) => {
-            const origin = req.headers.origin || req.get('origin');
-            if (origin) {
-              return origin.split(',')[0].trim().replace(/\/+$/, '');
-            }
-            const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-            const firstOrigin = corsOrigin.split(',')[0].trim();
-            return firstOrigin.replace(/\/+$/, '');
-          };
-          const loginUrl = `${getFrontendOrigin(req)}/login`;
+          const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/login`;
           const designationLabel = currentUser.designation || 'District Health Officer';
           const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -598,15 +576,11 @@ async function updateUser(req, res, next) {
 </body>
 </html>`;
 
-          try {
-            await sendEmail({
-              to: currentUser.email,
-              subject: `RaktSetu – Your Appointment as ${designationLabel}`,
-              html: welcomeHtml
-            });
-          } catch (emailErr) {
-            console.error('[Welcome Email] Failed to send district officer welcome email:', emailErr);
-          }
+          await sendEmail({
+            to: currentUser.email,
+            subject: `RaktSetu – Your Appointment as ${designationLabel}`,
+            html: welcomeHtml
+          });
         }
       }
 
@@ -625,14 +599,6 @@ async function updateUser(req, res, next) {
     );
 
     await connection.commit();
-
-    const redis = require('../config/redis');
-    try {
-      await redis.del(`user:${userId}`);
-      await redis.del(`token_version:${userId}`);
-    } catch (redisErr) {
-      console.warn('[Redis] Connection failed on user update:', redisErr.message);
-    }
 
     const [updatedRows] = await pool.query('SELECT id, role, status FROM users WHERE id = ?', [userId]);
     const updatedUser = updatedRows[0];
@@ -692,9 +658,9 @@ async function triggerBackup(req, res, next) {
     const filename = `raktsetu_backup_${Date.now()}.sql`;
     const filepath = path.join(backupDir, filename);
 
-    const dbUser = process.env.DB_USER || process.env.DB_USERNAME || 'root';
+    const dbUser = process.env.DB_USER || 'root';
     const dbHost = process.env.DB_HOST || '127.0.0.1';
-    const dbName = process.env.DB_NAME || process.env.DB_DATABASE || 'raktsetu';
+    const dbName = process.env.DB_NAME || 'raktsetu';
     const dbPort = process.env.DB_PORT || '3306';
 
     // Validate parameters
@@ -792,16 +758,7 @@ async function createStateAdmin(req, res, next) {
     );
 
     // ── Send welcome / appointment letter email ──────────────────────────────
-    const getFrontendOrigin = (req) => {
-      const origin = req.headers.origin || req.get('origin');
-      if (origin) {
-        return origin.split(',')[0].trim().replace(/\/+$/, '');
-      }
-      const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-      const firstOrigin = corsOrigin.split(',')[0].trim();
-      return firstOrigin.replace(/\/+$/, '');
-    };
-    const loginUrl = `${getFrontendOrigin(req)}/state/login`;
+    const loginUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/state/login`;
     const designationLabel = designation || 'State Health Coordinator';
     const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -899,15 +856,11 @@ async function createStateAdmin(req, res, next) {
 </body>
 </html>`;
 
-    try {
-      await sendEmail({
-        to: email.toLowerCase().trim(),
-        subject: `RaktSetu – Your Appointment as ${designationLabel}, ${stateName}`,
-        html: welcomeHtml
-      });
-    } catch (emailErr) {
-      console.error('[Welcome Email] Failed to send state coordinator welcome email:', emailErr);
-    }
+    await sendEmail({
+      to: email.toLowerCase().trim(),
+      subject: `RaktSetu – Your Appointment as ${designationLabel}, ${stateName}`,
+      html: welcomeHtml
+    });
     // ── End welcome email ────────────────────────────────────────────────────
 
     await connection.commit();

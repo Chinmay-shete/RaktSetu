@@ -123,12 +123,7 @@ export const HospitalProvider = ({ children }) => {
     }));
   };
 
-  const updateAlertThresholds = async (thresholds) => {
-    try {
-      await api.put('/admin/thresholds', thresholds);
-    } catch (e) {
-      console.error("Failed to persist alert thresholds to database", e);
-    }
+  const updateAlertThresholds = (thresholds) => {
     setAppState(prev => ({
       ...prev,
       alertThresholds: thresholds

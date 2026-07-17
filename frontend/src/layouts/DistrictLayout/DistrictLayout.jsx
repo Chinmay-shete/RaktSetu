@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useDistrict } from '../../context/DistrictContext';
 import { 
   LayoutDashboard, 
@@ -10,6 +10,7 @@ import {
   Building2, 
   LogOut, 
   Bell, 
+  Menu, 
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useDistrict } from '../../context/DistrictContext';
 import { CheckCircle, AlertTriangle, Radio } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';

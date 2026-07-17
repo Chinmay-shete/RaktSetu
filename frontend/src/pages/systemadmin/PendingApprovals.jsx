@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSystemAdmin } from '../../context/SystemAdminContext';
-import { Building2, Award, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Building2, ShieldAlert, Award, FileText, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 export const PendingApprovals = () => {
   const { 

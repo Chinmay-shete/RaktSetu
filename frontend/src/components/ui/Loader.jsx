@@ -1,3 +1,4 @@
+import React from 'react';
 import { Heart } from 'lucide-react';
 
 export const Loader = ({ message = "Loading dashboard..." }) => {

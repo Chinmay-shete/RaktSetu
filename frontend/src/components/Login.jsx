@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { createRecaptchaVerifier, sendFirebaseOtp, isFirebaseConfigured, auth } from '../services/firebaseConfig';
@@ -210,7 +210,7 @@ const Login = () => {
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
       syncAuth();
 
-      // Check for live coordinates on login in the background without blocking navigation
+      // Check for live coordinates on login
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
@@ -249,16 +249,18 @@ const Login = () => {
               }
             } catch (err) {
               console.error('Failed to sync location on login:', err);
+            } finally {
+              navigate('/dashboard');
             }
           },
           (err) => {
             console.warn('Location permission denied on login. Keeping previous profile coordinates.');
+            navigate('/dashboard');
           }
         );
+      } else {
+        navigate('/dashboard');
       }
-      
-      // Redirect to dashboard immediately!
-      navigate('/dashboard');
     }
   };
 

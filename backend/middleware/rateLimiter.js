@@ -2,7 +2,7 @@ const rateLimit = require('express-rate-limit');
 
 const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.DISABLE_RATE_LIMIT === 'true' ? 100 : 5, // Limit each IP to 5 login requests per window (100 if disabled)
+  max: 5, // Limit each IP to 5 login requests per window
   message: {
     error: true,
     message: 'Too many login attempts, please try again after 15 minutes.',
@@ -10,7 +10,7 @@ const loginRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req, res) => process.env.NODE_ENV !== 'production' || process.env.DISABLE_RATE_LIMIT === 'true',
+  skip: (req, res) => process.env.NODE_ENV !== 'production',
 });
 
 const sendOtpRateLimiter = rateLimit({

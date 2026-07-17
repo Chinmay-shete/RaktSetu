@@ -10,7 +10,6 @@ const { initializeApp, cert } = require('firebase-admin');
 const { getAuth } = require('firebase-admin/auth');
 const fs = require('fs');
 const path = require('path');
-const { logger } = require('./logger');
 require('dotenv').config();
 
 const saPath = process.env.FIREBASE_SA_PATH;
@@ -27,14 +26,14 @@ if (saPath) {
     });
 
     firebaseAuth = getAuth(app);
-    logger.info('[Firebase] Admin SDK initialized successfully.');
+    console.log('[Firebase] Admin SDK initialized successfully.');
   } catch (err) {
-    logger.error(`[Firebase] Failed to initialize Admin SDK: ${err.message}`);
-    logger.error('[Firebase] Donor phone OTP via Firebase will not work.');
+    console.error('[Firebase] Failed to initialize Admin SDK:', err.message);
+    console.error('[Firebase] Donor phone OTP via Firebase will not work.');
   }
 } else {
-  logger.warn('[Firebase] FIREBASE_SA_PATH not set. Firebase Auth disabled.');
-  logger.warn('[Firebase] Donor phone OTP will not work until configured.');
+  console.warn('[Firebase] FIREBASE_SA_PATH not set. Firebase Auth disabled.');
+  console.warn('[Firebase] Donor phone OTP will not work until configured.');
 }
 
 module.exports = { firebaseAuth };
