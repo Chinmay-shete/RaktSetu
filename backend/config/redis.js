@@ -3,9 +3,11 @@ const Redis = require('ioredis');
 let redis;
 if (process.env.REDIS_URL) {
   redis = new Redis(process.env.REDIS_URL, {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 1,
     enableReadyCheck: false,
     lazyConnect: true,
+    enableOfflineQueue: false,
+    connectTimeout: 2000,
   });
 } else {
   redis = new Redis({
@@ -14,9 +16,11 @@ if (process.env.REDIS_URL) {
     password: process.env.REDIS_PASSWORD || undefined,
     tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
     retryDelayOnFailover: 100,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 1,
     enableReadyCheck: false,
     lazyConnect: true,
+    enableOfflineQueue: false,
+    connectTimeout: 2000,
   });
 }
 

@@ -210,7 +210,7 @@ const Login = () => {
       localStorage.setItem('raktsetu_donor_profile', JSON.stringify(user));
       syncAuth();
 
-      // Check for live coordinates on login
+      // Check for live coordinates on login in the background without blocking navigation
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
@@ -249,18 +249,16 @@ const Login = () => {
               }
             } catch (err) {
               console.error('Failed to sync location on login:', err);
-            } finally {
-              navigate('/dashboard');
             }
           },
           (err) => {
             console.warn('Location permission denied on login. Keeping previous profile coordinates.');
-            navigate('/dashboard');
           }
         );
-      } else {
-        navigate('/dashboard');
       }
+      
+      // Redirect to dashboard immediately!
+      navigate('/dashboard');
     }
   };
 
