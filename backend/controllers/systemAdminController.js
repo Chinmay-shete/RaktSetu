@@ -287,11 +287,15 @@ async function approveOrRejectHospital(req, res, next) {
 </body>
 </html>`;
 
-        await sendEmail({
-          to: adminEmail,
-          subject: `RaktSetu – Hospital Application Approved: ${hospitalName}`,
-          html: approvalHtml
-        });
+        try {
+          await sendEmail({
+            to: adminEmail,
+            subject: `RaktSetu – Hospital Application Approved: ${hospitalName}`,
+            html: approvalHtml
+          });
+        } catch (emailErr) {
+          console.error('[Welcome Email] Failed to send hospital approval email:', emailErr);
+        }
       }
     } else if (status === 'rejected') {
       // Suspend linked admin/staff users in DB
@@ -594,11 +598,15 @@ async function updateUser(req, res, next) {
 </body>
 </html>`;
 
-          await sendEmail({
-            to: currentUser.email,
-            subject: `RaktSetu – Your Appointment as ${designationLabel}`,
-            html: welcomeHtml
-          });
+          try {
+            await sendEmail({
+              to: currentUser.email,
+              subject: `RaktSetu – Your Appointment as ${designationLabel}`,
+              html: welcomeHtml
+            });
+          } catch (emailErr) {
+            console.error('[Welcome Email] Failed to send district officer welcome email:', emailErr);
+          }
         }
       }
 
@@ -891,11 +899,15 @@ async function createStateAdmin(req, res, next) {
 </body>
 </html>`;
 
-    await sendEmail({
-      to: email.toLowerCase().trim(),
-      subject: `RaktSetu – Your Appointment as ${designationLabel}, ${stateName}`,
-      html: welcomeHtml
-    });
+    try {
+      await sendEmail({
+        to: email.toLowerCase().trim(),
+        subject: `RaktSetu – Your Appointment as ${designationLabel}, ${stateName}`,
+        html: welcomeHtml
+      });
+    } catch (emailErr) {
+      console.error('[Welcome Email] Failed to send state coordinator welcome email:', emailErr);
+    }
     // ── End welcome email ────────────────────────────────────────────────────
 
     await connection.commit();

@@ -1030,11 +1030,15 @@ async function createDistrictOfficer(req, res, next) {
 </body>
 </html>`;
 
-    await sendEmail({
-      to: email.toLowerCase().trim(),
-      subject: `RaktSetu – Your Appointment as ${designationLabel}, ${districtName.trim()}`,
-      html: welcomeHtml
-    });
+    try {
+      await sendEmail({
+        to: email.toLowerCase().trim(),
+        subject: `RaktSetu – Your Appointment as ${designationLabel}, ${districtName.trim()}`,
+        html: welcomeHtml
+      });
+    } catch (emailErr) {
+      console.error('[Welcome Email] Failed to send district officer commission email:', emailErr);
+    }
 
     await connection.commit();
 
