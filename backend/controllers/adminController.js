@@ -923,12 +923,16 @@ async function createDistrictOfficer(req, res, next) {
 
     // ── Send welcome / appointment letter email ──────────────────────────────
     const { sendEmail } = require('../services/emailService');
-    const getFrontendOrigin = () => {
+    const getFrontendOrigin = (req) => {
+      const origin = req.headers.origin || req.get('origin');
+      if (origin) {
+        return origin.split(',')[0].trim().replace(/\/+$/, '');
+      }
       const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
       const firstOrigin = corsOrigin.split(',')[0].trim();
       return firstOrigin.replace(/\/+$/, '');
     };
-    const loginUrl = `${getFrontendOrigin()}/login`;
+    const loginUrl = `${getFrontendOrigin(req)}/login`;
     const designationLabel = designation || 'District Health Officer';
     const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
