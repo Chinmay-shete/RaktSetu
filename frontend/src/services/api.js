@@ -115,6 +115,8 @@ export const hospitalApi = {
   getHospitalProfile: () => api.get('/hospital/profile').then(res => res.data),
   getStaffList: () => api.get('/hospital/staff').then(res => res.data),
   contactDonor: (id, data) => api.post(`/hospital/donors/${id}/contact`, data).then(res => res.data),
+  getAppointments: () => api.get('/hospital/appointments').then(res => res.data),
+  updateAppointmentStatus: (id, status) => api.patch(`/hospital/appointments/${id}/status`, { status }).then(res => res.data),
 };
 
 export default api;

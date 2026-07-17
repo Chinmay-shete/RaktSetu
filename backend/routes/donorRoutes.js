@@ -22,6 +22,7 @@ router.post('/location', requireRole('donor'), validateRequest(saveLocationSchem
 
 // Donation history & stats
 router.get('/donations', requireRole('donor'), donorController.listDonations);
+router.post('/appointments', requireRole('donor'), donorController.bookAppointment);
 router.get('/stats', requireRole('donor'), donorController.getStats);
 
 // Emergency requests & pledges

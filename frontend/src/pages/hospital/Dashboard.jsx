@@ -53,6 +53,11 @@ export const Dashboard = () => {
     queryFn: hospitalApi.getNotifications
   });
 
+  const { data: appointments = [], isLoading: apptLoading, refetch: refetchAppts } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: hospitalApi.getAppointments
+  });
+
   const emergencyMutation = useMutation({
     mutationFn: ({ id, status }) => hospitalApi.updateEmergencyStatus(id, status),
     onSuccess: (data, variables) => {
@@ -66,7 +71,19 @@ export const Dashboard = () => {
     }
   });
 
-  if (invLoading || transLoading || emerLoading || notifLoading) {
+  const appointmentMutation = useMutation({
+    mutationFn: ({ id, status }) => hospitalApi.updateAppointmentStatus(id, status),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast.success(`Appointment marked as ${variables.status}`);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update appointment status.');
+    }
+  });
+
+  if (invLoading || transLoading || emerLoading || notifLoading || apptLoading) {
     return <Loader message="Fetching dashboard status..." />;
   }
 
@@ -259,6 +276,53 @@ export const Dashboard = () => {
                   <CheckCircle className="h-8 w-8 text-[#22A06B] mb-2 opacity-80" />
                   <p className="text-sm font-bold text-[#A8A0A0]">No active trauma SOS requests</p>
                   <p className="text-xs text-[#7A5F5F]">Regional emergency grid is stable.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Scheduled Donor Slots */}
+          <div className="bg-white border border-[#EDE7E1] rounded-2xl p-6 shadow-sm">
+            <h3 className="text-xs font-bold text-[#7A5F5F] uppercase tracking-wider mb-4">Scheduled Donor Slots</h3>
+            <div className="flex flex-col gap-4">
+              {appointments.filter(a => a.status === 'pending').length > 0 ? (
+                appointments.filter(a => a.status === 'pending').map(appt => (
+                  <div key={appt.id} className="border border-[#EDE7E1] rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center bg-[#FAF8F5]">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#BE1F2E] px-2 py-0.5 bg-[#BE1F2E]/10 rounded border border-[#BE1F2E]/20">
+                          {appt.bloodGroup} Donor
+                        </span>
+                        <span className="text-xs text-[#737373] font-[500]">
+                          Date: {appt.date}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[#1A1210] mb-1">{appt.donorName}</h4>
+                      <p className="text-xs text-[#737373]">Email: {appt.donorEmail} | Phone: {appt.donorPhone}</p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button type="button"
+                        onClick={() => appointmentMutation.mutate({ id: appt.id, status: 'completed' })}
+                        disabled={appointmentMutation.isPending}
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 bg-[#22A06B] hover:bg-[#1C8256] text-white transition-colors rounded-lg text-xs font-bold disabled:opacity-50"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" /> Confirm Donation
+                      </button>
+                      <button type="button"
+                        onClick={() => appointmentMutation.mutate({ id: appt.id, status: 'cancelled' })}
+                        disabled={appointmentMutation.isPending}
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 bg-transparent border border-[#EDE7E1] text-[#737373] hover:bg-[#F5F0EB] hover:text-[#1A1210] transition-colors rounded-lg text-xs font-bold disabled:opacity-50"
+                      >
+                        <XCircle className="h-3.5 w-3.5" /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <CheckCircle className="h-8 w-8 text-[#22A06B]/50 mb-2" />
+                  <p className="text-sm font-bold text-[#A8A0A0]">No pending donor slots booked</p>
+                  <p className="text-xs text-[#7A5F5F]">Slots will appear here when donors book them.</p>
                 </div>
               )}
             </div>

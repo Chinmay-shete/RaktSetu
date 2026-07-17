@@ -459,13 +459,30 @@ const FindCamps = () => {
     setBookingSuccess(false);
   };
 
-  const submitBooking = (e) => {
+  const submitBooking = async (e) => {
     e.preventDefault();
-    setBookingSuccess(true);
-    toast.success(`Appointment successfully booked at ${bookingCamp.name}!`);
-    setTimeout(() => {
-      setBookingCamp(null);
-    }, 2000);
+    const token = localStorage.getItem('raktsetu_auth_token');
+    if (!token) {
+      toast.error('You must log in as a donor to book a donation slot!');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await api.post('/donor/appointments', {
+        itemId: bookingCamp.id,
+        date: bookingDate,
+        timeSlot: bookingTime
+      });
+      setBookingSuccess(true);
+      toast.success(`Appointment successfully booked at ${bookingCamp.name}!`);
+      setTimeout(() => {
+        setBookingCamp(null);
+      }, 2000);
+    } catch (err) {
+      console.error('Booking failed:', err);
+      toast.error(err.response?.data?.message || 'Failed to book slot. Please try again.');
+    }
   };
 
   const todayStr = new Date().toISOString().split('T')[0];

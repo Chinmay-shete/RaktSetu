@@ -55,6 +55,8 @@ router.get('/hospital/staff', hospitalStaffRoles, hospitalController.listStaff);
 // Donor Search & Contact
 router.get('/hospital/donors/search', hospitalStaffRoles, hospitalController.searchDonors);
 router.post('/hospital/donors/:id/contact', hospitalStaffRoles, hospitalController.contactDonor);
+router.get('/hospital/appointments', hospitalStaffRoles, hospitalController.listAppointments);
+router.patch('/hospital/appointments/:id/status', hospitalStaffRoles, hospitalController.updateAppointmentStatus);
 
 // Emergency Routing
 router.get('/hospital/emergencies', hospitalStaffRoles, hospitalController.listEmergencies);

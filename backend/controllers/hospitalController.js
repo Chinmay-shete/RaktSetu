@@ -1558,6 +1558,98 @@ async function updateHospitalProfile(req, res, next) {
   }
 }
 
+/**
+ * GET /hospital/appointments
+ */
+async function listAppointments(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const [rows] = await pool.query(
+      `SELECT d.id, d.donation_date, d.donation_type, d.units, d.status, d.created_at,
+              don.full_name AS donor_name, don.blood_group, u.email AS donor_email, u.phone AS donor_phone
+       FROM donations d
+       INNER JOIN donors don ON don.id = d.donor_id
+       INNER JOIN users u ON u.id = don.user_id
+       WHERE d.hospital_id = ?
+       ORDER BY d.donation_date DESC, d.id DESC`,
+      [hospitalId]
+    );
+
+    const appointments = rows.map(row => ({
+      id: row.id,
+      date: row.donation_date ? new Date(row.donation_date).toISOString().split('T')[0] : null,
+      type: row.donation_type === 'whole_blood' ? 'Whole Blood' : row.donation_type === 'platelets' ? 'Platelets' : 'Plasma',
+      units: row.units,
+      status: row.status,
+      donorName: row.donor_name,
+      bloodGroup: row.blood_group,
+      donorEmail: row.donor_email,
+      donorPhone: row.donor_phone,
+      createdAt: row.created_at
+    }));
+
+    return res.status(200).json(appointments);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /hospital/appointments/:id/status
+ */
+async function updateAppointmentStatus(req, res, next) {
+  try {
+    const hospitalId = req.user.hospital_id;
+    if (!hospitalId) {
+      throw new ApiError('User is not associated with any hospital', 403, 'FORBIDDEN');
+    }
+
+    const { id } = req.params;
+    const { status } = req.body; // 'completed' or 'cancelled' or 'pending'
+
+    if (!['completed', 'cancelled', 'pending'].includes(status)) {
+      throw new ApiError('Invalid status value', 400, 'INVALID_STATUS');
+    }
+
+    // Verify ownership/association
+    const [existing] = await pool.query(
+      'SELECT d.id, d.donor_id, don.blood_group FROM donations d INNER JOIN donors don ON don.id = d.donor_id WHERE d.id = ? AND d.hospital_id = ?',
+      [id, hospitalId]
+    );
+    if (existing.length === 0) {
+      throw new ApiError('Appointment not found or unauthorized', 404, 'NOT_FOUND');
+    }
+
+    const donation = existing[0];
+
+    // Update status
+    await pool.query(
+      'UPDATE donations SET status = ? WHERE id = ?',
+      [status, id]
+    );
+
+    // If marked as completed, update the donor's last donation date and count
+    if (status === 'completed') {
+      const todayStr = new Date().toISOString().split('T')[0];
+      await pool.query(
+        `UPDATE donors 
+         SET last_donated_date = ?, 
+             past_donations = COALESCE(past_donations, 0) + 1 
+         WHERE id = ?`,
+        [todayStr, donation.donor_id]
+      );
+    }
+
+    return res.status(200).json({ message: `Appointment status updated to ${status}` });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getInventory,
   addInventory,
@@ -1584,6 +1676,9 @@ module.exports = {
   getHospitalProfile,
   updateHospitalProfile,
   listStaff,
-  contactDonor
+  contactDonor,
+  listAppointments,
+  updateAppointmentStatus
 };
+
 

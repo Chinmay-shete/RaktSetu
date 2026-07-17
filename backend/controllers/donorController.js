@@ -588,6 +588,81 @@ async function saveDemoRequest(req, res, next) {
   }
 }
 
+/**
+ * POST /donor/appointments
+ */
+async function bookAppointment(req, res, next) {
+  try {
+    const donor = await getDonorByUserId(req.user.id);
+    if (!donor) {
+      throw new ApiError('Donor profile not found. Please complete profile setup first.', 404, 'PROFILE_NOT_FOUND');
+    }
+
+    const { itemId, date, timeSlot } = req.body;
+    if (!itemId || !date) {
+      throw new ApiError('Location ID and preferred date are required', 400, 'MISSING_FIELDS');
+    }
+
+    // Parse whether it's a camp or a hospital
+    const isCamp = itemId.startsWith('camp-');
+    const isHospital = itemId.startsWith('hosp-');
+    const originalId = parseInt(itemId.replace(/^(camp-|hosp-)/, ''), 10);
+
+    let hospitalId = null;
+    let campId = null;
+    let locationName = '';
+
+    if (isCamp) {
+      campId = originalId;
+      const [campRows] = await pool.query('SELECT name, address FROM donation_camps WHERE id = ?', [campId]);
+      if (campRows.length === 0) {
+        throw new ApiError('Donation camp not found', 404, 'CAMP_NOT_FOUND');
+      }
+      locationName = campRows[0].name || campRows[0].address;
+    } else if (isHospital) {
+      hospitalId = originalId;
+      const [hospRows] = await pool.query('SELECT name, address FROM hospitals WHERE id = ?', [hospitalId]);
+      if (hospRows.length === 0) {
+        throw new ApiError('Hospital not found', 404, 'HOSPITAL_NOT_FOUND');
+      }
+      locationName = hospRows[0].name;
+    } else {
+      throw new ApiError('Invalid location/item identifier', 400, 'INVALID_ITEM_ID');
+    }
+
+    // Insert pending donation (acting as appointment booking)
+    const [result] = await pool.query(
+      `INSERT INTO donations (donor_id, hospital_id, camp_id, donation_date, location_name, donation_type, units, status)
+       VALUES (?, ?, ?, ?, ?, 'whole_blood', 1, 'pending')`,
+      [donor.id, hospitalId, campId, date, locationName]
+    );
+
+    // Create system notification for hospital / camp if it's hospital-associated
+    if (hospitalId) {
+      try {
+        await pool.query(
+          `INSERT INTO notifications (hospital_id, title, message, type)
+           VALUES (?, ?, ?, 'info')`,
+          [
+            hospitalId,
+            'New Blood Donation Appointment',
+            `Donor ${donor.full_name} (${donor.blood_group}) booked a slot for ${date} at ${timeSlot || '09:00 AM'}`
+          ]
+        );
+      } catch (notifErr) {
+        console.warn('Failed to dispatch notification:', notifErr.message);
+      }
+    }
+
+    return res.status(201).json({
+      message: 'Slot booked successfully',
+      bookingId: result.insertId
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getProfile,
   createProfile,
@@ -598,5 +673,7 @@ module.exports = {
   listUrgentRequests,
   pledgeEmergency,
   listCamps,
-  saveDemoRequest
+  saveDemoRequest,
+  bookAppointment
 };
+

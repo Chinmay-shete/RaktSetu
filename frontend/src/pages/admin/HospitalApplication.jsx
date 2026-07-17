@@ -115,6 +115,30 @@ const HospitalApplication = () => {
 
         const uploadedFilename = uploadRes.data.filename;
 
+        // Resolve coordinates dynamically based on hospital name, address, city, state
+        let resolvedLat = 18.5204;
+        let resolvedLng = 73.8567;
+        try {
+          const query = encodeURIComponent(`${formData.hospitalName}, ${formData.address}, ${formData.city}, ${formData.state}`);
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
+          const geoData = await geoRes.json();
+          if (geoData && geoData.length > 0) {
+            resolvedLat = parseFloat(geoData[0].lat);
+            resolvedLng = parseFloat(geoData[0].lon);
+          } else {
+            // Fallback: search at city/state level
+            const cityQuery = encodeURIComponent(`${formData.city}, ${formData.state}`);
+            const geoResCity = await fetch(`https://nominatim.openstreetmap.org/search?q=${cityQuery}&format=json&limit=1`);
+            const geoDataCity = await geoResCity.json();
+            if (geoDataCity && geoDataCity.length > 0) {
+              resolvedLat = parseFloat(geoDataCity[0].lat);
+              resolvedLng = parseFloat(geoDataCity[0].lon);
+            }
+          }
+        } catch (geoErr) {
+          console.warn('[Geocoding] Nominatim lookup failed, using Pune fallback:', geoErr);
+        }
+
         // Register hospital admin user on backend
         await api.post('/auth/register', {
           role: 'admin',
@@ -128,8 +152,8 @@ const HospitalApplication = () => {
           district: formData.district,
           state: formData.state,
           pincode: formData.pincode,
-          lat: 18.5204, // Default Pune lat
-          lng: 73.8567, // Default Pune lng
+          lat: resolvedLat,
+          lng: resolvedLng,
           licenseDocument: uploadedFilename,
           ownerName: formData.ownerName
         });
