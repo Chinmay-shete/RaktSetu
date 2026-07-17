@@ -7,6 +7,10 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  server: {
+    host: true, // Expose on 0.0.0.0 so phones on the same WiFi can access the dev server
+    port: 5173,
+  },
   build: {
     target: 'esnext',
     rollupOptions: {

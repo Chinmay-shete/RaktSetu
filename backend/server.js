@@ -114,6 +114,20 @@ const rateLimitWindowMs = 60 * 1000;
 const rateLimitMaxRequests = 100;
 const ipRequestMap = new Map();
 
+// ── Memory-safe GC: prune stale IP entries every 5 minutes ──────────────────
+// Without this, the Map grows forever and eventually crashes Render (OOM kill).
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, timestamps] of ipRequestMap.entries()) {
+    const active = timestamps.filter(t => now - t < rateLimitWindowMs);
+    if (active.length === 0) {
+      ipRequestMap.delete(ip);
+    } else {
+      ipRequestMap.set(ip, active);
+    }
+  }
+}, 5 * 60 * 1000);
+
 function rateLimiter(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const now = Date.now();

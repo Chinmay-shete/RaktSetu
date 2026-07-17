@@ -181,16 +181,12 @@ async function approveOrRejectHospital(req, res, next) {
         const adminEmail = adminUserRows[0].email;
         const adminName = adminUserRows[0].full_name || 'Hospital Representative';
         const hospitalName = hospRows[0].name;
-        const getFrontendOrigin = (req) => {
-          const origin = req.headers.origin || req.get('origin');
-          if (origin) {
-            return origin.split(',')[0].trim().replace(/\/+$/, '');
-          }
-          const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-          const firstOrigin = corsOrigin.split(',')[0].trim();
-          return firstOrigin.replace(/\/+$/, '');
-        };
-        const loginUrl = `${getFrontendOrigin(req)}/login`;
+        // Use explicit FRONTEND_URL env var for email links.
+        // This ensures production emails link to https://raktsetu.online, not localhost.
+        const frontendOrigin = process.env.FRONTEND_URL ||
+          (req.headers.origin ? req.headers.origin.split(',')[0].trim().replace(/\/+$/, '') : null) ||
+          (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',')[0].trim().replace(/\/+$/, '') : 'http://localhost:5173');
+        const loginUrl = `${frontendOrigin}/login`;
         const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
         const approvalHtml = `
@@ -491,16 +487,11 @@ async function updateUser(req, res, next) {
 
         // Send welcome email to district officer
         if (currentUser.email) {
-          const getFrontendOrigin = (req) => {
-            const origin = req.headers.origin || req.get('origin');
-            if (origin) {
-              return origin.split(',')[0].trim().replace(/\/+$/, '');
-            }
-            const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-            const firstOrigin = corsOrigin.split(',')[0].trim();
-            return firstOrigin.replace(/\/+$/, '');
-          };
-          const loginUrl = `${getFrontendOrigin(req)}/login`;
+          // Use explicit FRONTEND_URL env var for email links.
+          const frontendOrigin = process.env.FRONTEND_URL ||
+            (req.headers.origin ? req.headers.origin.split(',')[0].trim().replace(/\/+$/, '') : null) ||
+            (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',')[0].trim().replace(/\/+$/, '') : 'http://localhost:5173');
+          const loginUrl = `${frontendOrigin}/login`;
           const designationLabel = currentUser.designation || 'District Health Officer';
           const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -792,16 +783,11 @@ async function createStateAdmin(req, res, next) {
     );
 
     // ── Send welcome / appointment letter email ──────────────────────────────
-    const getFrontendOrigin = (req) => {
-      const origin = req.headers.origin || req.get('origin');
-      if (origin) {
-        return origin.split(',')[0].trim().replace(/\/+$/, '');
-      }
-      const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-      const firstOrigin = corsOrigin.split(',')[0].trim();
-      return firstOrigin.replace(/\/+$/, '');
-    };
-    const loginUrl = `${getFrontendOrigin(req)}/state/login`;
+    // Use explicit FRONTEND_URL env var for email links.
+    const frontendOrigin = process.env.FRONTEND_URL ||
+      (req.headers.origin ? req.headers.origin.split(',')[0].trim().replace(/\/+$/, '') : null) ||
+      (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',')[0].trim().replace(/\/+$/, '') : 'http://localhost:5173');
+    const loginUrl = `${frontendOrigin}/state/login`;
     const designationLabel = designation || 'State Health Coordinator';
     const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 

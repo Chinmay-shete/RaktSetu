@@ -1002,24 +1002,42 @@ async function getForecastGateway(req, res, next) {
 
     const aiServiceUrl = process.env.AI_SERVICE_URL;
 
-    // 2. Dispatch Celery tasks for all 8 blood groups in parallel
-    const taskPromises = bloodGroups.map(async (bg) => {
-      const response = await fetch(`${aiServiceUrl}/api/v1/forecast`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
-        },
-        body: JSON.stringify({
-          hospital_id: hospitalId,
-          blood_group: bg,
-          days: days
-        })
-      });
-      if (!response.ok) {
-        throw new ApiError(`Failed to dispatch forecast task for ${bg}`, 502, 'AI_SERVICE_ERROR');
+    // Helper: fetch with a hard timeout so slow AI service doesn't block indefinitely
+    const fetchWithTimeout = async (url, options = {}, timeoutMs = 10000) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const resp = await fetch(url, { ...options, signal: controller.signal });
+        return resp;
+      } finally {
+        clearTimeout(timer);
       }
-      return { bg, data: await response.json() };
+    };
+
+    // 2. Dispatch tasks for all 8 blood groups in parallel
+    const taskPromises = bloodGroups.map(async (bg) => {
+      try {
+        const response = await fetchWithTimeout(`${aiServiceUrl}/api/v1/forecast`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+          },
+          body: JSON.stringify({
+            hospital_id: hospitalId,
+            blood_group: bg,
+            days: days
+          })
+        }, 10000);
+        if (!response.ok) {
+          console.warn(`[AI] Forecast dispatch failed for ${bg}: HTTP ${response.status}`);
+          return { bg, data: null };
+        }
+        return { bg, data: await response.json() };
+      } catch (err) {
+        console.warn(`[AI] Forecast dispatch error for ${bg}:`, err.message);
+        return { bg, data: null };
+      }
     });
 
     const dispatched = await Promise.all(taskPromises);
@@ -1028,6 +1046,10 @@ async function getForecastGateway(req, res, next) {
     const finalForecasts = {};
     for (const item of dispatched) {
       const { bg, data } = item;
+      if (!data) {
+        finalForecasts[bg] = null;
+        continue;
+      }
       if (data.status === 'ready') {
         finalForecasts[bg] = data.data;
       } else if (data.status === 'generating') {
@@ -1040,23 +1062,26 @@ async function getForecastGateway(req, res, next) {
           await new Promise(resolve => setTimeout(resolve, 1000));
           attempts++;
           
-          const statusResponse = await fetch(`${aiServiceUrl}/api/v1/forecast/status/${taskId}`, {
-            headers: {
-              'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+          try {
+            const statusResponse = await fetchWithTimeout(`${aiServiceUrl}/api/v1/forecast/status/${taskId}`, {
+              headers: {
+                'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+              }
+            }, 5000);
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              if (statusData.status === 'ready') {
+                taskResult = statusData.data;
+                completed = true;
+              } else if (statusData.status === 'error') {
+                console.warn(`[AI] Background forecast task failed for ${bg}`);
+                completed = true; // stop polling, taskResult stays null
+              }
             }
-          });
-          if (statusResponse.ok) {
-            const statusData = await statusResponse.json();
-            if (statusData.status === 'ready') {
-              taskResult = statusData.data;
-              completed = true;
-            } else if (statusData.status === 'error') {
-              throw new ApiError(`Background forecast task failed for ${bg}`, 502, 'AI_SERVICE_ERROR');
-            }
+          } catch (pollErr) {
+            console.warn(`[AI] Polling error for ${bg} task ${taskId}:`, pollErr.message);
+            completed = true;
           }
-        }
-        if (!completed) {
-          throw new ApiError(`Background forecast task timed out for ${bg}`, 502, 'AI_SERVICE_ERROR');
         }
         finalForecasts[bg] = taskResult;
       }
@@ -1101,9 +1126,15 @@ async function getForecastGateway(req, res, next) {
 
     return res.status(200).json(resultPayload);
   } catch (error) {
-    next(error);
+    // CRITICAL: Return a safe empty fallback instead of crashing the dashboard
+    console.error('[Forecast] Unhandled error in getForecastGateway:', error.message);
+    return res.status(200).json({
+      forecast: [],
+      bloodGroupBreakdown: { 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'O+': 0, 'O-': 0, 'AB+': 0, 'AB-': 0 }
+    });
   }
 }
+
 
 /**
  * GET /admin/waste-analytics
@@ -1112,17 +1143,34 @@ async function getWasteAnalyticsGateway(req, res, next) {
   try {
     const hospitalId = req.user.hospital_id;
     const aiServiceUrl = process.env.AI_SERVICE_URL;
-    const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics?hospitalId=${hospitalId}`, {
-      headers: {
-        'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
-      }
-    });
-    if (!response.ok) {
-      throw new ApiError('Failed to fetch waste analytics from AI service', 502, 'AI_SERVICE_ERROR');
-    }
 
-    const data = await response.json();
-    return res.status(200).json(data);
+    // 10-second hard timeout for waste analytics
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`${aiServiceUrl}/api/v1/waste-analytics?hospitalId=${hospitalId}`, {
+        headers: {
+          'X-Internal-Token': process.env.INTERNAL_API_SECRET || 'super_secret_internal_token_2026'
+        },
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      if (!response.ok) {
+        throw new Error(`AI service HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      return res.status(200).json(data);
+    } catch (fetchErr) {
+      clearTimeout(timer);
+      console.warn('[WasteAnalytics] AI service unavailable, returning fallback:', fetchErr.message);
+      // Return a safe empty fallback so the dashboard doesn't crash
+      return res.status(200).json({
+        totalCollected: 0, totalReserved: 0, totalAvailable: 0, totalExpired: 0,
+        expiringSoon: 0, wastageRate: 0, usageRate: 0, monthlyUsage: [],
+        bloodDemandByGroup: { labels: [], demand: [], supply: [] },
+        transferSuccessRate: 100, totalTransfers: 0, completedTransfers: 0, failedTransfers: 0
+      });
+    }
   } catch (error) {
     next(error);
   }
