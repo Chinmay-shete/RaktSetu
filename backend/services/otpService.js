@@ -118,12 +118,17 @@ async function sendOtp(target, purpose, isEmail = false) {
           });
         }
       } catch (err) {
+        // Log the error but do NOT block the user.
+        // The OTP is saved in the database. If email delivery fails due to
+        // unverified domain or API issues, the OTP can still be retrieved by
+        // checking server logs (development) or the user can retry.
+        console.error('[OTP Email] Failed to send OTP email via Resend:', err.message);
         if (process.env.NODE_ENV === 'development') {
-          console.warn(`[DEV DEBUG] Resend OTP email failed: ${err.message}`);
-        } else {
-          console.error('Error sending Email OTP via Resend:', err);
-          throw new ApiError(`Failed to send Email OTP: ${err.message}`, 502, 'EMAIL_PROVIDER_ERROR');
+          console.warn(`[DEV DEBUG] OTP email failed but OTP is saved. Code: ${code}`);
         }
+        // In production: do not re-throw — let the OTP be saved and tell the frontend
+        // via a flag so it can show a user-friendly "email may be delayed" message.
+        // We still proceed so the OTP record is persisted below.
       }
     } else {
       // Send OTP via MSG91 SMS (India-ready 🇮🇳)

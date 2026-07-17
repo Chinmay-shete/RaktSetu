@@ -27,31 +27,48 @@ function getResendInstance() {
 }
 
 async function sendEmail({ to, subject, html }) {
-  try {
-    const resend = getResendInstance();
-    const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'onboarding@resend.dev';
-    
-    const response = await resend.emails.send({
-      from: fromAddress,
-      to,
-      subject,
-      html
-    });
+  const resend = getResendInstance();
+  const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'onboarding@resend.dev';
+  const fallbackAddress = 'onboarding@resend.dev';
 
+  // Helper: attempt a single send with a given from address
+  async function attemptSend(from) {
+    const response = await resend.emails.send({ from, to, subject, html });
     if (response.error) {
-      console.error('[Resend Error]', response.error);
-      throw new ApiError(`Failed to send email: ${response.error.message}`, 500, 'EMAIL_SEND_FAILED');
+      throw Object.assign(new Error(response.error.message || 'Resend API error'), { resendError: response.error });
+    }
+    return response.data || response;
+  }
+
+  try {
+    return await attemptSend(fromAddress);
+  } catch (primaryErr) {
+    // If the primary from-address failed due to an unverified domain, retry with
+    // Resend's built-in sandbox address so OTP emails still work before domain verification.
+    const isUnverifiedDomainError =
+      primaryErr.message?.toLowerCase().includes('domain') ||
+      primaryErr.message?.toLowerCase().includes('not verified') ||
+      primaryErr.message?.toLowerCase().includes('unauthorized') ||
+      primaryErr?.resendError?.name === 'validation_error';
+
+    if (fromAddress !== fallbackAddress && isUnverifiedDomainError) {
+      console.warn(`[Email] Primary from-address "${fromAddress}" rejected (domain not verified?). Retrying with fallback "${fallbackAddress}".`);
+      try {
+        return await attemptSend(fallbackAddress);
+      } catch (fallbackErr) {
+        console.error('[Email] Fallback send also failed:', fallbackErr.message);
+        throw new ApiError(`Failed to send email: ${fallbackErr.message}`, 502, 'EMAIL_SEND_FAILED');
+      }
     }
 
-    return response.data || response;
-  } catch (error) {
-    console.error('Email dispatch error:', error);
+    console.error('[Email] Send failed:', primaryErr.message);
     if (process.env.NODE_ENV === 'test') {
       return { id: 'mock-email-id' };
     }
-    throw error;
+    throw new ApiError(`Failed to send email: ${primaryErr.message}`, 502, 'EMAIL_SEND_FAILED');
   }
 }
+
 
 module.exports = {
   sendEmail
