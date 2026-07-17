@@ -173,7 +173,24 @@ const LocationPage = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to submit profile to backend:', err);
-      alert('Failed to save profile. Please try again.');
+      const status = err?.response?.status;
+      const code   = err?.response?.data?.code;
+
+      if (status === 401) {
+        // Session expired mid-flow — clear auth and go to login
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('raktsetu_')) localStorage.removeItem(k); });
+        navigate('/login');
+        return;
+      }
+
+      if (code === 'PROFILE_EXISTS') {
+        // Profile was already created (double-submit) — skip ahead to dashboard
+        localStorage.setItem('raktsetu_donor_authenticated', 'true');
+        navigate('/dashboard');
+        return;
+      }
+
+      alert('Failed to save profile. Please check your connection and try again.');
     }
   };
 

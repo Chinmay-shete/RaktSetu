@@ -72,11 +72,27 @@ const Dashboard = () => {
       setUrgentRequests(urgentRes.data.requests || []);
     } catch (err) {
       console.error('Dashboard load error', err);
+      const status = err?.response?.status;
+      const code   = err?.response?.data?.code;
+
+      if (status === 401) {
+        // Token expired and refresh failed — send to login
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('raktsetu_')) localStorage.removeItem(k); });
+        navigate('/login');
+        return;
+      }
+
+      if (status === 404 || code === 'PROFILE_NOT_FOUND') {
+        // Donor completed auth but never finished profile setup
+        navigate('/profile-setup');
+        return;
+      }
+
       setError('Failed to load your dashboard. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const stored = localStorage.getItem('raktsetu_donor_profile');
